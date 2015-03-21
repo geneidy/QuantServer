@@ -4,7 +4,7 @@
 #include "Util.h"
 
 #include "ITCHMessages.h"
-// #include "DBLayer.h"
+#include "DBLayer.h"
 
 
 class CFillMsgStructs
@@ -15,29 +15,29 @@ public:
 
 	int DirectToMethod(UINT8* strMsg);
 
-	int	SystemEvent(UINT8* strMsg);
-	int	StockDirectory(UINT8* strMsg);
-	int StockTradingAction(UINT8* strMsg);
-	int RegShoRestriction(UINT8* strMsg);
-	int Market_Participant_Position(UINT8* strMsg);
-	int MWCBDeclineLevelMessage(UINT8* uiMsg);
-	int MWCBBreachMessage(UINT8* uiMsg);
-	int IPOQuotingPeriodUpdate(UINT8* uiMsg);
-	int AddOrderNoMPIDMessage(UINT8* uiMsg);
+//	int	SystemEvent(UINT8* strMsg);
+//	int	StockDirectory(UINT8* strMsg);
+//	int StockTradingAction(UINT8* strMsg);
+//	int RegShoRestriction(UINT8* strMsg);
+//	int Market_Participant_Position(UINT8* strMsg);
+//	int MWCBDeclineLevelMessage(UINT8* uiMsg);
+//	int MWCBBreachMessage(UINT8* uiMsg);
+//	int IPOQuotingPeriodUpdate(UINT8* uiMsg);
+//	int AddOrderNoMPIDMessage(UINT8* uiMsg);
 	int AddOrderWithMPID(UINT8* uiMsg);
-	int OrderExecutionMessage(UINT8* uiMsg);
-	int OrderExecutionWithPriceMessage(UINT8* uiMsg);
-	int OrderCancelMessage(UINT8* uiMsg);
-	int OrderDelete(UINT8* uiMsg);
-	int OrderReplace(UINT8* uiMsg);
-	int TradeMessageNonCross(UINT8* uiMsg);
-	int NOII(UINT8* uiMsg);
-	int RetailPriceImprovementIndicator(UINT8* uiMsg);
+//	int OrderExecutionMessage(UINT8* uiMsg);
+//	int OrderExecutionWithPriceMessage(UINT8* uiMsg);
+//	int OrderCancelMessage(UINT8* uiMsg);
+//	int OrderDelete(UINT8* uiMsg);
+//	int OrderReplace(UINT8* uiMsg);
+//	int TradeMessageNonCross(UINT8* uiMsg);
+//	int NOII(UINT8* uiMsg);
+//	int RetailPriceImprovementIndicator(UINT8* uiMsg);
 
 	FEED_MESSAGE_STATS GetStats();
 
 	CUtil										*m_pCUtil;
-	//CDBLayer*	m_pDBLayer;
+	CDBLayer*	m_pDBLayer;
 
 	bool		m_bConnected;
 

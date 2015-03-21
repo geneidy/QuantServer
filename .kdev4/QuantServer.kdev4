@@ -139,13 +139,21 @@ Name=New Compiled Binary Launcher
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=~/tmp/06022014.NASDAQ_ITCH50 1000000
+Arguments=06022014.NASDAQ_ITCH50 1000000
+Debugger Shell=
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
+Display Demangle Names=true
+Display Static Members=false
 EnvironmentGroup=
 Executable=file:///home/devbox/projects/QuantServer/QuantServer
 External Terminal=konsole --noclose --workdir %workdir -e %exe
+GDB Path=
 Project Target=
+Remote GDB Config Script=
+Remote GDB Run Script=
+Remote GDB Shell Script=
+Start With=ApplicationOutput
 Use External Terminal=false
 Working Directory=
 isExecutable=true

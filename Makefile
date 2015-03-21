@@ -3,7 +3,7 @@
 BIN = QuantServer
 
 ############### List All the .cpp files here....################
-SRCS = main.cpp FillMsgStructs.cpp NQTV.cpp NQTVDlg.cpp Util.cpp ReceiveITCH.cpp
+SRCS = main.cpp FillMsgStructs.cpp NQTV.cpp NQTVDlg.cpp Util.cpp ReceiveITCH.cpp DBLayer.cpp
 ############### List all the includes paths here....############
 #INCLUDES = -I/home/amro/projects/QuantServer  -I../Include   -I../Common 
 ############### List all header file paths here...##############
@@ -24,7 +24,7 @@ LIBS =
 #################################################################################################################
 #OBJS      = $(CPP_SRCS:.cpp=.o)
 OBJS      = $(SRCS:.cpp=.o)
-CXXFLAGS  = -Wall -ansi -pedantic
+CXXFLAGS  = -Wall -ansi -pedantic -g
 DEP_FILE  = .depend
 
 .PHONY = all clean distclean

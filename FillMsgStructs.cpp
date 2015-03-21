@@ -6,10 +6,12 @@
 #include <time.h>
 #include "memory.h"
 
+#include "DBLayer.h"
+
 char strBuff[39];
 //struct _timeb timebuffer;
 
-#define  _SP   1
+#define  _SP   0
 
 ////////////////////////////////////////////////////////////////////////////
 CFillMsgStructs::CFillMsgStructs(void)
@@ -29,31 +31,11 @@ CFillMsgStructs::CFillMsgStructs(void)
 	m_pCUtil	= NULL;
 	m_pCUtil	= new CUtil();
 
-//	m_pDBLayer	= NULL;
-//	m_pDBLayer	= new CDBLayer();
+	m_pDBLayer	= NULL;
+	m_pDBLayer	= new CDBLayer();
 
 	m_bConnected = false;
-/*	
-	SRETVALUE  SRetValue;
-	memset(&SRetValue, '\0', sizeof(SRETVALUE));
 
-	SRetValue =  m_pDBLayer->ConnectTCP("QuanticksServer", "QuanticksDb",  "RemoteWindows",  "Amro", "123amr123");
-    
-	m_pDBLayer->Connect("Quanticks", "Amro", "123amr123");
-	SRetValue = m_pDBLayer->ConnectSharedMemory("QuanticksIQ16", "DBA", "sql");
-
-	if (SRetValue.SqlCode < 0)
-	{
-		AfxMessageBox(m_pDBLayer->GetErrorDesc(), MB_YESNO|MB_ICONSTOP);
-		// ::TODO  take action accordingly here
-	}
-	else
-	{
-		m_bConnected = true;
-		m_pDBLayer->Init();
-	//	m_pDBLayer->TruncateAllTables(DELETE_FROM_TABLE);
-	}
-*/
 }
 ////////////////////////////////////////////////////////////////////////////
 CFillMsgStructs::~CFillMsgStructs(void)
@@ -73,20 +55,15 @@ CFillMsgStructs::~CFillMsgStructs(void)
 		delete	m_pCUtil;
 		m_pCUtil = NULL;
 	}
-	m_bConnected = false;
-/*	
-	SRETVALUE  SRetValue;
-	memset(&SRetValue, '\0', sizeof(SRETVALUE));
-	SRetValue =  m_pDBLayer->DisConnectTCP("QuanticksServer", "QuanticksDb",  "RemoteWindows",  "Amro", "123amr123");
 
 	if (m_pDBLayer)
 	{
-		m_pDBLayer->Commit();
-
 		delete m_pDBLayer;
 		m_pDBLayer = NULL;
 	}
-*/	
+
+	m_bConnected = false;
+
 }
 ////////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
@@ -94,66 +71,66 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
 
 	switch (uiMsg[0])
 	{
-	case 'S': SystemEvent(uiMsg);
-		theApp.g_arrTotalMessages[0 ]++;
-		break;
-	case 'R': StockDirectory(uiMsg);
-		theApp.g_arrTotalMessages[1]++;
-		break;
-	case 'H': StockTradingAction(uiMsg);
-		theApp.g_arrTotalMessages[2]++;
-		break;
-	case 'Y': RegShoRestriction(uiMsg);
-		theApp.g_arrTotalMessages[3]++;
-		break;
-	case 'L': Market_Participant_Position(uiMsg);
-		theApp.g_arrTotalMessages[14]++;
-		break;
-	case 'V': MWCBDeclineLevelMessage(uiMsg);
-		theApp.g_arrTotalMessages[15]++;
-		break;
-	case 'W': MWCBBreachMessage(uiMsg);
-		theApp.g_arrTotalMessages[16]++;
-		break;
-	case 'K': IPOQuotingPeriodUpdate(uiMsg);
-		theApp.g_arrTotalMessages[17]++;
-		break;
-	case 'A': AddOrderNoMPIDMessage(uiMsg);
-		theApp.g_arrTotalMessages[4]++;
-		break;
+// 	case 'S': SystemEvent(uiMsg);
+// 		theApp.g_arrTotalMessages[0 ]++;
+// 		break;
+// 	case 'R': StockDirectory(uiMsg);
+// 		theApp.g_arrTotalMessages[1]++;
+// 		break;
+// 	case 'H': StockTradingAction(uiMsg);
+// 		theApp.g_arrTotalMessages[2]++;
+// 		break;
+// 	case 'Y': RegShoRestriction(uiMsg);
+// 		theApp.g_arrTotalMessages[3]++;
+// 		break;
+// 	case 'L': Market_Participant_Position(uiMsg);
+// 		theApp.g_arrTotalMessages[14]++;
+// 		break;
+// 	case 'V': MWCBDeclineLevelMessage(uiMsg);
+// 		theApp.g_arrTotalMessages[15]++;
+// 		break;
+// 	case 'W': MWCBBreachMessage(uiMsg);
+// 		theApp.g_arrTotalMessages[16]++;
+// 		break;
+// 	case 'K': IPOQuotingPeriodUpdate(uiMsg);
+// 		theApp.g_arrTotalMessages[17]++;
+// 		break;
+// 	case 'A': AddOrderNoMPIDMessage(uiMsg);
+// 		theApp.g_arrTotalMessages[4]++;
+// 		break;
 	case 'F': AddOrderWithMPID(uiMsg);
 		theApp.g_arrTotalMessages[5]++;
 		break;
-	case 'E': OrderExecutionMessage(uiMsg);
-		theApp.g_arrTotalMessages[7]++;
-		theApp.g_arrTotalMessages[6]++;
-		break;
-	case 'c': OrderExecutionWithPriceMessage(uiMsg);
-		theApp.g_arrTotalMessages[8]++;
-		theApp.g_arrTotalMessages[6]++;
-		break;
-	case 'X': OrderCancelMessage(uiMsg);
-		theApp.g_arrTotalMessages[9]++;
-		theApp.g_arrTotalMessages[6]++;
-		break;
-	case 'D': OrderDelete(uiMsg);
-		theApp.g_arrTotalMessages[10]++;
-		theApp.g_arrTotalMessages[6]++;
-		break;
-	case 'U': OrderReplace(uiMsg);
-		theApp.g_arrTotalMessages[11]++;
-		theApp.g_arrTotalMessages[6]++;
-		break;
-	case 'P':
-		TradeMessageNonCross(uiMsg);
-		theApp.g_arrTotalMessages[12]++;
-		break;
-	case 'I': NOII(uiMsg);
-		theApp.g_arrTotalMessages[19]++;
-		break;
-	case 'N': RetailPriceImprovementIndicator(uiMsg);
-		theApp.g_arrTotalMessages[20]++;
-		break;
+// 	case 'E': OrderExecutionMessage(uiMsg);
+// 		theApp.g_arrTotalMessages[7]++;
+// 		theApp.g_arrTotalMessages[6]++;
+// 		break;
+// 	case 'c': OrderExecutionWithPriceMessage(uiMsg);
+// 		theApp.g_arrTotalMessages[8]++;
+// 		theApp.g_arrTotalMessages[6]++;
+// 		break;
+// 	case 'X': OrderCancelMessage(uiMsg);
+// 		theApp.g_arrTotalMessages[9]++;
+// 		theApp.g_arrTotalMessages[6]++;
+// 		break;
+// 	case 'D': OrderDelete(uiMsg);
+// 		theApp.g_arrTotalMessages[10]++;
+// 		theApp.g_arrTotalMessages[6]++;
+// 		break;
+// 	case 'U': OrderReplace(uiMsg);
+// 		theApp.g_arrTotalMessages[11]++;
+// 		theApp.g_arrTotalMessages[6]++;
+// 		break;
+// 	case 'P':
+// 		TradeMessageNonCross(uiMsg);
+// 		theApp.g_arrTotalMessages[12]++;
+// 		break;
+// 	case 'I': NOII(uiMsg);
+// 		theApp.g_arrTotalMessages[19]++;
+// 		break;
+// 	case 'N': RetailPriceImprovementIndicator(uiMsg);
+// 		theApp.g_arrTotalMessages[20]++;
+// 		break;
 	default:  // we do not process this type of messages
 		break;
 	};
@@ -161,13 +138,10 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
  
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::SystemEvent(UINT8* uiMsg)
 {
 	memset(&m_SystemEvent , '\0', sizeof(SYSTEM_EVENT_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_SystemEvent.cMessageType = 'S'; 
 	m_SystemEvent.iStockLocale = 0;   // Always Zero per documentation
@@ -175,23 +149,22 @@ int  CFillMsgStructs::SystemEvent(UINT8* uiMsg)
 	m_SystemEvent.iTimeStamp = m_pCUtil->GetValueUnsignedInt64(uiMsg, 5, 6);
 	m_SystemEvent.cEventCode = m_pCUtil->GetValueChar(uiMsg, 11 ,1);
 
-/****************************************************************************************
+****************************************************************************************
 	m_pDBLayer->SystemEvent(m_SystemEvent.cMessageType,
 							m_SystemEvent.iStockLocale,
 							m_SystemEvent.iTrackingNumber,
 							m_SystemEvent.iTimeStamp,
 							m_SystemEvent.cEventCode);
-****************************************************************************************/
+****************************************************************************************
 
 return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::StockDirectory(UINT8* uiMsg)
 {
 	memset(&m_StockDirectory  , '\0', sizeof(STOCK_DIRECTORY_MESSAGE ));
 
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_StockDirectory.cMessageType			= 'R';
 	m_StockDirectory.iSockLocale			= m_pCUtil->GetValueUnsignedLong(uiMsg, 1, 2);
@@ -212,7 +185,7 @@ int  CFillMsgStructs::StockDirectory(UINT8* uiMsg)
 	m_StockDirectory.cETPFlag				= m_pCUtil->GetValueChar(uiMsg, 33, 1);		
 	m_StockDirectory.iETPLeverageFactor		= m_pCUtil->GetValueChar(uiMsg, 34, 4);
 	m_StockDirectory.cInverseFactor			= m_pCUtil->GetValueChar(uiMsg, 38, 1);	
-/****************************************************************************************
+****************************************************************************************
 	m_pDBLayer->StockDirectoryUpdate(1,
  	m_StockDirectory.cMessageType,
 	m_StockDirectory.iSockLocale,
@@ -232,18 +205,16 @@ int  CFillMsgStructs::StockDirectory(UINT8* uiMsg)
 	m_StockDirectory.cETPFlag,
     m_StockDirectory.iETPLeverageFactor,
 	m_StockDirectory.cInverseFactor);
-************************************************************************************************/
+************************************************************************************************
 
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::StockTradingAction(UINT8* uiMsg)
 {
 
 	memset(&m_StockTradingAction, '\0', sizeof(STOCK_TRADING_ACTION_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_StockTradingAction.cMessageType			= 'H';
 	m_StockTradingAction.iStockLocate			=  m_pCUtil->GetValueUnsignedLong(uiMsg, 1, 2);
@@ -256,7 +227,7 @@ int  CFillMsgStructs::StockTradingAction(UINT8* uiMsg)
 	m_StockTradingAction.cReserved = m_pCUtil->GetValueChar(uiMsg, 20, 1); 
 	strcpy(m_StockTradingAction.strReason , m_pCUtil->GetValueAlpha(uiMsg, 21, 4));
 
-/****************************************************************************************
+****************************************************************************************
 	m_pDBLayer->StockTradingAction(1,
  	m_StockTradingAction.cMessageType,
 	m_StockTradingAction.iStockLocate,
@@ -267,41 +238,37 @@ int  CFillMsgStructs::StockTradingAction(UINT8* uiMsg)
 	m_StockTradingAction.cReserved,
 	m_StockTradingAction.strReason
 	);
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::RegShoRestriction(UINT8* uiMsg)
 {
 	memset(&m_RegShoRestricted, '\0', sizeof(REG_SHO_RESTRICTION_MESSAGE));
 	
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
-
 	m_RegShoRestricted.cMessage			= 'Y';
 	m_RegShoRestricted.iLocateCode		= m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
 	m_RegShoRestricted.iTimeStamp		= m_pCUtil->GetValueUnsignedInt64(uiMsg, 5, 6);
 	strcpy(m_RegShoRestricted.Symbol, m_pCUtil->GetValueAlpha( uiMsg,11, 8));
 	m_RegShoRestricted.cRegSHOAction	= m_pCUtil->GetValueChar (uiMsg, 19, 1);
 
-/****************************************************************************************
+****************************************************************************************
 	m_pDBLayer->RegShoRestriction( 
  	m_RegShoRestricted.cMessage,
 	m_RegShoRestricted.iLocateCode,
 	m_RegShoRestricted.iTimeStamp,
 	m_RegShoRestricted.Symbol,
 	m_RegShoRestricted.cRegSHOAction);
-************************************************************************************************/
+************************************************************************************************
 
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::Market_Participant_Position(UINT8* uiMsg)
 {
 	memset(&m_MPPosition, '\0', sizeof(MP_POSITION_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_MPPosition.cMessageType		= 'Y';
 	m_MPPosition.iLocateCode		= m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -313,7 +280,7 @@ int  CFillMsgStructs::Market_Participant_Position(UINT8* uiMsg)
 	m_MPPosition.cMMMode			= m_pCUtil->GetValueChar(uiMsg, 24, 1);
 	m_MPPosition.cMarketParticipantState = m_pCUtil->GetValueChar(uiMsg, 25, 1);
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->MarketParticipantPosition(m_MPPosition.cMessageType,
 		m_MPPosition.iLocateCode,
 		m_MPPosition.TrackingNumber,
@@ -324,16 +291,14 @@ int  CFillMsgStructs::Market_Participant_Position(UINT8* uiMsg)
 		m_MPPosition.cMMMode,
 		m_MPPosition.cMarketParticipantState
 		);
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::MWCBDeclineLevelMessage(UINT8* uiMsg)
 {
 	memset(&m_MWCBDLM, '\0', sizeof(MWCBDLM_MESSAGE));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_MWCBDLM.cMessageType = 'V';
 	m_MWCBDLM.iLocateCode = m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -343,7 +308,7 @@ int  CFillMsgStructs::MWCBDeclineLevelMessage(UINT8* uiMsg)
 	m_MWCBDLM.dLevel2      =   double (m_pCUtil->GetValueUnsignedInt64(uiMsg, 19, 8))/100000000;
 	m_MWCBDLM.dLevel3		=  double (m_pCUtil->GetValueUnsignedInt64(uiMsg, 27, 8))/100000000;
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->MWCBDeclineLevelMessage(m_MWCBDLM.cMessageType,
 		m_MWCBDLM.iLocateCode,
 		m_MWCBDLM.TrackingNumber,
@@ -352,17 +317,15 @@ int  CFillMsgStructs::MWCBDeclineLevelMessage(UINT8* uiMsg)
 		m_MWCBDLM.dLevel2,
 		m_MWCBDLM.dLevel3);
 
-***********************************************************************************************/
+***********************************************************************************************
 
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::MWCBBreachMessage(UINT8* uiMsg)
 {
 	memset(&m_MWCBDBM, '\0', sizeof(MWCBDBM_MESSAGE));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_MWCBDBM.cMessageType = 'W';
 	m_MWCBDBM.iLocateCode = m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -370,23 +333,21 @@ int  CFillMsgStructs::MWCBBreachMessage(UINT8* uiMsg)
 	m_MWCBDBM.iTimeStamp     = m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
 	m_MWCBDBM.cBreachLevel   = (short) m_pCUtil->GetValueChar( uiMsg, 11, 1);
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->MWCBBreachMessage(m_MWCBDBM.cMessageType,
 		m_MWCBDBM.iLocateCode,
 		m_MWCBDBM.TrackingNumber,
 		m_MWCBDBM.iTimeStamp,
 		m_MWCBDBM.cBreachLevel);
 
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::IPOQuotingPeriodUpdate(UINT8* uiMsg)
 {
 	memset(&m_IPOQuotationPeriod, '\0', sizeof(IPO_QUOTATION_PERIOD_UPDATE_MESSAGE));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_IPOQuotationPeriod.cMessageType = 'K';
 	m_IPOQuotationPeriod.iLocateCode =  m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -398,7 +359,7 @@ int  CFillMsgStructs::IPOQuotingPeriodUpdate(UINT8* uiMsg)
 	m_IPOQuotationPeriod.cIPOQuotationReleaseQualifier = m_pCUtil->GetValueChar( uiMsg, 23, 1);
 	m_IPOQuotationPeriod.dIPOPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 24, 4))/10000;
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->IPOQuotingPeriodUpdate(m_IPOQuotationPeriod.cMessageType,
 		m_IPOQuotationPeriod.iLocateCode,
 		m_IPOQuotationPeriod.TrackingNumber,
@@ -408,17 +369,15 @@ int  CFillMsgStructs::IPOQuotingPeriodUpdate(UINT8* uiMsg)
 		m_IPOQuotationPeriod.cIPOQuotationReleaseQualifier,
 		m_IPOQuotationPeriod.dIPOPrice
 		);
-************************************************************************************************/
+************************************************************************************************
 
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 {
 	memset(&m_AddOrderNoMPID, '\0', sizeof(ADD_ORDER_NO_MPID_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_AddOrderNoMPID.cMessageType = 'A';
 	m_AddOrderNoMPID.iLocateCode =   m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -431,7 +390,7 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 	strcpy(m_AddOrderNoMPID.Stock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
 	m_AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->AddOrderMPID(m_AddOrderNoMPID.cMessageType,
 		m_AddOrderNoMPID.iLocateCode,
 		m_AddOrderNoMPID.TrackingNumber,
@@ -442,18 +401,16 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 		m_AddOrderNoMPID.Stock,
 		m_AddOrderNoMPID.dPrice,
 		"NSDQ");
-************************************************************************************************/
+************************************************************************************************
 	// The NO_MPID table has retiered...Will attribute the order to NSDQ as the MPID
 	 
 	return 0;
 }
+///////////////////////////////////////////////////////////////////////////*/
 ////////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
 {
 	memset(&m_AddOrderMPID, '\0', sizeof(ADD_ORDER_MPID_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_AddOrderMPID.cMessageType = 'F';
 	m_AddOrderMPID.iLocateCode =    m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -467,7 +424,7 @@ int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
 	m_AddOrderMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
 	strcpy(m_AddOrderMPID.strMPID,  m_pCUtil->GetValueAlpha(uiMsg, 36, 4));
 
-/************************************************************************************************
+//************************************************************************************************
 	m_pDBLayer->AddOrderMPID(m_AddOrderMPID.cMessageType,
 		m_AddOrderMPID.iLocateCode,
 		m_AddOrderMPID.TrackingNumber,
@@ -478,16 +435,13 @@ int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
 		m_AddOrderMPID.Stock,
 		m_AddOrderMPID.dPrice,
 		m_AddOrderMPID.strMPID);
-************************************************************************************************/
+//************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::OrderExecutionMessage(UINT8* uiMsg)
 {
 	memset(&m_OrderExecuted, '\0', sizeof(ORDER_EXECUTED_MESSAGE));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_OrderExecuted.cMessageType = 'E';
 	m_OrderExecuted.iLocateCode =    m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -497,7 +451,7 @@ int  CFillMsgStructs::OrderExecutionMessage(UINT8* uiMsg)
 	m_OrderExecuted.iShares = m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
 	m_OrderExecuted.iOrderMatchNumber = m_pCUtil->GetValueUnsignedInt64(uiMsg, 23, 8);
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->OrderExecuted(m_OrderExecuted.cMessageType,
 	m_OrderExecuted.iLocateCode,
 	m_OrderExecuted.TrackingNumber,
@@ -505,16 +459,14 @@ int  CFillMsgStructs::OrderExecutionMessage(UINT8* uiMsg)
 	m_OrderExecuted.iOrderRefNumber,
 	m_OrderExecuted.iShares,
 	m_OrderExecuted.iOrderMatchNumber);
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
 {
 	memset(&m_OrderExecutedWithPrice, '\0', sizeof(ORDER_EXECUTED_WITH_PRICE_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_OrderExecutedWithPrice.cMessageType = 'c';
 	m_OrderExecutedWithPrice.iLocateCode =    m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -527,7 +479,7 @@ int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
 	m_OrderExecutedWithPrice.cPrintable = m_pCUtil->GetValueChar(uiMsg, 31, 1);
 	m_OrderExecutedWithPrice.dExecutionPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->OrderExecutedWithPrice(m_OrderExecutedWithPrice.cMessageType,
 	m_OrderExecutedWithPrice.iLocateCode,
 	m_OrderExecutedWithPrice.TrackingNumber,
@@ -537,16 +489,14 @@ int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
 	m_OrderExecutedWithPrice.iOrderMatchNumber,
 	m_OrderExecutedWithPrice.cPrintable,
 	m_OrderExecutedWithPrice.dExecutionPrice);
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::OrderCancelMessage(UINT8* uiMsg)
 {
 	memset(&m_OrderCancel, '\0', sizeof(ORDER_CANCEL_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_OrderCancel.cMessageType		=	'X';
 	m_OrderCancel.iLocateCode		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -555,7 +505,7 @@ int  CFillMsgStructs::OrderCancelMessage(UINT8* uiMsg)
 	m_OrderCancel.iOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8); 
 	m_OrderCancel.iShares			=	m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->OrderCancel(m_OrderCancel.cMessageType, 
 							m_OrderCancel.iLocateCode,
 							m_OrderCancel.TrackingNumber,
@@ -563,16 +513,14 @@ int  CFillMsgStructs::OrderCancelMessage(UINT8* uiMsg)
 							m_OrderCancel.iOrderRefNumber,
 							m_OrderCancel.iShares);
 
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::OrderDelete(UINT8* uiMsg)
 {
 	memset(&m_OrderDelete  , '\0', sizeof(ORDER_DELETE_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_OrderDelete.cMessageType		=	'D';
 	m_OrderDelete.iLocateCode		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -580,22 +528,20 @@ int  CFillMsgStructs::OrderDelete(UINT8* uiMsg)
 	m_OrderDelete.iTimeStamp		=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
 	m_OrderDelete.iOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8); 
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->OrderDelete(m_OrderDelete.cMessageType,
 							m_OrderDelete.iLocateCode,
 							m_OrderDelete.TrackingNumber,
 							m_OrderDelete.iTimeStamp,
 							m_OrderDelete.iOrderRefNumber);
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::OrderReplace(UINT8* uiMsg)
 {
 	memset(&m_OrderReplace, '\0', sizeof(ORDER_REPLACE_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_OrderReplace.cMessageType			= 'U';
 	m_OrderReplace.iLocateCode			=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -607,7 +553,7 @@ int  CFillMsgStructs::OrderReplace(UINT8* uiMsg)
 	m_OrderReplace.iShares				=   m_pCUtil->GetValueUnsignedLong(uiMsg, 27, 4);
 	m_OrderReplace.dPrice				=   double (m_pCUtil->GetValueUnsignedLong(uiMsg, 31, 4))/10000;
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->OrderReplace(m_OrderReplace.cMessageType,
 							m_OrderReplace.iLocateCode,
 							m_OrderReplace.TrackingNumber,
@@ -617,16 +563,14 @@ int  CFillMsgStructs::OrderReplace(UINT8* uiMsg)
 							m_OrderReplace.iShares,
 							m_OrderReplace.dPrice
 							);
-************************************************************************************************/
+************************************************************************************************
 	return 0; // :: TODO 
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::TradeMessageNonCross(UINT8* uiMsg)
 {
 	memset(&m_TradeNonCross  , '\0', sizeof(TRADE_NON_CROSS_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_TradeNonCross.cMessageType		= 'P';
 	m_TradeNonCross.iLocateCode			=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -642,13 +586,11 @@ int  CFillMsgStructs::TradeMessageNonCross(UINT8* uiMsg)
 
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::NOII(UINT8* uiMsg)
 {
 	memset(&m_NOII  , '\0', sizeof(NOII_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_NOII.cMessageType			= 'I';
 	m_NOII.iLocateCode			=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -666,7 +608,7 @@ int  CFillMsgStructs::NOII(UINT8* uiMsg)
 	m_NOII.cCrossType = m_pCUtil->GetValueChar(uiMsg, 48, 1);
 	m_NOII.cPriceVariation = m_pCUtil->GetValueChar(uiMsg, 49, 1);
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->NOII(	m_NOII.cMessageType,
 						m_NOII.iLocateCode,
 						m_NOII.TrackingNumber,
@@ -681,17 +623,15 @@ int  CFillMsgStructs::NOII(UINT8* uiMsg)
 						m_NOII.cCrossType,
 						m_NOII.cPriceVariation
 						);
-************************************************************************************************/
+************************************************************************************************
 
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::RetailPriceImprovementIndicator(UINT8* uiMsg)
 {
 	memset(&m_RPPI  , '\0', sizeof(RPII_MESSAGE ));
-
-	/*memset(strBuff, '\0', 39);
-	_ftime64_s( &timebuffer );*/
 
 	m_RPPI.cMessageType			=	'N';
 	m_RPPI.iLocateCode			=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
@@ -701,7 +641,7 @@ int  CFillMsgStructs::RetailPriceImprovementIndicator(UINT8* uiMsg)
 
 	m_RPPI.cInterestFlag  = m_pCUtil->GetValueChar(uiMsg, 19, 1);
 
-/************************************************************************************************
+************************************************************************************************
 	m_pDBLayer->RPII(	m_RPPI.cMessageType,
 						m_RPPI.iLocateCode,
 						m_RPPI.TrackingNumber,
@@ -709,12 +649,13 @@ int  CFillMsgStructs::RetailPriceImprovementIndicator(UINT8* uiMsg)
 						m_RPPI.Stock,
 						m_RPPI.cInterestFlag
 						);
-************************************************************************************************/
+************************************************************************************************
 	return 0;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/
+/*///////////////////////////////////////////////////////////////////////////
 FEED_MESSAGE_STATS  CFillMsgStructs::GetStats()
 {
 	return theApp.g_Stats;
 }
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////*/

@@ -6,6 +6,7 @@
 
 #include "Includes.h"
 #include <inttypes.h>
+#include <mysql/mysql.h>
 
 class CUtil
 {
@@ -38,5 +39,9 @@ public:
 	unsigned long		GetValueUnsignedLong(UINT8 *uiMsg, int iOffset, int iLength);
 	char*			GetValueAlpha(UINT8 *uiMsg, int iOffset, int iLength);
 	char			GetValueChar(UINT8 *uiMsg, int iOffset, int iLength);
+	
+// Helper function for MySQL	
+	void print_error(MYSQL* conn, char* message); 
+	void print_stmt_error (MYSQL_STMT* stmt, char* message);
 
 };

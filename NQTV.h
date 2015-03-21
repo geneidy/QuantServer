@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 
+#include <mysql/mysql.h>
 #include "ItchIncludes.h"
   
 enum feedStatus
@@ -39,6 +40,8 @@ public:
 
 	bool	g_bConnected;
 	bool	g_bReceiving;
+	
+	MYSQL* conn; // pointer to connection handler
 
 	FEED_MESSAGE_STATS g_Stats;
 	LOCALFILEDATA  SMemoryMappedFileSSize;

@@ -91,16 +91,26 @@ void *NQTVFunction(void* ptr)
   //int iRet = pCNQTVDlg->ConnectMySql();  // check for return erro code before continuing
   conn = pCNQTVDlg->ConnectMySql(HOST_NAME, USER_NAME, PASSWORD, 
 								 DB_NAME, PORT_NUM, SOCKET_NAME, 0);
-  if (conn == NULL) {
-	  printf("Connection Failed");
-  } else {
-	  printf("Connection: Success!");  
+  if (conn == NULL)
+  {
+	  printf("Connection Failed\n");
+	  theApp.g_bConnected = false;
+	  if (pCNQTVDlg)
+	  {
+		  delete pCNQTVDlg;
+	  }
+	  return NULL;
+  } 
+  else
+  {
+	  printf("Connection: Success!\n");  
+	  theApp.g_bConnected = true;
   }  
   pCNQTVDlg->m_bTestFeed = true;
   
   pCNQTVDlg->FeedStart();   // Entry point to processing
   
-  pCNQTVDlg->Disconnect1MySql(conn);
+  pCNQTVDlg->Disconnect1MySql();
   
     if (pCNQTVDlg)
       delete (pCNQTVDlg);

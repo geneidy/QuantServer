@@ -139,11 +139,14 @@ int CReceiveITCH::ReadFromTestFile(char* strFileName)  ///  ignore the formal pa
 {
 	 
 	int iHandle = open(theApp.strFeedFileName.c_str(), O_RDWR );  
-
-	if (iHandle != 0 )
-	{
-		return true; 
+	
+	if ( iHandle < 0 ) {
+	  printf("Opening file : Failed\n");
+	  printf ("Error no is : %d\n", errno);
+	  printf("Error description is : %s\n",strerror(errno));
+	  return iHandle;
 	}
+
 // redundant...just for debug purposes
 	switch (iHandle)
 	{

@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include "Util.h"
 //#include "Winsock2.h"
+#include <stdio.h>
 
 #define SIZEOFBUF 27
 
@@ -135,5 +136,26 @@ char    CUtil::GetValueChar(UINT8 *uiMsg, int iOffset, int iLength)
 	return cValue;
 }
 ////////////////////////////////////////////////////////////////////////////
+void CUtil::print_error(MYSQL* conn, char* message) 
+{
+  fprintf(stderr, "%s\n", message);
+  if (conn != NULL){
+    fprintf(stderr, "Error %u (%s)\n",
+	    mysql_errno(conn), mysql_error(conn));
+  }
+}
+///////////////////////////////////////////////////////////////////////////////////
+void CUtil::print_stmt_error (MYSQL_STMT* stmt, char* message) 
+{
+	fprintf (stderr, "%s\n", message);
+	if (stmt != NULL)
+	{
+		fprintf(stderr, "Error %u (%s): %s\n",
+				mysql_stmt_errno(stmt),
+				mysql_stmt_sqlstate(stmt),
+				mysql_stmt_error(stmt));
+	}
+}
+///////////////////////////////////////////////////////////////////////////////////
 
  

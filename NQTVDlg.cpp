@@ -27,10 +27,8 @@ FEED_MESSAGE_STATS CNQTVDlg::m_MessageStats;
 bool CNQTVDlg::m_bTestFeed = false;
 bool CNQTVDlg::m_bReplay = false;
 static unsigned long arrMessagesPerSec[MAX_MESSAGE_TYPES];
-void print_error(MYSQL* conn, char* message); //needs to be moved to common or like
-
 timer_t firstTimerID = NULL;
-
+CUtil myUtil2;
 ///////////////////////////////////////////////////////////////////////////////////
 // CNQTVDlg dialog
 ///////////////////////////////////////////////////////////////////////////////////
@@ -47,6 +45,8 @@ CNQTVDlg::CNQTVDlg()
     char strFirstTimer[] = "First Timer";
     
     rc = makeTimer(strFirstTimer, &firstTimerID, 1000, 1000);
+	
+
  //   return rc;   // Raise a flag...cannot return from a constructor
 
 }
@@ -54,23 +54,23 @@ CNQTVDlg::CNQTVDlg()
 MYSQL* CNQTVDlg::ConnectMySql(char* host_name, char* user_name, char* password, char* db_name,
 							unsigned int port_num, char* socket_name, unsigned int flags)
 {
-MYSQL* conn; // pointer to connection handler
+
   
-  conn = mysql_init(NULL); // allocate, init connection handler
+  theApp.conn = mysql_init(NULL); // allocate, init connection handler
   
-  if (conn == NULL) {
-    print_error(NULL, "mysql_init() failed (probably out of memory)");
+  if (theApp.conn == NULL) {
+	myUtil2.print_error(NULL, "mysql_init() failed (probably out of memory)");
     return(NULL);
   }
   
-  if (mysql_real_connect(conn, host_name, user_name, password,
+  if (mysql_real_connect(theApp.conn, host_name, user_name, password,
 			db_name, port_num, socket_name, flags) == NULL) 
   {
-    print_error(conn, "mysql_real_connect() failed");
+    myUtil2.print_error(theApp.conn, "mysql_real_connect() failed");
     return(NULL);
   }
   
-  return(conn);	// connection is established
+  return(theApp.conn);	// connection is established
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 int CNQTVDlg::InsertRow()
@@ -79,9 +79,9 @@ int CNQTVDlg::InsertRow()
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 //int 
-void CNQTVDlg::Disconnect1MySql(MYSQL* conn)
+void CNQTVDlg::Disconnect1MySql()
 {
-	mysql_close(conn); //TODO: make return code conditional on success or failure
+	mysql_close(theApp.conn); //TODO: make return code conditional on success or failure
 	//return 1;  // enum error codes to return
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,12 +268,3 @@ void CNQTVDlg::timerHandler( int sig, siginfo_t *si, void *uc )
        // thirdCB(sig, si, uc);
     */  
 }
-///////////////////////////////////////////////////////////////////////////////////
-void print_error(MYSQL* conn, char* message) {
-  fprintf(stderr, "%s\n", message);
-  if (conn != NULL){
-    fprintf(stderr, "Error %u (%s)\n",
-	    mysql_errno(conn), mysql_error(conn));
-  }
-}
-///////////////////////////////////////////////////////////////////////////////////

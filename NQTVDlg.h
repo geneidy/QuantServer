@@ -44,7 +44,7 @@ public:
 	
 	MYSQL* ConnectMySql(char* host_name, char* user_name, char* password, char* db_name,
 						unsigned int port_num, char* socket_name, unsigned int flags);
-	void /*int*/ Disconnect1MySql(MYSQL* conn);
+	void /*int*/ Disconnect1MySql();
 private:
 	void timer_handler (int signum);
 
