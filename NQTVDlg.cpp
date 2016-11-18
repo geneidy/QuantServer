@@ -41,7 +41,7 @@ CNQTVDlg::CNQTVDlg()
 	memset(theApp.g_arrMaxMessagesPerSec, 0, sizeof(theApp.g_arrMaxMessagesPerSec));
 	memset(theApp.g_arrTotalMessages, 0, sizeof(theApp.g_arrTotalMessages));
 	
-    int rc;
+    int rc = 0;
     char strFirstTimer[] = "First Timer";
     
     rc = makeTimer(strFirstTimer, &firstTimerID, 1000, 1000);
@@ -55,7 +55,7 @@ MYSQL* CNQTVDlg::ConnectMySql(char* host_name, char* user_name, char* password, 
 							unsigned int port_num, char* socket_name, unsigned int flags)
 {
 
-  
+/*  
   theApp.conn = mysql_init(NULL); // allocate, init connection handler
   
   if (theApp.conn == NULL) {
@@ -69,7 +69,7 @@ MYSQL* CNQTVDlg::ConnectMySql(char* host_name, char* user_name, char* password, 
     myUtil2.print_error(theApp.conn, "mysql_real_connect() failed");
     return(NULL);
   }
-  
+*/  
   return(theApp.conn);	// connection is established
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ int CNQTVDlg::InsertRow()
 //int 
 void CNQTVDlg::Disconnect1MySql()
 {
-	mysql_close(theApp.conn); //TODO: make return code conditional on success or failure
+//	mysql_close(theApp.conn); //TODO: make return code conditional on success or failure
 	//return 1;  // enum error codes to return
 }
 /////////////////////////////////////////////////////////////////////////////////////////////

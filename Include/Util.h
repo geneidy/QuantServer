@@ -11,7 +11,15 @@
 class CUtil
 {
 private:
-	char	m_pChar[SIZE_OF_RET_BUFF];
+      char	m_pChar[SIZE_OF_RET_BUFF];
+      uint64_t m_i64Nanos;
+      uint64_t m_iHours; 
+      uint64_t m_iMinutes; 
+      uint64_t m_iSeconds;
+      uint64_t m_iMilliSeconds;
+      uint64_t m_iMicroSeconds;
+      uint64_t m_iNanoSeconds;
+
 
 public:
 	CUtil(void);
@@ -39,8 +47,15 @@ public:
 	unsigned long		GetValueUnsignedLong(UINT8 *uiMsg, int iOffset, int iLength);
 	char*			GetValueAlpha(UINT8 *uiMsg, int iOffset, int iLength);
 	char			GetValueChar(UINT8 *uiMsg, int iOffset, int iLength);
+	
+//	uint64_t GetTimeFromNano(uint64_t);
+	char* GetFormatedDate();
+	
 // Helper function for MySQL	
 	void print_error(MYSQL* conn, char* message); 
 	void print_stmt_error (MYSQL_STMT* stmt, char* message);
+#define SIZE_OF_FORMATED_DATE 12+1	
+	char	m_szLogDate[SIZE_OF_FORMATED_DATE];    
+	char* GetTimeFromNano(uint64_t);
 
 };

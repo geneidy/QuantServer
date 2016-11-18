@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Includes.h"
+#include "Settings.h"
 
 #define	SOUP_MESSAGE_SIZE	1024
 
@@ -36,8 +37,8 @@
 
 typedef struct  
 {
-	char	szUserName[SIZE_OF_CLT_NAME];
-	char	szPassword[SIZE_OF_CLT_PASSWORD];
+	char	szUserName[SIZE_OF_NAME];
+	char	szPassword[SIZE_OF_PASSWORD];
 	DWORD	dwIPAddress;
 	UINT	uiPort;
 
@@ -112,31 +113,12 @@ typedef struct SMMDepth   // per each Individusal MM Entry in the price level
 }SMMDEPTH; // per each Individusal MM Entry in the price level
 
 
-
-
-
 typedef struct FeedMessageStats
 {
-	// Messages
-
-	char			strStartTime[26];
-	char			strEndTime[26];
+  char			strStartTime[26];
+  char			strEndTime[26];
 
 }FEED_MESSAGE_STATS;
-/*
-typedef struct Pic_Options
-{
-	char	szUserName[SIZE_OF_CLT_NAME];
-	char	szPassword[SIZE_OF_CLT_PASSWORD];
-	DWORD	dwIPAddress;
-	UINT	uiPort;
-
-	DWORD	dwIPAddress1;
-	UINT	uiPort1;
-	DWORD	dwBufferSize;
-}PIC_CLT_OPTIONS;
-*/
-	//PIC_CLT_OPTIONS setupinfo;
 
 #define		SIZE_OF_TIME		32
 

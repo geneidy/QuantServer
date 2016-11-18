@@ -1,1 +1,0 @@
-void* NQTVFunction(void*);

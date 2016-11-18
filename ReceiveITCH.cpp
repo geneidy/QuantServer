@@ -9,6 +9,7 @@
 #include <time.h>
 #include "ReceiveITCH.h"
 #include "NQTV.h"
+#include "DBLayer.h"
 
 
 CReceiveITCH::CReceiveITCH () //(socket *Sock): m_Socket(*Sock)

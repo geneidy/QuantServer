@@ -9,20 +9,20 @@
 
 // CSpryApp construction
 
-CSpryApp::CSpryApp()
+CQuantApp::CQuantApp()
 {
 
-  m_SOptions.dwBufferSize = 100000000;
+  m_SOptions.dwBufferSize = 100000000; // Get from UI
 
 }
 
-CSpryApp::~CSpryApp()
+CQuantApp::~CQuantApp()
 {
 
 }
 /////////////////////////////////////////////////////////////////////
 // The one and only CSpryApp object
-CSpryApp theApp;
+CQuantApp theApp;
 
 
 // CSpryApp initialization

@@ -1,11 +1,10 @@
 #include "memory.h"
 
-#include "/usr/include/sys/socket.h"
-//#include <sys/socket.h>
-#include <sys/types.h>
+//#include <sys/types.h>
+#include <stdlib.h>>
 #include <arpa/inet.h>
 #include "Util.h"
-//#include "Winsock2.h"
+
 #include <stdio.h>
 
 #define SIZEOFBUF 27
@@ -20,8 +19,41 @@ char cValue;
 
 CUtil::CUtil(void)
 {
-	//m_strValue.Empty();
+  m_i64Nanos 	= 1E9;
+  m_iHours 	= m_i64Nanos *  60 * 60; 
+  m_iMinutes 	= m_i64Nanos * 60; 
+  m_iSeconds 	= 1 * 1E9 ;
+  m_iMilliSeconds = 1 * 1E3;
+  m_iMicroSeconds = 1 * 1E6;
+  m_iNanoSeconds  = 0;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+char* CUtil::GetTimeFromNano(uint64_t ui64NanoTime)
+{
+  lldiv_t Div;
+  int iHours = 0;
+  int iMinutes = 0;
+  int iSeconds = 0;
+  int iMilliSeconds = 0;
+  int iMicroSeconds = 0;
+  uint64_t ui64Nanos = 0;
+  int i = 0; 
+  
+  uint64_t iRem = 0;
+  
+  Div= lldiv(ui64NanoTime,  m_iHours); 
+  iHours = Div.quot;
+  iRem   = Div.rem;
+  
+  Div = lldiv(iRem, m_iMinutes);
+  iMinutes = Div.quot;
+  iRem = Div.rem;
+  
+  
+  
+}
+
 //////////////////////////////////////////////////////////////////////////////
 CUtil::~CUtil(void)
 {
@@ -109,9 +141,10 @@ uint64_t   CUtil::GetValueUnsignedInt64(UINT8 *uiMsg, int iOffset, int iLength)
 	memset(&i64Buff, '\0', 8);
 	memmove(&i64Buff,  uiMsg +iOffset,  iLength);   
 
- 	i64Value =   ntohl(i64Buff);  // NEED an i64 functions.....should be ntohll !!!   //_WS2_32_WINSOCK_SWAP_LONGLONG(i64Buff);
+// 	i64Value =   ntohl(i64Buff);  // NEED an i64 functions.....should be ntohll !!!   //_WS2_32_WINSOCK_SWAP_LONGLONG(i64Buff);
+ 	i64Value =   be64toh(i64Buff);  // Found it
 
-//	GetTimeFromNano(i64Value);
+	GetTimeFromNano(i64Value);
 
 	return i64Value;
 }
@@ -138,16 +171,17 @@ char    CUtil::GetValueChar(UINT8 *uiMsg, int iOffset, int iLength)
 ////////////////////////////////////////////////////////////////////////////
 void CUtil::print_error(MYSQL* conn, char* message) 
 {
-  fprintf(stderr, "%s\n", message);
+  /*fprintf(stderr, "%s\n", message);
   if (conn != NULL){
     fprintf(stderr, "Error %u (%s)\n",
-	    mysql_errno(conn), mysql_error(conn));
+    mysql_errno(conn), mysql_error(conn));
   }
+  */
 }
 ///////////////////////////////////////////////////////////////////////////////////
 void CUtil::print_stmt_error (MYSQL_STMT* stmt, char* message) 
 {
-	fprintf (stderr, "%s\n", message);
+/*	fprintf (stderr, "%s\n", message);
 	if (stmt != NULL)
 	{
 		fprintf(stderr, "Error %u (%s): %s\n",
@@ -155,7 +189,24 @@ void CUtil::print_stmt_error (MYSQL_STMT* stmt, char* message)
 				mysql_stmt_sqlstate(stmt),
 				mysql_stmt_error(stmt));
 	}
+	*/
+}
+#include "time.h"
+///////////////////////////////////////////////////////////////////////////////////
+char* CUtil::GetFormatedDate()
+{
+	struct tm stToday;
+     	time_t ltime = 0;
+	
+	time( &ltime );
+        localtime_r( &ltime ,  &stToday);
+
+	memset(m_szLogDate, 0 , SIZE_OF_FORMATED_DATE);
+	strftime(m_szLogDate, SIZE_OF_FORMATED_DATE, "%Y-%m-%d-" , &stToday);
+	return m_szLogDate;
 }
 ///////////////////////////////////////////////////////////////////////////////////
 
- 
+
+
+
