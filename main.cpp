@@ -364,7 +364,7 @@ int LoadSettings()
 //  memset(&SSettings, '\0', sizeof(SETTINGS));
 //  cout << "In Settings After Log" << endl;
 
-    SSettings.start_stop_pause = 1;
+    //SSettings.start_stop_pause = 1;
     SSettings.strServerName = "Main Server";
 //  cout << "In Settings After strServerName" << endl;
     // strcpy(SSettings.szServerName, "Main Server");
