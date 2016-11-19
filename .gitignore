@@ -30,7 +30,7 @@
 *.exe
 *.out
 *.app
-QuantServer
+bin/
 
 # Data
 Ticks/
