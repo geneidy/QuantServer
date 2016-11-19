@@ -23,7 +23,8 @@ typedef struct
   bool		bMemberOfFarm;	// Y/N
   string	strFarmName;
   uint		uiFarmPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
-
+  
+  int start_stop_pause;
 
 // Server Role ... Check Boxes
   int 		iarrRole[NUMBER_OF_ROLES];  // Get it from enum   0= Receive Feed  1= Parse  2= Build Book  3= Save to DB    4= Play Back  5= Distributor
