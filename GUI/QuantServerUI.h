@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <QPushButton>
-#include "../Include/NQTV.h"
+#include "../Include/Settings.h"
 
 
 class StartStopBtnWidget : public QWidget {
@@ -11,9 +11,10 @@ class StartStopBtnWidget : public QWidget {
     
 public:
     StartStopBtnWidget(QWidget *parent = 0);
+    SETTINGS ui_settings;
     
 public slots:
-    void setValue(int value);
+    void startServer();
     
 private:
     QPushButton *startBtn;

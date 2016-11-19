@@ -19,9 +19,9 @@ StartStopBtnWidget::StartStopBtnWidget(QWidget *parent)
     vbox->addStretch(1);
     vbox->addLayout(hbox);
     
-    connect(startBtn, SIGNAL(clicked()), this, SLOT(setValue(int)));
+    connect(startBtn, SIGNAL(clicked()), this, SLOT(startServer()));
 }
 
-void StartStopBtnWidget::setValue(int value) {
-    theApp.g_bReceiving = value;
+void StartStopBtnWidget::startServer() {
+    ui_settings.start_stop_pause = 1;
 }

@@ -1,6 +1,6 @@
 # Define executable name
  
-BIN = QuantServer
+BIN = bin/QuantServer
 
 ############### List All the .cpp files here....################
 
