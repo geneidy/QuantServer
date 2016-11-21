@@ -50,12 +50,17 @@ public:
 	
 //	uint64_t GetTimeFromNano(uint64_t);
 	char* GetFormatedDate();
+	char* GetFormatedTime();
 	
 // Helper function for MySQL	
 	void print_error(MYSQL* conn, char* message); 
 	void print_stmt_error (MYSQL_STMT* stmt, char* message);
-#define SIZE_OF_FORMATED_DATE 12+1	
-	char	m_szLogDate[SIZE_OF_FORMATED_DATE];    
+#define SIZE_OF_FORMATED_DATE 12+1
+#define SIZE_OF_FORMATED_TIME 19+1		
+	
+	char	m_szLogDate[SIZE_OF_FORMATED_DATE];
+	char	m_szLogTime[SIZE_OF_FORMATED_TIME];    
 	char* GetTimeFromNano(uint64_t);
+	void GetTimeWithSeconds();
 
 };

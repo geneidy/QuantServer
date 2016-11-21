@@ -23,6 +23,29 @@ typedef struct // Moving averages
   double	dAvg11;		// eleven day moving average
   double	dAvg13;		// thirteen day moving average
 }SMOVING_AVERAGE;
+/*
+typedef struct SBidAsk
+{
+  char		szMPID;
+  double	dPrice;
+  unsigned 	uiQty;
+  unsigned 	uiNumOfOrders;
+  SLEVELSTAT  	SLevelStat;   // Stats per Level
+  SBidAsk* 	pNextBidAsk;		// for the linked list
+}SBID_ASK;
+*/
+
+/*
+typedef struct _BookLevels  // Per Symbol
+{
+//  char 		szSymbol[5];
+  SBID_ASK*	pTopBid;
+  SBID_ASK*	pTopAsk;
+
+  uint16_t	m_iBidLevels;
+  uint16_t	m_iAskLevels;
+}SBOOK_LEVELS;
+*/
 
 typedef struct 
 {
@@ -36,26 +59,36 @@ typedef struct
 
 typedef struct SBidAsk
 {
-  char		szMPID;
+  char		szMPID[5];
   double	dPrice;
   unsigned 	uiQty;
   unsigned 	uiNumOfOrders;
   SLEVELSTAT  	SLevelStat;   // Stats per Level
-  SBidAsk* 	pNextBidAsk;		// for the linked list
 }SBID_ASK;
 
+typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
 
 typedef struct _BookLevels  // Per Symbol
 {
-  char 		szSymbol[5];
-  SBID_ASK*	pTopBid;
-  SBID_ASK*	pTopAsk;
-
-  uint16_t	m_iBidLevels;
-  uint16_t	m_iAskLevels;
+//  char 		szSymbol[5];
+  PriceLevelMap BidPLMap;  // Bid Price Level Map
+  PriceLevelMap AskPLMap;  // Ask Price Level Map
+  uint16_t	m_iBidLevels;  // Stats
+  uint16_t	m_iAskLevels;  // Stats
 }SBOOK_LEVELS;
 
+/*
+bool fncomp (char lhs, char rhs) {return lhs<rhs;}
+
+struct classcomp {
+  bool operator() (const char& lhs, const char& rhs) const
+  {return lhs<rhs;}
+};
+
+*/
+
 typedef unordered_map<char* , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
+
 
 class CBuildBook
 {
@@ -65,18 +98,24 @@ private:   // by default
   int 		m_fd;
   struct stat64 m_sb;
   
+  
   CQuantQueue*		m_pQuantQueue;
   ITCH_MESSAGES_UNION* 	m_pItchMessageUnion;  
   COrdersMap*		m_pCOrdersMap;
   
-  BookMap  m_BookMap;
+  BookMap  		m_BookMap;
   BookMap::iterator	m_itBookMap;
   
-  pair <BookMap::iterator, bool> m_RetPair;
+  PriceLevelMap 	m_PriceLevelMap;
+  PriceLevelMap::iterator m_itPriceLevelMap;
+  
+  pair <BookMap::iterator, bool> m_RetPairBookMap;
+  pair <PriceLevelMap::iterator, bool> m_RetPairPriceLevelMap;
   
   double m_dPrice;
   unsigned int m_uiQty;
   uint32_t  m_iSizeOfBook;
+  string    m_strPriceMM;
   
   COMMON_ORDER_MESSAGE*  	m_pCommonOrder; 
   uint64_t			m_uiNextOrder;
@@ -106,6 +145,8 @@ private:   // by default
   int ProcessCancel(int iMessage);
   
   void UpdateBook();
+  
+  inline string MakeKey();
 
 
 public:
@@ -114,12 +155,13 @@ public:
   CBuildBook();
   ~CBuildBook();
   
-  NLEVELS  FlushBook(char* szSymbol);
-  NLEVELS  FlushAllBooks();
+  uint32_t	FlushBook(char* szSymbol);
+  uint64_t	FlushAllBooks();
+  int 		ListBook(char *szSymbol, uint32_t uiMaxLevels);
  
   
   SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);
-  SBOOK_LEVELS	m_pBook;
+  SBOOK_LEVELS	m_pBookLevels;
 
   SBID_ASK*	m_pTopBid;
   SBID_ASK*	m_pTopAsk;

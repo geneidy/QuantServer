@@ -181,7 +181,6 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 	
 	m_ui64NumOfOrders++;
 
-	
 	break;
 	
     case 'F':  // Add Order with MPID
@@ -208,16 +207,15 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 	  break;
 	
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pCommonOrder->szStock);
-
+	m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pCommonOrder->cBuySell;
+	
 	// Add the new one
 	m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderReplace.cMessageType;
 	m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber  	= pItchMessageUnion->OrderReplace.iNewOrderRefNumber;
 	m_pCommonOrder[m_ui64NumOfOrders].iPrevOrderRefNumber 	= pItchMessageUnion->OrderReplace.iOldOrderRefNumber;
-	
 	m_pCommonOrder[m_ui64NumOfOrders].iShares 		= pItchMessageUnion->OrderReplace.iShares;
 	m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderReplace.iTimeStamp;
 	m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderReplace.TrackingNumber;
-	
 	// find the old one
 	m_itSymbolMap = m_SymbolMap.find(pItchMessageUnion->OrderReplace.iOldOrderRefNumber);
 	if(m_itSymbolMap ==  m_SymbolMap.end()){
@@ -240,13 +238,13 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 	  break;
 	
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pCommonOrder->szStock);
+	m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pCommonOrder->cBuySell;
 
 	m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecuted.cMessageType;
 	m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->OrderExecuted.iOrderRefNumber;		  
 	// Hack....put the order match number in Prev Order
 	m_pCommonOrder[m_ui64NumOfOrders].iPrevOrderRefNumber  	= pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
 	m_pCommonOrder[m_ui64NumOfOrders].iShares 		= pItchMessageUnion->OrderExecuted.iShares;
-
 	m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderExecuted.iTimeStamp;
 	m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderExecuted.TrackingNumber;
 	m_ui64NumOfOrders++;	
@@ -260,15 +258,14 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 	  break;
 	
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pCommonOrder->szStock);
+	m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pCommonOrder->cBuySell;
 
 	m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
 	m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber;		  
 	// Hack....put the order match number in Prev Order
 	m_pCommonOrder[m_ui64NumOfOrders].iPrevOrderRefNumber  	= pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber;
 	m_pCommonOrder[m_ui64NumOfOrders].iShares = pItchMessageUnion->OrderExecutedWithPrice.iShares;
-
 	m_pCommonOrder[m_ui64NumOfOrders].dPrice = pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
-	
 	m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
 	m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderExecutedWithPrice.TrackingNumber;
 	m_ui64NumOfOrders++;	
@@ -281,6 +278,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 	  break;
 	
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pCommonOrder->szStock);
+	m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pCommonOrder->cBuySell;	
 
       
 	m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderCancel.cMessageType;
@@ -301,6 +299,8 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 	
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pCommonOrder->szStock);
 	m_pCommonOrder[m_ui64NumOfOrders].iShares = m_pCommonOrder->iShares;
+	m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pCommonOrder->cBuySell;
+	
 	
 	m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderDelete.cMessageType;
 	m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->OrderDelete.iOrderRefNumber;

@@ -1,4 +1,5 @@
 #include "memory.h"
+// #include <boost/chrono.hpp>
 
 //#include <sys/types.h>
 #include <stdlib.h>>
@@ -6,6 +7,8 @@
 #include "Util.h"
 
 #include <stdio.h>
+#include <chrono>
+#include <ctime>
 
 #define SIZEOFBUF 27
 
@@ -41,7 +44,26 @@ char* CUtil::GetTimeFromNano(uint64_t ui64NanoTime)
   int i = 0; 
   
   uint64_t iRem = 0;
+  // Put in a while loop
+  Div= lldiv(ui64NanoTime,  1000); 
+  m_iNanoSeconds = Div.rem;
   
+  Div = lldiv(ui64NanoTime - m_iNanoSeconds, 1000);
+  m_iMicroSeconds = Div.rem;
+  
+  Div = lldiv(ui64NanoTime - m_iMicroSeconds, 1000);
+  m_iMilliSeconds = Div.rem;
+  
+  Div = lldiv(ui64NanoTime - m_iMilliSeconds, 1000);
+  m_iSeconds = Div.rem;
+  
+  
+  
+  
+  
+  
+  
+    
   Div= lldiv(ui64NanoTime,  m_iHours); 
   iHours = Div.quot;
   iRem   = Div.rem;
@@ -58,6 +80,23 @@ char* CUtil::GetTimeFromNano(uint64_t ui64NanoTime)
 CUtil::~CUtil(void)
 {
 	 
+}
+
+/////////////////////////////////////////////////////////////////////////////
+using namespace std::chrono;
+
+void CUtil::GetTimeWithSeconds(void)
+{
+  high_resolution_clock::time_point p = high_resolution_clock::now();
+
+  milliseconds ms = duration_cast<milliseconds>(p.time_since_epoch());
+
+  seconds s = duration_cast<seconds>(ms);
+  std::time_t t = s.count();
+  std::size_t fractional_seconds = ms.count() % 1000;
+
+//  std::cout << std::ctime(&t) << std::endl;
+//  std::cout << fractional_seconds << std::endl;
 }
 /////////////////////////////////////////////////////////////////////////////
 char* CUtil::FloatToCharP(double fIn)
@@ -206,7 +245,47 @@ char* CUtil::GetFormatedDate()
 	return m_szLogDate;
 }
 ///////////////////////////////////////////////////////////////////////////////////
+char* CUtil::GetFormatedTime()
+{
+	struct tm stToday;
+     	time_t ltime = 0;
+	
+	time( &ltime );
+        localtime_r( &ltime ,  &stToday);
 
+	
+	memset(m_szLogTime, 0 , SIZE_OF_FORMATED_TIME);
+	strftime(m_szLogTime, SIZE_OF_FORMATED_TIME, "%H-%M-%S" , &stToday);
+	return m_szLogTime;
+}
+///////////////////////////////////////////////////////////////////////////////////
 
+/*
+#include <iostream>
+#include <chrono>
+#include <ctime>
+
+using namespace std::chrono;
+
+int main()
+{
+  high_resolution_clock::time_point p = high_resolution_clock::now();
+
+  milliseconds ms = duration_cast<milliseconds>(p.time_since_epoch());
+
+  seconds s = duration_cast<seconds>(ms);
+  std::time_t t = s.count();
+  std::size_t fractional_seconds = ms.count() % 1000;
+
+  std::cout << std::ctime(&t) << std::endl;
+  std::cout << fractional_seconds << std::endl;
+}
+example result:
+
+Thu Oct 11 19:10:24 2012
+
+925
+  
+ */
 
 

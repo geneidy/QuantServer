@@ -25,10 +25,11 @@ CFillMsgStructs::CFillMsgStructs(void)
 	time( &ltime );
         localtime_r( &ltime ,  &stToday);
 
-//	memset(&theApp.g_Stats, 0 , sizeof(FEED_MESSAGE_STATS));
-//	memset(theApp.g_Stats.strStartTime, '\0', sizeof(theApp.g_Stats.strStartTime));
-//	strftime(theApp.g_Stats.strStartTime, sizeof(theApp.g_Stats.strStartTime), "%Y-%m-%d- %H:%M:%S" , &stToday);
-
+	memset(&theApp.g_Stats, 0 , sizeof(FEED_MESSAGE_STATS));
+	memset(theApp.g_Stats.strStartTime, '\0', sizeof(theApp.g_Stats.strStartTime));
+	strftime(theApp.g_Stats.strStartTime, sizeof(theApp.g_Stats.strStartTime), "%Y-%m-%d- %H:%M:%S" , &stToday);
+//	strcpy(theApp.g_Stats.strStartTime, m_pCUtil->GetFormatedTime());
+	
 	m_pCUtil	= NULL;
 	m_pCUtil	= new CUtil();
 
@@ -57,6 +58,8 @@ CFillMsgStructs::~CFillMsgStructs(void)
 	memset(theApp.g_Stats.strEndTime, '\0', sizeof(theApp.g_Stats.strEndTime));
 	strftime(theApp.g_Stats.strEndTime, sizeof(theApp.g_Stats.strEndTime), "%Y-%m-%d- %H:%M:%S" , &stToday);
 
+//	strcpy(theApp.g_Stats.strEndTime, m_pCUtil->GetFormatedTime());
+	
 	if (m_pCUtil)
 	{
 		delete	m_pCUtil;
