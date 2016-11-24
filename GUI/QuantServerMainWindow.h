@@ -1,29 +1,27 @@
-#ifndef QUANTSERVER_H
-#define QUANTSERVER_H
+#ifndef QUANTSERVERMAINWINDOW_H
+#define QUANTSERVERMAINWINDOW_H
 
 #include <QMainWindow>
+#include "connectionDialog.h"
+#include "ui_QuantServerMainWindow.h"
 
-
-class QuantServer : public QMainWindow
+class QuantServerMainWindow : public QMainWindow
 {
   Q_OBJECT
-  
-  signals:
-    void signalLoadSettings();
-    void signalShutDown();
     
   public:
-    QuantServer();
-    void createGUI();
-    void loadSettings();
+    QuantServerMainWindow();
+    //~QuantServerMainWindow();
+    Ui::QuantServerMainWindow ui;
+    
+    ConnectionDialog *connectionDialog;
     
   public slots:
     void save();
     void statusMessage(QString);
     void wakeup();
     void shutDown();
-    void about();   
-    
+    void about();       
 };
 
 
