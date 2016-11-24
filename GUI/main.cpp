@@ -1,13 +1,13 @@
 #include <QApplication>
 //#include <QString>
 
-#include "QuantServer.h"
+#include "QuantServerMainWindow.h"
 
 int main(int argc, char **argv) {
  
   QApplication a(argc, argv);
   
-  QuantServer app;
+  QuantServerMainWindow app;
   app.show();
   return a.exec();    
 }

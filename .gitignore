@@ -48,3 +48,5 @@ Logs/
 
 # qt moc
 #moc*.cpp
+ui_*
+moc_*

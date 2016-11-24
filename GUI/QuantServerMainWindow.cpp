@@ -14,26 +14,34 @@
 #include <QLayout>
 //#include <QProcess>
 
-#include "QuantServer.h"
+#include "QuantServerMainWindow.h"
 #include "../Include/Settings.h"
 
-QuantServer::QuantServer() {
+QuantServerMainWindow::QuantServerMainWindow()
+    : QMainWindow()
+{    
+    ui.setupUi(this);
     
     QCoreApplication::setOrganizationName(ORG_NAME);
     QCoreApplication::setOrganizationDomain(DOM_NAME);
     QCoreApplication::setApplicationName(APP_NAME);
     
-    createGUI();
-    loadSettings();
-    
     setWindowTitle(APP_NAME);
+    
+    connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    
+    connectionDialog = new ConnectionDialog();
+    
+    connect(ui.actionConnect, SIGNAL(triggered()), connectionDialog, SLOT(show())); 
+    
+    
 }
 
-void QuantServer::shutDown() {
+void QuantServerMainWindow::shutDown() {
     save();
 }
-
-void QuantServer::createGUI() {
+/*
+void QuantServerMainWindow::createGUI() {
     QMenuBar *menuBar = new QMenuBar();
     setMenuBar(menuBar);
     QMenu *menu = new QMenu("&Help");
@@ -46,9 +54,9 @@ void QuantServer::createGUI() {
     
     statusBar()->showMessage("Ready", 2000);
     
-}
-
-void QuantServer::loadSettings() {
+}*/
+/*
+void QuantServerMainWindow::loadSettings() {
     QSettings settings(ORG_NAME, APP_NAME);
     
     restoreGeometry(settings.value("main_window_geometry").toByteArray());
@@ -62,9 +70,9 @@ void QuantServer::loadSettings() {
     // restore the position of the app
     QPoint p = settings.value("main_window_pos", QPoint(0, 0)).toPoint();
     move(p);
-}
+}*/
 
-void QuantServer::save() {
+void QuantServerMainWindow::save() {
     QSettings settings(ORG_NAME, APP_NAME);
     
     settings.setValue("main_window_geometry", saveGeometry());
@@ -73,18 +81,18 @@ void QuantServer::save() {
     settings.setValue("main_window_pos", pos());
 }
 
-void QuantServer::statusMessage(QString d) {
+void QuantServerMainWindow::statusMessage(QString d) {
     // update the status bar with a new message from somewhere
     statusBar()->showMessage(d, 0);
     wakeup();
 }
 
-void QuantServer::wakeup() {
+void QuantServerMainWindow::wakeup() {
     // force app to process the event que to keep from blocking
-    qApp->processEvents();
+    //qApp->processEvents();
 }
 
-void QuantServer::about() {
+void QuantServerMainWindow::about() {
     QMessageBox::information(this, "Quanticks!", " Market Data Infrastructure (MDI) Server");
 }
 
