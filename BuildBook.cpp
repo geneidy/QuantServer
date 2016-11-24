@@ -159,7 +159,7 @@ int CBuildBook::ProcessAdd(int iMessage)
     return 1;
 }
 ////////////////////////////////////////////////////
-int CBuildBook::AddPriceLevel(int iSide)
+bool CBuildBook::AddPriceLevel(int iSide)
 {
   InitLevelStats();  
   
@@ -173,15 +173,12 @@ int CBuildBook::AddPriceLevel(int iSide)
   else 
     m_SBidAsk.SLevelStat.uiNonAttribAdd = 1;
   
-  if (iSide == 'B'){
-    
+  if (iSide == 'B')
     m_RetPairPriceLevelMap = m_itBookMap->second.BidPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, m_SBidAsk));	  
-  }
-  else{
-    
+  else
     m_RetPairPriceLevelMap = m_itBookMap->second.AskPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, m_SBidAsk));	
-  }
-//log error if any
+
+  //log error if any
   if (!m_RetPairPriceLevelMap.second)
     Logger::instance().log("Error creating book level", Logger::Debug);
   
@@ -190,12 +187,10 @@ int CBuildBook::AddPriceLevel(int iSide)
 ////////////////////////////////////////////////////
 int CBuildBook::InitLevelStats()
 {
-  
   m_SBidAsk.uiNumOfOrders = 1;
   m_SBidAsk.uiQty = 0;
   m_SBidAsk.dPrice = 0;
-  
-  
+    
   m_SBidAsk.SLevelStat.uiAttribAdd = 0;
   m_SBidAsk.SLevelStat.uiNonAttribAdd = 0;
   
@@ -209,20 +204,91 @@ int CBuildBook::InitLevelStats()
 ////////////////////////////////////////////////////
 int CBuildBook::ProcessReplace(int iMessage)
 {
-
 //    m_OrderReplace = pItchMessageUnion->OrderReplace;
-
     return 1;
 }
 ////////////////////////////////////////////////////
 int CBuildBook::ProcessDelete(int iMessage)
 {
-
   
+  m_dPrice = m_pCommonOrder->dPrice;
+  m_uiQty = m_pCommonOrder->iShares;
   
+  strcpy(m_SBidAsk.szMPID, m_pCommonOrder->szMPID);
   
+  m_strPriceMM.empty();
+  m_strPriceMM = MakeKey();
+  
+  if (m_pCommonOrder->cBuySell == 'B'){  // bid to buy   
+      //Find Book Entry for this stock
+      m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
+      if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
+	  // search for price level
+	  m_itPriceLevelMap = m_itBookMap->second.BidPLMap.find(m_strPriceMM);
+	  
+	  if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
+		UpdatePriceLevel('B');
+	  }
+	  else { // Price level not found...Log error
+	        Logger::instance().log("Book level Not found in Delete book", Logger::Debug);
+	  }
+      }//       if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
+      else{ // No book entry...should not happen
+	Logger::instance().log("No Book Entry found in Delete book", Logger::Debug);
+      }
+  }//   if (m_pCommonOrder->cBuySell == 'B'){  // bid to buy   
+  else {  // ask to sell   
+      //Find Book Entry for this stock
+      m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
+      if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
+	  // search for price level
+	  m_itPriceLevelMap = m_itBookMap->second.AskPLMap.find(m_strPriceMM);
+	  
+	  if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
+		UpdatePriceLevel('A');
+	  }
+	  else { // Price level not found...Log error
+	        Logger::instance().log("Book level Not found in Delete book", Logger::Debug);
+	  }
+      }//       if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
+      else{ // No book entry...should not happen
+	Logger::instance().log("No Book Entry found in Delete book", Logger::Debug);
+      }
+  }//   if (m_pCommonOrder->cBuySell == 'A'){  // bid to buy
   
   return 1;
+}
+///////////////////////////////////////////////////
+bool CBuildBook::UpdatePriceLevel(int iSide)
+{
+  
+  m_itPriceLevelMap->second.uiQty -= m_uiQty;
+  
+  if (m_itPriceLevelMap->second.uiQty <= 0){ // Update number of levels 
+      if (iSide == 'B') 
+	  m_itBookMap->second.m_iBidLevels--;    
+      else
+	  m_itBookMap->second.m_iAskLevels--;    
+      
+      m_PriceLevelMap.erase(m_strPriceMM);      // remove level
+      return true;
+   }
+   
+  m_itPriceLevelMap->second.uiNumOfOrders--;
+   
+    switch (m_iMessage){
+      case 'E':  // Order executed
+      case 'c':  // Order executed  with price
+	m_itPriceLevelMap->second.SLevelStat.uiExecuted--;
+	break;      
+      case 'X':  // Order Cancel
+	m_itPriceLevelMap->second.SLevelStat.uiCancelled--;
+	break;
+      case 'D': // Order deleted
+	m_itPriceLevelMap->second.SLevelStat.uiDeleted--;
+	break;
+     }
+   return true;
 }
 ////////////////////////////////////////////////////
 int CBuildBook::ListBook(char *szSymbol , uint32_t uiMaxLevels)

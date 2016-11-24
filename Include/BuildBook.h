@@ -145,8 +145,10 @@ private:   // by default
   int ProcessDelete(int iMessage);
   int ProcessCancel(int iMessage);
   
-  int AddPriceLevel(int );
+  bool AddPriceLevel(int );
   int InitLevelStats();
+  
+  bool UpdatePriceLevel(int iSide);
   
   void UpdateBook();
   
