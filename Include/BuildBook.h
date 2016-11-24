@@ -137,12 +137,16 @@ private:   // by default
   SBID_ASK*	lpPrevious;
 
   
+  SBID_ASK	m_SBidAsk;
   
   int InitMemoryMappedFile();
   int ProcessAdd(int iMessage);
   int ProcessReplace(int iMessage);
   int ProcessDelete(int iMessage);
   int ProcessCancel(int iMessage);
+  
+  int AddPriceLevel(int );
+  int InitLevelStats();
   
   void UpdateBook();
   

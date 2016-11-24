@@ -87,19 +87,10 @@ string CBuildBook::MakeKey()
 int CBuildBook::ProcessAdd(int iMessage)
 {
 
-  SBID_ASK SBidAsk;
-
   m_dPrice = m_pCommonOrder->dPrice;
   m_uiQty = m_pCommonOrder->iShares;
   
-  SBidAsk.dPrice = m_dPrice;
-  strcpy(SBidAsk.szMPID, m_pCommonOrder->szMPID);
-  SBidAsk.uiQty = m_uiQty;
-  SBidAsk.uiNumOfOrders = 1;
-  
-  SBidAsk.SLevelStat.uiAttribAdd++;
-//  SBidAsk.SLevelStat.uiNonAttribAdd++;
-  
+  strcpy(m_SBidAsk.szMPID, m_pCommonOrder->szMPID);
   
   m_strPriceMM.empty();
   m_strPriceMM = MakeKey();
@@ -114,22 +105,29 @@ int CBuildBook::ProcessAdd(int iMessage)
 	  if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
 	      m_itPriceLevelMap->second.uiQty += m_uiQty;
 	      m_itPriceLevelMap->second.uiNumOfOrders++;
+	      if (strcmp(m_SBidAsk.szMPID, "NSDQ"))
+		m_itPriceLevelMap->second.SLevelStat.uiAttribAdd++;
+	      else
+		m_itPriceLevelMap->second.SLevelStat.uiNonAttribAdd++;
 	  }
 	  else { // Price level not found...Add it
-	    m_itBookMap->second.BidPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, SBidAsk));	  
+	      AddPriceLevel('B');
+	      m_itBookMap->second.m_iBidLevels++;
 	  }// if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
       } // if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
       else { // first time entry in the Book
 	  // Make a book Entry
+	  m_pBookLevels.m_iBidLevels = 1;
 	  m_RetPairBookMap = m_BookMap.insert(pair<char* , SBOOK_LEVELS>(m_pCommonOrder->szStock, m_pBookLevels) );	
 	  // Make a level Entry
 	  m_itBookMap = m_RetPairBookMap.first;
-	  m_itBookMap->second.BidPLMap.insert(std::pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, SBidAsk));
+	  AddPriceLevel('B');
+	  
       }// else { // first time entry in the Book	
   }
 ///////
   else { // Ask to sell
-    //Find Book Entry for this stock
+      //Find Book Entry for this stock
       m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
       if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
 	  // search for price level
@@ -138,21 +136,75 @@ int CBuildBook::ProcessAdd(int iMessage)
 	  if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
 	      m_itPriceLevelMap->second.uiQty += m_uiQty;
 	      m_itPriceLevelMap->second.uiNumOfOrders++;
+	      if (strcpy(m_SBidAsk.szMPID, "NSDQ"))
+		m_itPriceLevelMap->second.SLevelStat.uiAttribAdd++;
+	      else
+		m_itPriceLevelMap->second.SLevelStat.uiNonAttribAdd++;
 	  }
 	  else { // Price level not found...Add it
-	    m_itBookMap->second.AskPLMap.insert(std::pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, SBidAsk));	  
+	      AddPriceLevel('A');
+	      m_itBookMap->second.m_iAskLevels++;
 	  }// if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
       } // if (m_itBookMap != m_BookMap.end()) {  // Book found for this stock
       else { // first time entry in the Book
 	  // Make a book Entry
-	  m_RetPairBookMap = m_BookMap.insert(std::pair<char* , SBOOK_LEVELS>(m_pCommonOrder->szStock, m_pBookLevels) );	
+	  m_pBookLevels.m_iAskLevels = 1;
+	  m_RetPairBookMap = m_BookMap.insert(pair<char* , SBOOK_LEVELS>(m_pCommonOrder->szStock, m_pBookLevels) );	
 	  // Make a level Entry
 	  m_itBookMap = m_RetPairBookMap.first;
-	  m_itBookMap->second.AskPLMap.insert(std::pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, SBidAsk));
-      }// else { // first time entry in the Book	        
+	  AddPriceLevel('A');
+      }// else { // first time entry in the Book	
     } //   else { // Ask to sell
 ///////      
     return 1;
+}
+////////////////////////////////////////////////////
+int CBuildBook::AddPriceLevel(int iSide)
+{
+  InitLevelStats();  
+  
+  m_SBidAsk.dPrice = m_dPrice;
+  m_SBidAsk.uiQty = m_uiQty;
+  m_SBidAsk.uiNumOfOrders = 1;
+
+  
+  if (strcmp(m_SBidAsk.szMPID, "NSDQ")) 
+    m_SBidAsk.SLevelStat.uiAttribAdd = 1;
+  else 
+    m_SBidAsk.SLevelStat.uiNonAttribAdd = 1;
+  
+  if (iSide == 'B'){
+    
+    m_RetPairPriceLevelMap = m_itBookMap->second.BidPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, m_SBidAsk));	  
+  }
+  else{
+    
+    m_RetPairPriceLevelMap = m_itBookMap->second.AskPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, m_SBidAsk));	
+  }
+//log error if any
+  if (!m_RetPairPriceLevelMap.second)
+    Logger::instance().log("Error creating book level", Logger::Debug);
+  
+  return m_RetPairPriceLevelMap.second;  //  a Bool on operation success or failure
+}
+////////////////////////////////////////////////////
+int CBuildBook::InitLevelStats()
+{
+  
+  m_SBidAsk.uiNumOfOrders = 1;
+  m_SBidAsk.uiQty = 0;
+  m_SBidAsk.dPrice = 0;
+  
+  
+  m_SBidAsk.SLevelStat.uiAttribAdd = 0;
+  m_SBidAsk.SLevelStat.uiNonAttribAdd = 0;
+  
+  m_SBidAsk.SLevelStat.uiCancelled = 0;
+  m_SBidAsk.SLevelStat.uiDeleted = 0;
+  m_SBidAsk.SLevelStat.uiExecuted = 0;
+  m_SBidAsk.SLevelStat.uiReplaced = 0;
+  
+  return true;
 }
 ////////////////////////////////////////////////////
 int CBuildBook::ProcessReplace(int iMessage)
@@ -229,6 +281,7 @@ int CBuildBook::ListBook(char *szSymbol , uint32_t uiMaxLevels)
     cout<< itPriceLevelMap->second.SLevelStat.uiDeleted;
     cout<< itPriceLevelMap->second.SLevelStat.uiExecuted;
   }
+  return true;
 }
 //////////////////////////////////////////////////////
 
