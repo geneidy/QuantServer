@@ -27,14 +27,18 @@ QuantServerMainWindow::QuantServerMainWindow()
     QCoreApplication::setApplicationName(APP_NAME);
     
     setWindowTitle(APP_NAME);
+    loadSettings();
     
+    connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(shutDown()));
     connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
     
-    connectionDialog = new ConnectionDialog();
     
+    connectionDialog = new ConnectionDialog();
     connect(ui.actionConnect, SIGNAL(triggered()), connectionDialog, SLOT(show())); 
     
+    connect(ui.action_About, SIGNAL(triggered()), this, SLOT(about()));
     
+    statusBar()->showMessage("Ready", 2000);
 }
 
 void QuantServerMainWindow::shutDown() {
@@ -55,7 +59,7 @@ void QuantServerMainWindow::createGUI() {
     statusBar()->showMessage("Ready", 2000);
     
 }*/
-/*
+
 void QuantServerMainWindow::loadSettings() {
     QSettings settings(ORG_NAME, APP_NAME);
     
@@ -70,7 +74,7 @@ void QuantServerMainWindow::loadSettings() {
     // restore the position of the app
     QPoint p = settings.value("main_window_pos", QPoint(0, 0)).toPoint();
     move(p);
-}*/
+}
 
 void QuantServerMainWindow::save() {
     QSettings settings(ORG_NAME, APP_NAME);
@@ -89,7 +93,7 @@ void QuantServerMainWindow::statusMessage(QString d) {
 
 void QuantServerMainWindow::wakeup() {
     // force app to process the event que to keep from blocking
-    //qApp->processEvents();
+    qApp->processEvents();
 }
 
 void QuantServerMainWindow::about() {

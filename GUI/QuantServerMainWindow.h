@@ -13,6 +13,7 @@ class QuantServerMainWindow : public QMainWindow
     QuantServerMainWindow();
     //~QuantServerMainWindow();
     Ui::QuantServerMainWindow ui;
+    void loadSettings();
     
     ConnectionDialog *connectionDialog;
     
