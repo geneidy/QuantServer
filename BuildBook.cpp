@@ -1,3 +1,6 @@
+#include <iostream>
+#include <sstream>
+#include <iomanip>
 
 #include "BuildBook.h"
 #include "NQTV.h"
@@ -70,9 +73,6 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
 
     return 0;
 }
-#include <iostream>
-#include <sstream>
-#include <iomanip>
 ////////////////////////////////////////////////////
 string CBuildBook::MakeKey()
 {
@@ -136,7 +136,7 @@ int CBuildBook::ProcessAdd(int iMessage)
             if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
                 m_itPriceLevelMap->second.uiQty += m_uiQty;
                 m_itPriceLevelMap->second.uiNumOfOrders++;
-                if (strcpy(m_SBidAsk.szMPID, "NSDQ"))
+                if (strcmp(m_SBidAsk.szMPID, "NSDQ"))
                     m_itPriceLevelMap->second.SLevelStat.uiAttribAdd++;
                 else
                     m_itPriceLevelMap->second.SLevelStat.uiNonAttribAdd++;
@@ -261,7 +261,6 @@ int CBuildBook::ProcessDelete(int iMessage)
 ///////////////////////////////////////////////////
 bool CBuildBook::UpdatePriceLevel(int iSide)
 {
-
     m_itPriceLevelMap->second.uiQty -= m_uiQty;
 
     if (m_itPriceLevelMap->second.uiQty <= 0) { // Update number of levels
@@ -307,8 +306,6 @@ int CBuildBook::ListBook(char *szSymbol , uint32_t uiMaxLevels)
     }
 
     uint32_t uiLevels = 0;
-
-    //m_PriceLevelMap = itBookMap->second.AskPLMap;
 
     for (itPriceLevelMap = itBookMap->second.BidPLMap.begin(); itPriceLevelMap != itBookMap->second.BidPLMap.end(); ++itPriceLevelMap)
     {
