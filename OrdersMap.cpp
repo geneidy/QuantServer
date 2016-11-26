@@ -44,7 +44,7 @@ if (stat("/some/directory", &st) == -1) {
     string strOrdersFile;
     strOrdersFile.empty();
     
-    strOrdersFile = "./Orders/";
+    strOrdersFile = "../Orders/";
     strOrdersFile += Util.GetFormatedDate();
     strOrdersFile += "QuanticksOrders.Qtx";
     

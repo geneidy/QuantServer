@@ -382,9 +382,9 @@ int LoadSettings()
     
     SSettings.iarrRole[0] = 0;   		//  0= Receive Feed
     SSettings.iarrRole[1] = 0;   		//  1= Parse
-    SSettings.iarrRole[2] = 1;   		//  2= Orders Map 
-    SSettings.iarrRole[3] = 1;   		//  3= Build Book
-    SSettings.iarrRole[4] = 1;   		//  4= Tick Data
+    SSettings.iarrRole[2] = 0;   		//  2= Orders Map 
+    SSettings.iarrRole[3] = 0;   		//  3= Build Book
+    SSettings.iarrRole[4] = 0;   		//  4= Tick Data
     SSettings.iarrRole[5] = 0;   		//  5= Save to DB
     SSettings.iarrRole[6] = 0;   		//  6= Play back
     

@@ -13,7 +13,7 @@ const string Logger::Debug = "[D]";
 const string Logger::Info  = "[I]";
 const string Logger::Error = "[E]";
 
-const char* const Logger::kLogFileName = '\0';
+const char* const  Logger::kLogFileName = {"\Logs\AmrTest"};
 
 Logger* Logger::pInstance = nullptr;
 mutex 	Logger::sMutex;
@@ -43,14 +43,14 @@ Logger::~Logger()
 Logger::Logger()
 {
     CUtil Util;
-    string strkLogFileName;
+    std::string strkLogFileName;
     strkLogFileName.empty();
     
-    strkLogFileName = "./Logs/";
+    strkLogFileName = "../Logs/";
     strkLogFileName += Util.GetFormatedDate();
     strkLogFileName += "Logs.txt";
-
-    mOutputStream.open(strkLogFileName, ios_base::app);
+    
+    mOutputStream.open(strkLogFileName, std::fstream::in | std::fstream::out |std::fstream::app);
     if (!mOutputStream.good()) {
 	throw runtime_error("Unable to initialize the Logger!");
     } 

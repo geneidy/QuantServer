@@ -31,10 +31,10 @@ protected:
 	static Logger* pInstance;
 
 	// Constant for the filename
-	static const char* const kLogFileName;
+	static const char* const  kLogFileName;
 
 	// Data member for the output stream
-	std::ofstream mOutputStream;
+	std::fstream mOutputStream;
 
 	// Embedded class to make sure the single Logger
 	// instance gets deleted on program shutdown.

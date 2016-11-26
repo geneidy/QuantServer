@@ -18,7 +18,7 @@ CTickDataMap::CTickDataMap()
     strTickFile.empty();
     
     
-    strTickFile = "./Ticks/";
+    strTickFile = "../Ticks/";
     strTickFile += Util.GetFormatedDate();
     strTickFile += "QuanticksTicks.Qtx";
     
