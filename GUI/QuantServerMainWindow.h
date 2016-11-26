@@ -3,7 +3,10 @@
 
 #include <QMainWindow>
 #include "connectionDialog.h"
+#include "configdialog.h"
 #include "ui_QuantServerMainWindow.h"
+
+//class ConfigDialog;
 
 class QuantServerMainWindow : public QMainWindow
 {
@@ -15,7 +18,10 @@ class QuantServerMainWindow : public QMainWindow
     Ui::QuantServerMainWindow ui;
     void loadSettings();
     
+    // TODO make modal and set parents 
     ConnectionDialog *connectionDialog;
+    
+    ConfigDialog *configDialog;
     
   public slots:
     void save();

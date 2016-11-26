@@ -36,6 +36,10 @@ QuantServerMainWindow::QuantServerMainWindow()
     connectionDialog = new ConnectionDialog();
     connect(ui.actionConnect, SIGNAL(triggered()), connectionDialog, SLOT(show())); 
     
+    configDialog = new ConfigDialog();
+    connect(ui.action_Config, SIGNAL(triggered()), configDialog, SLOT(show()));
+    
+    
     connect(ui.action_About, SIGNAL(triggered()), this, SLOT(about()));
     
     statusBar()->showMessage("Ready", 2000);
