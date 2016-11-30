@@ -308,7 +308,7 @@ typedef struct
 	uint64_t     		iTimeStamp;							//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOldOrderRefNumber;					//Original Order Reference Number	11	8	Integer	The original reference number of the order being replaced.
 	uint64_t		iNewOrderRefNumber;					//New Order Reference Number	19	8	Integer	The new reference number for this order at time of replacement.
-															//Please note that the NASDAQ system will use this new order reference number for all subsequent updates.
+											//Please note that the NASDAQ system will use this new order reference number for all subsequent updates.
 	unsigned int		iShares;							//Shares	27	4	Integer	The new total displayed quantity.
 	double			dPrice;								//Price	31	4	Price (4)	The new display price for the order. Refer to Data Types for field processing notes.
 }ORDER_REPLACE_MESSAGE;
@@ -325,8 +325,8 @@ typedef struct       //    Common Order Record Struct...Wil handle the order rel
 												//“D”	Order Delete Message.
 												//“U”	Order Replace Message
 
-	unsigned int	iLocateCode;			// Stock Locate	Integer	Locate code identifying the security
-	unsigned int	TrackingNumber;			// Tracking Number		Integer	NASDAQ OMX internal tracking number
+//	unsigned int	iLocateCode;			// Stock Locate	Integer	Locate code identifying the security
+//	unsigned int	TrackingNumber;			// Tracking Number		Integer	NASDAQ OMX internal tracking number
 	uint64_t     	iTimeStamp;				// Timestamp	Integer	Nanoseconds since midnight.
 	uint64_t	iOrderRefNumber;		// Order Reference Number	Integer	The unique reference number assigned to the new order at the time of receipt.
 	uint64_t	iPrevOrderRefNumber;	// Previous Order Reference Number	In case we are processing an order replace
@@ -334,6 +334,9 @@ typedef struct       //    Common Order Record Struct...Wil handle the order rel
 												// “B” = buy order.
 												// “S” = sell order.
 	unsigned int	iShares;				// Shares		Integer	The total number of shares associated with the order being added to the book.
+	unsigned int	iPrevShares;	//  case of order replace
+	double		dPrevPrice;	//  case of order replace
+		
 	char		szStock[SIZE_OF_SYMBOL];	// Stock		8	Alpha	Stock symbol, right padded with spaces
 	double		dPrice;					// Price		4	Price (4)	The display price of the new order.  //Refer to Data Types for field processing notes.
 	char		szMPID[SIZE_OF_MM];	// Attribution	4	Alpha	NASDAQ market participant identifier associated with the entered order.
@@ -366,7 +369,10 @@ typedef struct
 //A Trade Message is transmitted each time a non-displayable order is executed in whole or in part. It is possible to receive 
 //multiple Trade Messages for the same order if that order is executed in several parts. Trade Messages for the same order are cumulative.
 //Trade Messages should be included in NASDAQ time-and-sales displays as well as volume and other market statistics.
+
+// >>>>>> Read Carefully :: Start
 //Since Trade Messages do NOT affect the book, however, they may be ignored by firms just looking to build and track the NASDAQ execution system display.
+// >>>>>> Read Carefully :: End
 
 typedef struct     
  {									//Name	Offset	Length	Value	Notes

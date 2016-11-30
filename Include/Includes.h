@@ -13,7 +13,7 @@
 typedef unsigned long   DWORD;
 
 enum FEED_STATE{
-	FEED_01_STARTING,
+	FEED_01_STARTING = 1,
 	FEED_02_STARTING,
 	FEED_03_STARTING,
 

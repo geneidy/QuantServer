@@ -37,16 +37,15 @@ public:
 	int RetailPriceImprovementIndicator(UINT8* uiMsg);
 
 	FEED_MESSAGE_STATS GetStats();
-
+	int GetError();
+private:
 	CUtil		*m_pCUtil;
- 	CDBLayer*	m_pDBLayer;
-	
-
 	CQuantQueue*	m_pQuantQueue;
 	
 	ITCH_MESSAGES_UNION m_IMUSys;
 
 	bool		m_bConnected;
+	int		m_iError;
 /*
 	SYSTEM_EVENT_MESSAGE						m_SystemEvent;
 	STOCK_DIRECTORY_MESSAGE						m_StockDirectory;

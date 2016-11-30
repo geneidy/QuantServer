@@ -204,7 +204,18 @@ int CBuildBook::InitLevelStats()
 ////////////////////////////////////////////////////
 int CBuildBook::ProcessReplace(int iMessage)
 {
-//    m_OrderReplace = pItchMessageUnion->OrderReplace;
+    m_dPrice = m_pCommonOrder->dPrevPrice;
+    m_uiQty = m_pCommonOrder->iPrevShares;
+
+    ProcessDelete(10);
+    
+    m_dPrice = m_pCommonOrder->dPrice;
+    m_uiQty = m_pCommonOrder->iShares;
+    
+    ProcessAdd(10);
+    
+    m_itPriceLevelMap->second.SLevelStat.uiReplaced++; 
+  
     return 1;
 }
 ////////////////////////////////////////////////////
@@ -274,7 +285,7 @@ bool CBuildBook::UpdatePriceLevel(int iSide)
     }
 
     m_itPriceLevelMap->second.uiNumOfOrders--;
-
+/*
     switch (m_iMessage) {
     case 'E':  // Order executed
     case 'c':  // Order executed  with price
@@ -287,7 +298,8 @@ bool CBuildBook::UpdatePriceLevel(int iSide)
         m_itPriceLevelMap->second.SLevelStat.uiDeleted--;
         break;
     }
-    return true;
+*/  
+  return true;
 }
 ////////////////////////////////////////////////////
 int CBuildBook::ListBook(char *szSymbol , uint32_t uiMaxLevels)

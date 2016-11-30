@@ -83,14 +83,14 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 {
     int idx = *((int*) pArg);
 
+    InitThreadLog(idx);
+
     if (!theApp.SSettings.iarrRole[2])  { // Map only if buid book is checked
         arrThreadInfo[idx].eState = TS_TERMINATED;
         return NULL;
     }
 
-    std::string  strLogMessage = " Memory Map Thead Started";
     bReady = false;
-    Logger::instance().log(strLogMessage, Logger::Debug);
 
     pthread_mutex_lock(&mtxMap);
 
@@ -124,9 +124,7 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
     delete pCOrdersMap;
     pCOrdersMap = NULL;
 
-    //strLogMessage = strInMessage +  " Finished";
-    //Logger::instance().log(strLogMessage, Logger::Debug);
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    TermThreadLog(idx);
 
     return pArg;
 }
@@ -134,23 +132,16 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 void* BuildBook(void* pArg)
 {
 
-    string  strLogMessage =  "Build Book Started";
     int idx = *((int*) pArg);
 
-    /*/  sleep(1);
-      Logger::instance().log(strLogMessage, Logger::Debug);
-      if (!pCOrdersMap){
-          Logger::instance().log("Can't Build the Book without Memory Map", Logger::Debug);
-          arrThreadInfo[idx].eState = TS_TERMINATED;
-          return NULL;
-      }
-
-    */  pthread_mutex_lock(&mtxMap);
+    InitThreadLog(idx);
+    pthread_mutex_lock(&mtxMap);
     // Start the Memory Mapping First
-    arrThreadInfo[idx].eState = TS_ALIVE;
+
 
     while (!bReady)
         pthread_cond_wait(&condMap, &mtxMap);
+
     pCBuildBook = NULL;
     pCBuildBook = new CBuildBook();
     if (!pCBuildBook) {
@@ -173,9 +164,9 @@ void* BuildBook(void* pArg)
     }
 
     delete pCBuildBook;
-    strLogMessage = "Build Book Finished";
-//  Logger::instance().log(strLogMessage, Logger::Debug);
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    pCBuildBook = NULL;
+
+    TermThreadLog(idx);
 
     return pArg;
 }
@@ -183,34 +174,26 @@ void* BuildBook(void* pArg)
 void* TickDataMap(void* pArg)
 {
 
-    std::string  strLogMessage = "Tick Data Thread Started";
-    Logger::instance().log(strLogMessage, Logger::Debug);
-
     int idx = *((int*) pArg);
-    bReady = false;
-    Logger::instance().log(strLogMessage, Logger::Debug);
+
+    InitThreadLog(idx);
 
     pCTickDataMap = new CTickDataMap;
-    
+
     while (!bReady) {
-      sleep(1);
-      if (theApp.iStatus == STOPPED)
-	break;
+        sleep(1);
+        if (theApp.iStatus == STOPPED)
+            break;
     }
-     while (theApp.iStatus != STOPPED) {
+    while (theApp.iStatus != STOPPED) {
         pCTickDataMap->FillMemoryMappedFile();
     };
 
     delete pCTickDataMap;
     pCTickDataMap = NULL;
 
-    //strLogMessage = strInMessage +  " Finished";
-    //Logger::instance().log(strLogMessage, Logger::Debug);
-    arrThreadInfo[idx].eState = TS_TERMINATED;
-    strLogMessage = "Tick Data Thread Finished";
-    Logger::instance().log(strLogMessage, Logger::Debug);
+    TermThreadLog(idx);
 
-    arrThreadInfo[idx].eState = TS_TERMINATED;
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
@@ -218,15 +201,11 @@ void* ReceiveFeed(void* pArg)
 {
     int idx = *((int*) pArg);
 
-    std::string  strLogMessage = "Parse Feed Thread Started";
-    Logger::instance().log(strLogMessage, Logger::Debug);
+    InitThreadLog(idx);
 
     // Calls to functions and threads go here
 
-    strLogMessage = "Parse Feed Thread Finished";
-    Logger::instance().log(strLogMessage, Logger::Debug);
-
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    TermThreadLog(idx);
 
     return pArg;
 }
@@ -235,104 +214,107 @@ void* ParseFeed(void* pArg)
 {
     int idx = *((int*) pArg);
 
-    std::string  strLogMessage = "Parse Feed Thread Started";
+    InitThreadLog(idx);    // Calls to functions and threads go here
 
-    Logger::instance().log(strLogMessage, Logger::Debug);
-
-    // Calls to functions and threads go here
-
-
-    strLogMessage =  " Parse Feed Thread Finished";
-    Logger::instance().log(strLogMessage, Logger::Debug);
-
-
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    TermThreadLog(idx);
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
 void* SaveToDB(void* pArg)
 {
 
-    std::string strInMessage = (char*) pArg;
-    std::string  strLogMessage = strInMessage +  " Started";
-
     int idx = *((int*) pArg);
-//  Logger::instance().log(strLogMessage, Logger::Debug);
+    InitThreadLog(idx);
 
     pCSaveToDB = NULL;
     pCSaveToDB = new CSaveToDB();
+
+    // Call the worker thread here and check for !STOPPED
+    // The worker thread has to check for the availability of the Memory Mapped Files ....Check here before you continue
     if (pCSaveToDB == NULL) {
-        arrThreadInfo[idx].eState = TS_TERMINATED;
+        TermThreadLog(idx);
         return NULL;
     }
 
     // Call member functions here
 
     delete pCSaveToDB;
+    pCSaveToDB = NULL;
+
     //
     //
-    strLogMessage = strInMessage +  " Finished";
-//  Logger::instance().log(strLogMessage, Logger::Debug);
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    TermThreadLog(idx);
+
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
 void* PlayBack(void* pArg)
 {
-    std::string strInMessage = (char*) pArg;
-    std::string  strLogMessage = strInMessage +  " Started";
-
     int idx = *((int*) pArg);
-//  Logger::instance().log(strLogMessage, Logger::Debug);
 
-    /*
-      if ((iHandle = open(theApp.strFeedFileName.c_str(), O_RDWR )==  -1))
-      {
-          std::cout << "Invalid File Name Entered" << std::endl;
-          return 1;
-      }
-    */
-
-    strLogMessage = strInMessage +  " Finished";
-//  Logger::instance().log(strLogMessage, Logger::Debug);
-
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    InitThreadLog(idx);    //
+    // Call Object Methods here
+    //
+    TermThreadLog(idx);
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
 void* NasdTestFile(void* pArg)
 {
+    int idx = *((int*) pArg);
 
-//    int idx = *((int*) pArg);
+    InitThreadLog(idx);
+
+    pCReceiveITCH = NULL;
+    pCReceiveITCH = new CReceiveITCH();
+
+    if (!pCReceiveITCH) {
+        Logger::instance().log("Error Creating ReceiveITCH Object", Logger::Error);
+        TermThreadLog(idx);
+        return NULL;
+    }
+    if (pCReceiveITCH->GetError() == 100) {
+        Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
+        TermThreadLog(idx);
+
+	delete pCReceiveITCH;
+	pCReceiveITCH = NULL;
+        return NULL;
+
+    }
+
+    if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.strTestFileName.c_str())) {
+        Logger::instance().log("Error Reading From Test File", Logger::Error);
+        TermThreadLog(idx);
+
+	delete pCReceiveITCH;
+	pCReceiveITCH = NULL;
+	return NULL;
+    }
+
+    TermThreadLog(idx);
+
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
 void *Distributor(void* pArg)
 {
-
-    string  strLogMessage = "Distributor thread Started";
-
     int idx = *((int*) pArg);
 
-//  Logger::instance().log(strLogMessage, Logger::Debug);
-
+    InitThreadLog(idx);
     // Calls to functions and threads go here
 
-    strLogMessage =  "Distributor thread Finished";
-//  Logger::instance().log(strLogMessage, Logger::Debug);
+    TermThreadLog(idx);
 
-    arrThreadInfo[idx].eState = TS_TERMINATED;
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
 void* SaveToDisk(void* pArg)
 {
 
-    std::string strInMessage = (char*) pArg;
-    std::string  strLogMessage = strInMessage +  " Started";
-
-    Logger::instance().log(strLogMessage, Logger::Debug);
     int idx = *((int*) pArg);
+
+    InitThreadLog(idx);
 
     pCSaveToDisk = NULL;
 
@@ -343,14 +325,33 @@ void* SaveToDisk(void* pArg)
         pCSaveToDisk->WriteFeedToFile();
     }
 
-    strLogMessage = strInMessage +  " Finished";
-    Logger::instance().log(strLogMessage, Logger::Debug);
-
     delete pCSaveToDisk;
+    pCSaveToDisk = NULL;
 
-    arrThreadInfo[idx].eState = TS_TERMINATED;
+    TermThreadLog(idx);
 
     return pArg;
+}
+///////////////////////////////////////////////////////////////
+void InitThreadLog(int idx)
+{
+    string  strLogMessage = ThreadMessage[idx];
+
+    strLogMessage += " Started";
+
+    Logger::instance().log(strLogMessage, Logger::Info);
+    arrThreadInfo[idx].eState = TS_ALIVE;
+
+}
+///////////////////////////////////////////////////////////////
+void TermThreadLog(int idx)
+{
+    string  strLogMessage = ThreadMessage[idx];
+
+    strLogMessage += " Finished";
+    Logger::instance().log(strLogMessage, Logger::Info);
+    arrThreadInfo[idx].eState = TS_TERMINATED;
+
 }
 ///////////////////////////////////////////////////////////////
 int LoadSettings()
@@ -360,7 +361,7 @@ int LoadSettings()
     SETTINGS  SSettings;
 //  cout << "instance of Settings created" << endl;
 
-    Logger::instance().log("Loading Settings", Logger::Debug);
+    Logger::instance().log("Loading Settings", Logger::Info);
 //  memset(&SSettings, '\0', sizeof(SETTINGS));
 //  cout << "In Settings After Log" << endl;
 
@@ -379,19 +380,19 @@ int LoadSettings()
 //{"Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread", "Save To DB Thread",
 //       6			7			8		9
 // "Play Back Thread", "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
-    
+
     SSettings.iarrRole[0] = 0;   		//  0= Receive Feed
     SSettings.iarrRole[1] = 0;   		//  1= Parse
-    SSettings.iarrRole[2] = 0;   		//  2= Orders Map 
+    SSettings.iarrRole[2] = 0;   		//  2= Orders Map
     SSettings.iarrRole[3] = 0;   		//  3= Build Book
     SSettings.iarrRole[4] = 0;   		//  4= Tick Data
     SSettings.iarrRole[5] = 0;   		//  5= Save to DB
     SSettings.iarrRole[6] = 0;   		//  6= Play back
-    
+
     SSettings.iarrRole[7] = 0;   		//  7= Test File
     SSettings.iarrRole[8] = 0;   		//  8= Distributor
     SSettings.iarrRole[9] = 0;   		//  9= Save to Disk
-    
+
     SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
 
     SSettings.bPartitionActive = true;  		//  bool  bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
@@ -428,7 +429,7 @@ int LoadSettings()
 
     SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
-    SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig 
+    SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
     SSettings.uiQueueSize = 10000000;  // 10 Million elements
 
 //  memset(&theApp.SSettings, '\0', sizeof(SETTINGS));

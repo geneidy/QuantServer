@@ -23,9 +23,10 @@ public:
   	CReceiveITCH();
 	virtual ~CReceiveITCH(void);
 
-	int ReadFromTestFile(char* strFileName);
-
+	int ReadFromTestFile(const char* strFileName);
 	int ProcessFeed();
+	
+	int GetError();
 
 
 	int			m_iTVBufLen;
@@ -58,7 +59,7 @@ private:
 		CUtil	*m_pCUtil;
 
 		int m_iIteration;
-
+		int m_iError;
 
 };
 

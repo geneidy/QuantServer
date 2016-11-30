@@ -14,6 +14,7 @@
 #include "BuildBook.h"
 #include "OrdersMap.h"
 #include "TickDataMap.h"
+#include  "ReceiveITCH.h"
 
 
 
@@ -49,6 +50,9 @@ void *SaveToDisk(void*);
 void *OrdersMap(void* pArg);
 void *TickDataMap(void*);
 
+void InitThreadLog(int);
+void TermThreadLog(int);
+
 
 void* (*func_ptr[NUMBER_OF_ROLES+ 1])(void*) = \
 {ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
@@ -66,6 +70,8 @@ extern "C"
   CBuildBook* 	pCBuildBook;
   COrdersMap* 	pCOrdersMap;
   CTickDataMap* pCTickDataMap;
+  CReceiveITCH* pCReceiveITCH;
+  
 #ifdef __cplusplus
 } // extern "C"
 #endif 
