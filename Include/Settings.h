@@ -35,8 +35,8 @@ typedef struct
 
   bool  	bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
 
-  int 		iBeginRange;  // e.g 'A'  or 'G'
-  int 		iEndRange;	
+  char 		cBeginRange;  // e.g 'A'  or 'G'
+  char 		cEndRange;	
   char  	strInclude[5];  // include from another range that was excluded from another partition
   char  	strExclude[5]; 	// Exclude to be included in another partition...eg AAPL
   

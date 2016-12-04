@@ -46,6 +46,7 @@ private:
 
 	bool		m_bConnected;
 	int		m_iError;
+
 /*
 	SYSTEM_EVENT_MESSAGE						m_SystemEvent;
 	STOCK_DIRECTORY_MESSAGE						m_StockDirectory;

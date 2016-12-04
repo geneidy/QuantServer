@@ -346,7 +346,6 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
     strcpy(m_IMUSys.AddOrderNoMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
     m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
 
-
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'A');
 
@@ -542,4 +541,4 @@ FEED_MESSAGE_STATS  CFillMsgStructs::GetStats()
 {
     return theApp.g_Stats;
 }
-///////////////////////////////////////////////////////////////////////////*/
+/////////////////////////////////////////////////////////////////////////////

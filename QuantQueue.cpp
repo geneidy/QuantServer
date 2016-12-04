@@ -194,7 +194,8 @@ void CQuantQueue::InitReader(int iPosition)
  
   if (iPosition == POSTITON_CURRENT){
     if (m_i64QueueElement > 0){
-//    m_pReader = &m_pWriter[ m_i64QueueElement - 1 ];
+//    m_pReader = &m_pWriter[ m_i64QueueElement - 1 ];-
+      
       m_Threadi64LastIndex =  m_i64QueueElement -1 ;	// redundant
     }
     else{  // m_i64QueueElement = 0  ...not started yet

@@ -17,49 +17,49 @@
 
 class CReceiveITCH
 {
-	int m_Socket;
+    int m_Socket;
 public:
 //	CReceiveITCH(socket* );
-  	CReceiveITCH();
-	virtual ~CReceiveITCH(void);
+    CReceiveITCH();
+    virtual ~CReceiveITCH(void);
 
-	int ReadFromTestFile(const char* strFileName);
-	int ProcessFeed();
-	
-	int GetError();
+    int ReadFromTestFile(const char* strFileName);
+    int ProcessFeed();
 
-
-	int			m_iTVBufLen;
-	int			m_iOutputBuffLen;
-	int			m_pszRecvBufLen;
-
-	
-  char		szMsg[MSG_LENGTH];
+    int GetError();
 
 
-	  UINT8		*m_pLast;
-	  UINT8		*m_pBegin;
-	uint64_t			m_iLen ;
+    int		m_iTVBufLen;
+    int		m_iOutputBuffLen;
+    int		m_pszRecvBufLen;
 
-	UINT8 		*m_pszTVBuf;
-	  UINT8		*m_pszRecvBuf;
-	  UINT8		*m_pszOutputBuf;
 
-	UINT8		m_szMessage[SOUP_MESSAGE_SIZE];   // each individual message
+    char	szMsg[MSG_LENGTH];
+
+
+    UINT8	*m_pLast;
+    UINT8	*m_pBegin;
+    uint64_t	m_iLen ;
+
+    UINT8 	*m_pszTVBuf;
+    UINT8	*m_pszRecvBuf;
+    UINT8	*m_pszOutputBuf;
+
+    UINT8	m_szMessage[SOUP_MESSAGE_SIZE];   // each individual message
 
 
 private:
-		int m_iPacketLength;
-		int m_iPacketType;
+    int m_iPacketLength;
+    int m_iPacketType;
 
-		UINT8 m_strPacketLength[3];
-		UINT8 m_strPacketType[2];
+    UINT8 m_strPacketLength[3];
+    UINT8 m_strPacketType[2];
 
-		CFillMsgStructs *m_pFillStructs;
-		CUtil	*m_pCUtil;
+    CFillMsgStructs *m_pFillStructs;
+    CUtil	*m_pCUtil;
 
-		int m_iIteration;
-		int m_iError;
+    int m_iIteration;
+    int m_iError;
 
 };
 

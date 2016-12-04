@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <mutex>
+#include "Util.h"
 
 // #define _POSIX_C_SOURCE 199309
 
@@ -62,12 +63,14 @@ private:
   
   struct timespec m_request, m_remain;
 
+  CUtil*  m_Util;
+  
 //  static mutex m_;
   
   static std::mutex MapMutex;
 
    COrdersMap();
-     std::pair<OrdersUnOrderedMap::iterator, bool>  RetPair;
+   pair<OrdersUnOrderedMap::iterator, bool>  RetPair;
 protected:
 	static COrdersMap *pInstance;  
 	friend class Cleanup;

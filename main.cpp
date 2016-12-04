@@ -277,8 +277,8 @@ void* NasdTestFile(void* pArg)
         Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
         TermThreadLog(idx);
 
-	delete pCReceiveITCH;
-	pCReceiveITCH = NULL;
+        delete pCReceiveITCH;
+        pCReceiveITCH = NULL;
         return NULL;
 
     }
@@ -287,9 +287,9 @@ void* NasdTestFile(void* pArg)
         Logger::instance().log("Error Reading From Test File", Logger::Error);
         TermThreadLog(idx);
 
-	delete pCReceiveITCH;
-	pCReceiveITCH = NULL;
-	return NULL;
+        delete pCReceiveITCH;
+        pCReceiveITCH = NULL;
+        return NULL;
     }
 
     TermThreadLog(idx);
@@ -396,22 +396,30 @@ int LoadSettings()
     SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
 
     SSettings.bPartitionActive = true;  		//  bool  bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
+    /* Range for all Ex AAPL
+        SSettings.iBeginRange = 'A';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
+        SSettings.iEndRange = 'Z';  		//   int 	iEndRange;
+        *SSettings.strInclude = '\0';		//	char  strInclude[5];  // include from another range that was excluded from another partition
+        strcpy(SSettings.strExclude, "AAPL");  		// char  strExclude[5]; 	// Exclude to be included in another partition
+    */
+// Range for Apple only
+    SSettings.cBeginRange = '\0';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
+    SSettings.cEndRange = '\0';  		//   int 	iEndRange;
+    strcpy(SSettings.strInclude, "AAPL");		//	char  strInclude[5];  // include from another range that was excluded from another partition
+    strcpy(SSettings.strExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
 
-    SSettings.iBeginRange = 'A';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
-    SSettings.iEndRange = 'Z';  		//   int 	iEndRange;
-    *SSettings.strInclude = '\0';		//	char  strInclude[5];  // include from another range that was excluded from another partition
-    strcpy(SSettings.strExclude, "AAPL");  		// char  strExclude[5]; 	// Exclude to be included in another partition
+
 
     strcpy(SSettings.szUserName, "UserName");   		//  char		szUserName[SIZE_OF_NAME];
     strcpy(SSettings.szPassword, "Password");	// char		szPassword[SIZE_OF_PASSWORD];
 
-    SSettings.ulIPAddress =  1234567;  	//  unsigned long	ulIPAddress;
-    SSettings.uiPort 	=  8743 ;		//  uint 		uiPort;
+    SSettings.ulIPAddress 	=  1234567;  	//  unsigned long	ulIPAddress;
+    SSettings.uiPort 		=  8743 ;		//  uint 		uiPort;
 
-    SSettings.ulIPAddress1=  85236;   	//  unsigned long	ulIPAddress1;
-    SSettings.uiPort1 	= 8521;  		//  uint		uiPort1;
+    SSettings.ulIPAddress1	=  85236;   	//  unsigned long	ulIPAddress1;
+    SSettings.uiPort1 		= 8521;  		//  uint		uiPort1;
 
-    SSettings.dwBufferSize = 100;  		//  unsigned long	dwBufferSize;
+    SSettings.dwBufferSize 	= 100;  		//  unsigned long	dwBufferSize;
 
 // ODBC connection parameters in case option 3
     SSettings.strConnName = "MySqlConnection";    	//  std::string  	strConnName;  // from ODBC

@@ -60,7 +60,9 @@ public:
 	
 	char	m_szLogDate[SIZE_OF_FORMATED_DATE];
 	char	m_szLogTime[SIZE_OF_FORMATED_TIME];    
-	char* GetTimeFromNano(uint64_t);
-	void GetTimeWithSeconds();
+	
+	char* 	GetTimeFromNano(uint64_t);
+	void 	GetTimeWithSeconds();
+ 	bool 	CheckInclude(char*  szStock);
 
 };

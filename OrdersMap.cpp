@@ -1,5 +1,5 @@
 #include "OrdersMap.h"
-#include "Util.h"
+
 
 //using namespace std;
 
@@ -31,7 +31,9 @@ COrdersMap::COrdersMap()
     m_ui64NumOfOrders = 0;
 
     m_uiSizeOfCommonOrderRecord = sizeof(COMMON_ORDER_MESSAGE);
-    CUtil  Util;
+
+    m_Util = NULL;
+    m_Util = new CUtil();
 
     /*
      *struct stat st = {0};
@@ -45,7 +47,7 @@ COrdersMap::COrdersMap()
     strOrdersFile.empty();
 
     strOrdersFile = "../Orders/";
-    strOrdersFile += Util.GetFormatedDate();
+    strOrdersFile += m_Util->GetFormatedDate();
     strOrdersFile += "QuanticksOrders.Qtx";
 
 //    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
@@ -99,6 +101,9 @@ COrdersMap::~COrdersMap()
     munmap(m_addr, m_sb.st_size);
     m_SymbolMap.clear();
     close(m_fd);
+
+    if (m_Util)
+      delete m_Util;
 }
 //////////////////////////////////////////////////////////////////////////////////
 int COrdersMap::GetError()
@@ -163,6 +168,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
         return m_ui64NumOfOrders;
     }
+    
     RetPair.second = true;  // not all the switch statements cases do an insert....
     memset(&m_pCommonOrder[m_ui64NumOfOrders], '\0', m_uiSizeOfCommonOrderRecord);
     switch (m_iMessage) {
@@ -176,7 +182,11 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         // No attribution...will attrib it to Nasdaq
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, "NSDQ");
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, pItchMessageUnion->AddOrderNoMPID.szStock);
-   //     m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderNoMPID.TrackingNumber;
+	if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderNoMPID.szStock))
+	    return 0;
+
+	
+	//     m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderNoMPID.TrackingNumber;
 
         RetPair = m_SymbolMap.insert(std::pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
         m_ui64NumOfOrders++;

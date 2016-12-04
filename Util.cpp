@@ -22,78 +22,68 @@ char cValue;
 
 CUtil::CUtil(void)
 {
-  m_i64Nanos 	= 1E9;
-  m_iHours 	= m_i64Nanos *  60 * 60; 
-  m_iMinutes 	= m_i64Nanos * 60; 
-  m_iSeconds 	= 1 * 1E9 ;
-  m_iMilliSeconds = 1 * 1E3;
-  m_iMicroSeconds = 1 * 1E6;
-  m_iNanoSeconds  = 0;
+    m_i64Nanos 	= 1E9;
+    m_iHours 	= m_i64Nanos *  60 * 60;
+    m_iMinutes 	= m_i64Nanos * 60;
+    m_iSeconds 	= 1 * 1E9 ;
+    m_iMilliSeconds = 1 * 1E3;
+    m_iMicroSeconds = 1 * 1E6;
+    m_iNanoSeconds  = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 char* CUtil::GetTimeFromNano(uint64_t ui64NanoTime)
 {
-  lldiv_t Div;
-  int iHours = 0;
-  int iMinutes = 0;
-  int iSeconds = 0;
-  int iMilliSeconds = 0;
-  int iMicroSeconds = 0;
-  uint64_t ui64Nanos = 0;
-  int i = 0; 
-  
-  uint64_t iRem = 0;
-  // Put in a while loop
-  Div= lldiv(ui64NanoTime,  1000); 
-  m_iNanoSeconds = Div.rem;
-  
-  Div = lldiv(ui64NanoTime - m_iNanoSeconds, 1000);
-  m_iMicroSeconds = Div.rem;
-  
-  Div = lldiv(ui64NanoTime - m_iMicroSeconds, 1000);
-  m_iMilliSeconds = Div.rem;
-  
-  Div = lldiv(ui64NanoTime - m_iMilliSeconds, 1000);
-  m_iSeconds = Div.rem;
-  
-  
-  
-  
-  
-  
-  
-    
-  Div= lldiv(ui64NanoTime,  m_iHours); 
-  iHours = Div.quot;
-  iRem   = Div.rem;
-  
-  Div = lldiv(iRem, m_iMinutes);
-  iMinutes = Div.quot;
-  iRem = Div.rem;
-  
-  
-  
-}
+    lldiv_t Div;
+    int iHours = 0;
+    int iMinutes = 0;
+    int iSeconds = 0;
+    int iMilliSeconds = 0;
+    int iMicroSeconds = 0;
+    uint64_t ui64Nanos = 0;
+    int i = 0;
 
+    uint64_t iRem = 0;
+    // Put in a while loop
+    Div= lldiv(ui64NanoTime,  1000);
+    m_iNanoSeconds = Div.rem;
+
+    Div = lldiv(ui64NanoTime - m_iNanoSeconds, 1000);
+    m_iMicroSeconds = Div.rem;
+
+    Div = lldiv(ui64NanoTime - m_iMicroSeconds, 1000);
+    m_iMilliSeconds = Div.rem;
+
+    Div = lldiv(ui64NanoTime - m_iMilliSeconds, 1000);
+    m_iSeconds = Div.rem;
+
+
+    Div= lldiv(ui64NanoTime,  m_iHours);
+    iHours = Div.quot;
+    iRem   = Div.rem;
+
+    Div = lldiv(iRem, m_iMinutes);
+    iMinutes = Div.quot;
+    iRem = Div.rem;
+
+}
 //////////////////////////////////////////////////////////////////////////////
 CUtil::~CUtil(void)
 {
-	 
-}
 
+}
 /////////////////////////////////////////////////////////////////////////////
 using namespace std::chrono;
 
 void CUtil::GetTimeWithSeconds(void)
 {
-  high_resolution_clock::time_point p = high_resolution_clock::now();
+    high_resolution_clock::time_point p = high_resolution_clock::now();
 
-  milliseconds ms = duration_cast<milliseconds>(p.time_since_epoch());
+    milliseconds ms = duration_cast<milliseconds>(p.time_since_epoch());
 
-  seconds s = duration_cast<seconds>(ms);
-  std::time_t t = s.count();
-  std::size_t fractional_seconds = ms.count() % 1000;
+    seconds s = duration_cast<seconds>(ms);
+    std::time_t t = s.count();
+    std::size_t fractional_seconds = ms.count() % 1000;
 
 //  std::cout << std::ctime(&t) << std::endl;
 //  std::cout << fractional_seconds << std::endl;
@@ -101,65 +91,65 @@ void CUtil::GetTimeWithSeconds(void)
 /////////////////////////////////////////////////////////////////////////////
 char* CUtil::FloatToCharP(double fIn)
 {
-/*	memset(m_pChar, '\0', SIZE_OF_RET_BUFF);
-	int	err = 0;
+    /*	memset(m_pChar, '\0', SIZE_OF_RET_BUFF);
+    	int	err = 0;
 
-	err = _gcvt_s(m_pChar, SIZE_OF_RET_BUFF, fIn, 15);
-*/
-	return m_pChar;
+    	err = _gcvt_s(m_pChar, SIZE_OF_RET_BUFF, fIn, 15);
+    */
+    return m_pChar;
 }
 /////////////////////////////////////////////////////////////////////////////
 char* CUtil::IntToCharP(int iIn)
 {
-/*	memset(m_pChar, '\0', SIZE_OF_RET_BUFF);
-	int	err = 0;
+    /*	memset(m_pChar, '\0', SIZE_OF_RET_BUFF);
+    	int	err = 0;
 
-	err = _itoa_s(iIn, m_pChar, 10);
-*/
-	return m_pChar;
+    	err = _itoa_s(iIn, m_pChar, 10);
+    */
+    return m_pChar;
 }
 /////////////////////////////////////////////////////////////////////////////
 double  CUtil::GetValueDouble(UINT8 *uiMsg, int iOffset, int iLength)
 {
-	double dValue = 0;
-	/*
-	memset(strBuffer, '\0', SIZEOFBUF);
-	if (iLength >= SIZEOFBUF)
-		iLength = SIZEOFBUF -1;
-	memmove(strBuffer,  uiMsg +iOffset,  iLength);  
-	dValue = atof(strBuffer);
-	*/
-	return dValue;
-} 
+    double dValue = 0;
+    /*
+    memset(strBuffer, '\0', SIZEOFBUF);
+    if (iLength >= SIZEOFBUF)
+    	iLength = SIZEOFBUF -1;
+    memmove(strBuffer,  uiMsg +iOffset,  iLength);
+    dValue = atof(strBuffer);
+    */
+    return dValue;
+}
 ////////////////////////////////////////////////////////////////////////////
 short	CUtil::GetValueShort(UINT8 *uiMsg, int iOffset, int iLength)
 {
-	unsigned short uiBuff = 0;
+    unsigned short uiBuff = 0;
 
- 	memmove(&uiBuff,  uiMsg +iOffset,  iLength);   
-	iValue = ntohs(uiBuff);
+    memmove(&uiBuff,  uiMsg +iOffset,  iLength);
+    iValue = ntohs(uiBuff);
 
-	return iValue;
+    return iValue;
 }
 ////////////////////////////////////////////////////////////////////////////
 int	CUtil::GetValueInt(UINT8 *uiMsg, int iOffset, int iLength)
 {
-	int uiBuff = 0;
+    int uiBuff = 0;
 
-	memmove(&uiBuff,  uiMsg +iOffset,  iLength);   
-	iValue = ntohl(uiBuff);
+    memmove(&uiBuff,  uiMsg +iOffset,  iLength);
+    iValue = ntohl(uiBuff);
 
-	return iValue;
+    return iValue;
 }
 ////////////////////////////////////////////////////////////////////////////
 unsigned long	CUtil::GetValueUnsignedLong(UINT8 *uiMsg, int iOffset, int iLength)
 {
-	unsigned long ulBuff = 0;
+    unsigned long ulBuff = 0;
 
- 	memmove(&ulBuff,  uiMsg +iOffset,  iLength);   
-	ulValue = ntohl(ulBuff);
+    memmove(&ulBuff,  uiMsg +iOffset,  iLength);
+    ulValue = ntohl(ulBuff);
 
-	return ulValue;
+    return ulValue;
 }
 /*///////////////////////////////////////////////////////////////////////////
 #define _WS2_32_WINSOCK_SWAP_LONGLONG(l)            \
@@ -175,91 +165,122 @@ unsigned long	CUtil::GetValueUnsignedLong(UINT8 *uiMsg, int iOffset, int iLength
 *///////////////////////////////////////////////////////////////////////////
 uint64_t   CUtil::GetValueUnsignedInt64(UINT8 *uiMsg, int iOffset, int iLength)
 {
-	uint64_t i64Buff = 0;
+    uint64_t i64Buff = 0;
 
-	memset(&i64Buff, '\0', 8);
-	memmove(&i64Buff,  uiMsg +iOffset,  iLength);   
+    memset(&i64Buff, '\0', 8);
+    memmove(&i64Buff,  uiMsg +iOffset,  iLength);
 
 // 	i64Value =   ntohl(i64Buff);  // NEED an i64 functions.....should be ntohll !!!   //_WS2_32_WINSOCK_SWAP_LONGLONG(i64Buff);
- 	i64Value =   be64toh(i64Buff);  // Found it
+    i64Value =   be64toh(i64Buff);  // Found it
 
-	GetTimeFromNano(i64Value);
+    GetTimeFromNano(i64Value);
 
-	return i64Value;
+    return i64Value;
 }
 ////////////////////////////////////////////////////////////////////////////
 char*   CUtil::GetValueAlpha(UINT8 *uiMsg, int iOffset, int iLength)
 {
 //	char strValue[256];  // sorry for the hard coded value
- 	memset(strValue, '\0', 256);
-	if (iLength > 255)
-		iLength = 255;
+    memset(strValue, '\0', 256);
+    if (iLength > 255)
+        iLength = 255;
 
-	memmove(strValue,  uiMsg +iOffset,  iLength);  
+    memmove(strValue,  uiMsg +iOffset,  iLength);
 
-	return strValue;
+    return strValue;
 }
 ////////////////////////////////////////////////////////////////////////////
 char    CUtil::GetValueChar(UINT8 *uiMsg, int iOffset, int iLength)
 {
-	cValue = '\0';
-	cValue = uiMsg[iOffset];
+    cValue = '\0';
+    cValue = uiMsg[iOffset];
 
-	return cValue;
+    return cValue;
 }
 ////////////////////////////////////////////////////////////////////////////
-void CUtil::print_error(MYSQL* conn, char* message) 
+void CUtil::print_error(MYSQL* conn, char* message)
 {
-  /*fprintf(stderr, "%s\n", message);
-  if (conn != NULL){
-    fprintf(stderr, "Error %u (%s)\n",
-    mysql_errno(conn), mysql_error(conn));
-  }
-  */
+    /*fprintf(stderr, "%s\n", message);
+    if (conn != NULL){
+      fprintf(stderr, "Error %u (%s)\n",
+      mysql_errno(conn), mysql_error(conn));
+    }
+    */
 }
 ///////////////////////////////////////////////////////////////////////////////////
-void CUtil::print_stmt_error (MYSQL_STMT* stmt, char* message) 
+void CUtil::print_stmt_error (MYSQL_STMT* stmt, char* message)
 {
-/*	fprintf (stderr, "%s\n", message);
-	if (stmt != NULL)
-	{
-		fprintf(stderr, "Error %u (%s): %s\n",
-				mysql_stmt_errno(stmt),
-				mysql_stmt_sqlstate(stmt),
-				mysql_stmt_error(stmt));
-	}
-	*/
+    /*	fprintf (stderr, "%s\n", message);
+    	if (stmt != NULL)
+    	{
+    		fprintf(stderr, "Error %u (%s): %s\n",
+    				mysql_stmt_errno(stmt),
+    				mysql_stmt_sqlstate(stmt),
+    				mysql_stmt_error(stmt));
+    	}
+    	*/
 }
 #include "time.h"
 ///////////////////////////////////////////////////////////////////////////////////
 char* CUtil::GetFormatedDate()
 {
-	struct tm stToday;
-     	time_t ltime = 0;
-	
-	time( &ltime );
-        localtime_r( &ltime ,  &stToday);
+    struct tm stToday;
+    time_t ltime = 0;
 
-	memset(m_szLogDate, 0 , SIZE_OF_FORMATED_DATE);
-	strftime(m_szLogDate, SIZE_OF_FORMATED_DATE, "%Y-%m-%d-" , &stToday);
-	return m_szLogDate;
+    time( &ltime );
+    localtime_r( &ltime ,  &stToday);
+
+    memset(m_szLogDate, 0 , SIZE_OF_FORMATED_DATE);
+    strftime(m_szLogDate, SIZE_OF_FORMATED_DATE, "%Y-%m-%d-" , &stToday);
+    return m_szLogDate;
 }
 ///////////////////////////////////////////////////////////////////////////////////
 char* CUtil::GetFormatedTime()
 {
-	struct tm stToday;
-     	time_t ltime = 0;
-	
-	time( &ltime );
-        localtime_r( &ltime ,  &stToday);
+    struct tm stToday;
+    time_t ltime = 0;
 
-	
-	memset(m_szLogTime, 0 , SIZE_OF_FORMATED_TIME);
-	strftime(m_szLogTime, SIZE_OF_FORMATED_TIME, "%H-%M-%S" , &stToday);
-	return m_szLogTime;
+    time( &ltime );
+    localtime_r( &ltime ,  &stToday);
+
+
+    memset(m_szLogTime, 0 , SIZE_OF_FORMATED_TIME);
+    strftime(m_szLogTime, SIZE_OF_FORMATED_TIME, "%H-%M-%S" , &stToday);
+    return m_szLogTime;
 }
-///////////////////////////////////////////////////////////////////////////////////
+#include "NQTV.h"
 
+///////////////////////////////////////////////////////////////////////////////////
+bool CUtil::CheckInclude(char* szStock)
+{
+
+    if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included with or w/o range
+        return true;
+
+
+/*
+    if ((theApp.SSettings.cBeginRange == '\0') &&  (theApp.SSettings.cEndRange == '\0')) { //  No Range
+        if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included
+            return true;
+        return false;
+    }
+
+*/
+    if ((theApp.SSettings.cBeginRange <= *szStock) &&  (theApp.SSettings.cEndRange >= *szStock)) { // In Range
+        if (strcmp(szStock, theApp.SSettings.strExclude)) { // NOT excluded
+            return true;
+        }
+        else { // In range but excluded
+            return false;
+        }
+    }
+    else { // Not in range
+        return false;
+    }
+
+    return false;  //  should not reach here....put a breakpoint
+}
+///////////////////////////////////////////////////////////////////////////////
 /*
 #include <iostream>
 #include <chrono>
@@ -285,7 +306,7 @@ example result:
 Thu Oct 11 19:10:24 2012
 
 925
-  
+
  */
 
 
