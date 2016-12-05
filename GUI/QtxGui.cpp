@@ -11,6 +11,7 @@
 #include <QStatusBar>
 #include <QInputDialog>
 #include <QToolButton>
+#include <QToolBar>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -45,6 +46,7 @@ QtxGui::QtxGui(QWidget* parent)
     
     createActions();
     createMenu();
+    createToolBars();
     statusMessage("Ready");
 //     createStatusBar();
 //     
@@ -130,6 +132,15 @@ void QtxGui::createActions() {
     actionAboutQuanticks = new QAction(QIcon::fromTheme(QString::fromUtf8("help-about")), "About Quanticks", this);
     connect(actionAboutQuanticks, SIGNAL(triggered()), this, SLOT(aboutQuanticks()));
     
+    actionPlayFeed = new QAction(QIcon::fromTheme(QString::fromUtf8("media-playback-start")), "Play Feed", this);
+    connect(actionPlayFeed, SIGNAL(triggered()), this, SLOT(onActionPlayFeed()));
+    
+    actionPauseFeed = new QAction(QIcon::fromTheme(QString::fromUtf8("media-playback-pause")), "Pause Feed", this);
+    connect(actionPauseFeed, SIGNAL(triggered()), this, SLOT(onActionPauseFeed()));
+    
+    actionStopFeed = new QAction(QIcon::fromTheme(QString::fromUtf8("media-playback-stop")), "Stop Feed", this);
+    connect(actionStopFeed, SIGNAL(triggered()), this, SLOT(onActionStopFeed()));
+    
 }
 
 void QtxGui::createMenu() {
@@ -152,6 +163,15 @@ void QtxGui::createMenu() {
     
 }
 
+void QtxGui::createToolBars() {
+    connectToolBar = addToolBar("Connect");
+    connectToolBar->addAction(actionConnectConfig);
+    connectToolBar->addSeparator();
+    connectToolBar->addAction(actionPlayFeed);
+    connectToolBar->addAction(actionPauseFeed);
+    connectToolBar->addAction(actionStopFeed);
+}
+
 void QtxGui::onActionConfigManager() {
     configDialog = new ConfigDialog(this);
     //configDialog->setWindowFlags(configDialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -159,6 +179,19 @@ void QtxGui::onActionConfigManager() {
     configDialog->show();
     
 }
+
+void QtxGui::onActionPlayFeed() {
+    
+}
+
+void QtxGui::onActionPauseFeed() {
+    
+}
+
+void QtxGui::onActionStopFeed() {
+    
+}
+
 
 // void QtxGui::createStatusBar() {
 //     statusMessage("Ready");

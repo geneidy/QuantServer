@@ -16,8 +16,7 @@ class QtxGui : public QMainWindow
     QtxGui(QWidget* parent = 0);
     //~QuantServerMainWindow();
     Ui::QtxGui ui;
-    void loadSettings();
-    void createGUI();
+
     
     // TODO make modal and set parents 
     //ConnectionDialog *connectionDialog;
@@ -27,7 +26,10 @@ class QtxGui : public QMainWindow
 private:
     void createActions();
     void createMenu();
-    void createToolBar();
+    void createToolBars();
+    void loadSettings();
+    void createGUI();
+    QToolBar* connectToolBar;
 // QMenuBar* menuBar;
 // QToolBar* toolBar;
 //     void createStatusBar();
@@ -35,6 +37,9 @@ private:
     QAction* actionExit;
     QAction* actionAboutQtxMDI;
     QAction* actionAboutQuanticks;
+    QAction* actionPlayFeed;
+    QAction* actionPauseFeed;
+    QAction* actionStopFeed;
     //QToolBar* toolMenu;
     QMenu* menuFile;
     QMenu* menuSettings;
@@ -50,6 +55,9 @@ private:
 
 private slots:
     void onActionConfigManager();
+    void onActionPlayFeed();
+    void onActionPauseFeed();
+    void onActionStopFeed();
 //     void onExit();
     void shutDown();
 };
