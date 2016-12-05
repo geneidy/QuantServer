@@ -216,6 +216,9 @@
    </item>
    <item row="3" column="0">
     <widget class="QGroupBox" name="proxy">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="toolTip">
       <string>Enable network proxy</string>
      </property>

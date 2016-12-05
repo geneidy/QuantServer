@@ -7,15 +7,18 @@
 
 #include <QtDebug>
 #include <QApplication>
+#include <QPlainTextEdit> //TODO remove when adding logwidget; for testing purposes now!!
 #include <QSettings>
 #include <QStatusBar>
 #include <QInputDialog>
 #include <QToolButton>
 #include <QToolBar>
+#include <QDockWidget>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QLayout>
+
 //#include <QProcess>
 
 QtxGui::QtxGui(QWidget* parent)
@@ -48,6 +51,7 @@ QtxGui::QtxGui(QWidget* parent)
     createMenu();
     createToolBars();
     statusMessage("Ready");
+    createDockWindows();
 //     createStatusBar();
 //     
 //     //statusBar()->showMessage("Ready", 2000);
@@ -119,8 +123,11 @@ void QtxGui::aboutQuanticks() {
 }
 
 void QtxGui::createActions() {
-    actionConnectConfig = new QAction(QIcon::fromTheme(QString::fromUtf8("preferences-system-network")), "&Connect", this);
-    connect(actionConnectConfig, SIGNAL(triggered(bool)), this, SLOT(onActionConfigManager()));
+    actionConfig = new QAction(QIcon::fromTheme(QString::fromUtf8("preferences-system-network")), "Con&fig", this);
+    connect(actionConfig, SIGNAL(triggered(bool)), this, SLOT(onActionConfig()));
+    
+    actionConnect = new QAction(QIcon::fromTheme(QString::fromUtf8("network-server")), "&Connect", this);
+    connect(actionConnect, SIGNAL(triggered()), this, SLOT(onActionConnect()));
     
     actionExit =  new QAction(QIcon::fromTheme(QString::fromUtf8("application-exit")), "E&xit", this);
     actionExit->setShortcut(QKeySequence::Quit);
@@ -145,15 +152,15 @@ void QtxGui::createActions() {
 
 void QtxGui::createMenu() {
     menuFile = menuBar()->addMenu("&QuantServer");
-    menuFile->addAction(actionConnectConfig);
+    menuFile->addAction(actionConfig);
     menuFile->addSeparator();
     menuFile->addAction(actionExit);
     
     menuSettings = menuBar()->addMenu("&Settings");
-    menuSettings->addAction(actionConnectConfig);
+    menuSettings->addAction(actionConfig);
     menuSettings->addSeparator();
     
-    //menuView = menuBar()->addMenu("&View");
+    menuView = menuBar()->addMenu("&View");
     
     menuHelp = menuBar()->addMenu("Help");
     menuHelp->addSeparator();
@@ -165,19 +172,36 @@ void QtxGui::createMenu() {
 
 void QtxGui::createToolBars() {
     connectToolBar = addToolBar("Connect");
-    connectToolBar->addAction(actionConnectConfig);
+    connectToolBar->addAction(actionConnect);
     connectToolBar->addSeparator();
     connectToolBar->addAction(actionPlayFeed);
     connectToolBar->addAction(actionPauseFeed);
     connectToolBar->addAction(actionStopFeed);
 }
 
-void QtxGui::onActionConfigManager() {
+void QtxGui::createDockWindows() {
+    QDockWidget* dock = new QDockWidget("Log", this);
+    dock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    logWindow = new QPlainTextEdit(dock);
+    dock->setWidget(logWindow);
+    addDockWidget(Qt::BottomDockWidgetArea, dock);
+    menuView->addAction(dock->toggleViewAction());
+    
+    
+    
+}
+
+void QtxGui::onActionConfig() {
     configDialog = new ConfigDialog(this);
     //configDialog->setWindowFlags(configDialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
     //configDialog->setParent(this);
     configDialog->show();
     
+}
+
+void QtxGui::onActionConnect() {
+    connDialog = new ConnDialog(this);
+    connDialog->show();
 }
 
 void QtxGui::onActionPlayFeed() {
