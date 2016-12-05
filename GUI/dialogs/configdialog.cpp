@@ -1,20 +1,23 @@
 #include <QtGui>
+#include <QString>
 
 #include "configdialog.h"
 #include "configpages.h"
 
-ConfigDialog::ConfigDialog()
+
+ConfigDialog::ConfigDialog(QWidget* child)
+    : QDialog(child)
 {
     contentsWidget = new QListWidget;
     contentsWidget->setViewMode(QListView::IconMode);
-    contentsWidget->setIconSize(QSize(96, 84));
+    contentsWidget->setIconSize(QSize(32, 32));
     contentsWidget->setMovement(QListView::Static);
     contentsWidget->setMaximumWidth(128);
     contentsWidget->setSpacing(12);
 
     pagesWidget = new QStackedWidget;
     pagesWidget->addWidget(new ConfigurationPage);
-    pagesWidget->addWidget(new UpdatePage);
+    //pagesWidget->addWidget(new UpdatePage);
     pagesWidget->addWidget(new QueryPage);
 
     QPushButton *closeButton = new QPushButton(tr("Close"));
@@ -46,16 +49,19 @@ ConfigDialog::ConfigDialog()
 void ConfigDialog::createIcons()
 {
     QListWidgetItem *configButton = new QListWidgetItem(contentsWidget);
-    //configButton->setIcon(QIcon(""));
+    configButton->setIcon(QIcon::fromTheme(QString::fromUtf8("preferences-system-network")));//network-wired network-connect
+    //configButton->setIcon(QIcon((":/icons/")));
     configButton->setTextAlignment(Qt::AlignHCenter);
     configButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    
+    /*
     QListWidgetItem *updateButton = new QListWidgetItem(contentsWidget);
+    updateButton->setIcon(QIcon::fromTheme(QString::fromUtf8("preferences-system")));
     //updateButton->setIcon(QIcon(""));
     updateButton->setTextAlignment(Qt::AlignHCenter);
     updateButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    
+    */
     QListWidgetItem *queryButton = new QListWidgetItem(contentsWidget);
+    queryButton->setIcon(QIcon::fromTheme(QString::fromUtf8("preferences-system")));
     //configButton->setIcon(QIcon(""));
     queryButton->setTextAlignment(Qt::AlignHCenter);
     queryButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);

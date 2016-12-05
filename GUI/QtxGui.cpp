@@ -2,6 +2,9 @@
 #define DOM_NAME "quanticks.com"
 #define APP_NAME "Quanticks MDI Server"
 
+#include "QtxGui.h"
+#include "../Include/Settings.h"
+
 #include <QtDebug>
 #include <QApplication>
 #include <QSettings>
@@ -14,11 +17,8 @@
 #include <QLayout>
 //#include <QProcess>
 
-#include "QuantServerMainWindow.h"
-#include "../Include/Settings.h"
-
-QuantServerMainWindow::QuantServerMainWindow()
-    : QMainWindow()
+QtxGui::QtxGui(QWidget* parent)
+    : QMainWindow(parent)
 {    
     ui.setupUi(this);
     
@@ -30,26 +30,34 @@ QuantServerMainWindow::QuantServerMainWindow()
     loadSettings();
     
     connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(shutDown()));
-    connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
+    //connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
     
-    
+    /*
     connectionDialog = new ConnectionDialog();
     connect(ui.actionConnect, SIGNAL(triggered()), connectionDialog, SLOT(show())); 
+    */
     
-    configDialog = new ConfigDialog();
-    connect(ui.action_Config, SIGNAL(triggered()), configDialog, SLOT(show()));
+   //connect(ui.actionConfigure_QuantServer, SIGNAL(triggered()), this, SLOT(onActionConfigManager()));
+    //connect(ui.actionConfigure_QuantServer, SIGNAL(triggered()), configDialog, SLOT(show()));
     
     
-    connect(ui.action_About, SIGNAL(triggered()), this, SLOT(about()));
+   // connect(ui.action_About, SIGNAL(triggered()), this, SLOT(about()));
     
-    statusBar()->showMessage("Ready", 2000);
+    createActions();
+    createMenu();
+    statusMessage("Ready");
+//     createStatusBar();
+//     
+//     //statusBar()->showMessage("Ready", 2000);
 }
 
-void QuantServerMainWindow::shutDown() {
+void QtxGui::shutDown() {
+    this->hide();
     save();
+    QCoreApplication::quit();
 }
 /*
-void QuantServerMainWindow::createGUI() {
+void QtxGui::createGUI() {
     QMenuBar *menuBar = new QMenuBar();
     setMenuBar(menuBar);
     QMenu *menu = new QMenu("&Help");
@@ -64,7 +72,7 @@ void QuantServerMainWindow::createGUI() {
     
 }*/
 
-void QuantServerMainWindow::loadSettings() {
+void QtxGui::loadSettings() {
     QSettings settings(ORG_NAME, APP_NAME);
     
     restoreGeometry(settings.value("main_window_geometry").toByteArray());
@@ -80,7 +88,7 @@ void QuantServerMainWindow::loadSettings() {
     move(p);
 }
 
-void QuantServerMainWindow::save() {
+void QtxGui::save() {
     QSettings settings(ORG_NAME, APP_NAME);
     
     settings.setValue("main_window_geometry", saveGeometry());
@@ -89,20 +97,77 @@ void QuantServerMainWindow::save() {
     settings.setValue("main_window_pos", pos());
 }
 
-void QuantServerMainWindow::statusMessage(QString d) {
+void QtxGui::statusMessage(QString d) {
     // update the status bar with a new message from somewhere
     statusBar()->showMessage(d, 0);
     wakeup();
 }
 
-void QuantServerMainWindow::wakeup() {
+void QtxGui::wakeup() {
     // force app to process the event que to keep from blocking
     qApp->processEvents();
 }
 
-void QuantServerMainWindow::about() {
-    QMessageBox::information(this, "Quanticks!", " Market Data Infrastructure (MDI) Server");
+void QtxGui::aboutQtxMDI() {
+    QMessageBox::information(this, "Quanticks", " Market Data Infrastructure (MDI) Server");
 }
+
+void QtxGui::aboutQuanticks() {
+    QMessageBox::information(this, "Quanticks", " WE THE BEST");
+}
+
+void QtxGui::createActions() {
+    actionConnectConfig = new QAction(QIcon::fromTheme(QString::fromUtf8("preferences-system-network")), "&Connect", this);
+    connect(actionConnectConfig, SIGNAL(triggered(bool)), this, SLOT(onActionConfigManager()));
+    
+    actionExit =  new QAction(QIcon::fromTheme(QString::fromUtf8("application-exit")), "E&xit", this);
+    actionExit->setShortcut(QKeySequence::Quit);
+    connect(actionExit, SIGNAL(triggered()), this, SLOT(shutDown()));
+    
+    actionAboutQtxMDI = new QAction(QIcon::fromTheme(QString::fromUtf8("help-about")), "About Quant MDI", this);
+    connect(actionAboutQtxMDI, SIGNAL(triggered()), this, SLOT(aboutQtxMDI()));
+    
+    actionAboutQuanticks = new QAction(QIcon::fromTheme(QString::fromUtf8("help-about")), "About Quanticks", this);
+    connect(actionAboutQuanticks, SIGNAL(triggered()), this, SLOT(aboutQuanticks()));
+    
+}
+
+void QtxGui::createMenu() {
+    menuFile = menuBar()->addMenu("&QuantServer");
+    menuFile->addAction(actionConnectConfig);
+    menuFile->addSeparator();
+    menuFile->addAction(actionExit);
+    
+    menuSettings = menuBar()->addMenu("&Settings");
+    menuSettings->addAction(actionConnectConfig);
+    menuSettings->addSeparator();
+    
+    //menuView = menuBar()->addMenu("&View");
+    
+    menuHelp = menuBar()->addMenu("Help");
+    menuHelp->addSeparator();
+    menuHelp->addAction(actionAboutQtxMDI);
+    menuHelp->addAction(actionAboutQuanticks);
+    
+    
+}
+
+void QtxGui::onActionConfigManager() {
+    configDialog = new ConfigDialog(this);
+    //configDialog->setWindowFlags(configDialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    //configDialog->setParent(this);
+    configDialog->show();
+    
+}
+
+// void QtxGui::createStatusBar() {
+//     statusMessage("Ready");
+//     //statusBar()->showMessage("Ready", 2000);
+// }
+
+// void QtxGui::onExit() {
+//     shutDown();
+// }
 
 
 

@@ -28,7 +28,7 @@ ConfigurationPage::ConfigurationPage(QWidget *parent)
     mainLayout->addStretch(1);
     setLayout(mainLayout);
 }
-
+/*
 UpdatePage::UpdatePage(QWidget *parent)
     : QWidget(parent)
 {
@@ -67,7 +67,7 @@ UpdatePage::UpdatePage(QWidget *parent)
     mainLayout->addStretch(1);
     setLayout(mainLayout);
 }
-
+*/
 QueryPage::QueryPage(QWidget *parent)
     : QWidget(parent)
 {

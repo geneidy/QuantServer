@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QtxGui</class>
+ <widget class="QMainWindow" name="QtxGui">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <action name="actionConnect">
+   <property name="icon">
+    <iconset theme="network-connect">
+     <normaloff/>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Connect</string>
+   </property>
+   <property name="toolTip">
+    <string>Connect to data source</string>
+   </property>
+  </action>
+  <action name="action_Quit">
+   <property name="text">
+    <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="action_About">
+   <property name="text">
+    <string>&amp;About QuantServer</string>
+   </property>
+  </action>
+  <action name="action_Config">
+   <property name="text">
+    <string>Configure Shortcuts</string>
+   </property>
+  </action>
+  <action name="actionConnect_2">
+   <property name="text">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionShow_Menu_Bar">
+   <property name="text">
+    <string>Show Menu Bar</string>
+   </property>
+  </action>
+  <action name="actionShow_Status_Bar">
+   <property name="text">
+    <string>Show Status Bar</string>
+   </property>
+  </action>
+  <action name="actionConfigure_Toolbars">
+   <property name="text">
+    <string>Configure Toolbars</string>
+   </property>
+  </action>
+  <action name="actionConfigure_QuantServer">
+   <property name="text">
+    <string>Configure QuantServer</string>
+   </property>
+  </action>
+  <action name="actionQuantServer_Handbook">
+   <property name="text">
+    <string>QuantServer Handbook</string>
+   </property>
+  </action>
+  <action name="actionReport_Bug">
+   <property name="text">
+    <string>Report Bug</string>
+   </property>
+  </action>
+  <action name="actionAbout_Quanticks">
+   <property name="text">
+    <string>About Quanticks</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
