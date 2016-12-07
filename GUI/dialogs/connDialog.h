@@ -4,6 +4,8 @@
 #include "ui_connDialog.h"
 #include <QDialog>
 
+class QPushButton;
+
 class ConnDialog : public QDialog
 {
     Q_OBJECT
@@ -11,6 +13,18 @@ class ConnDialog : public QDialog
 public:
     ConnDialog(QWidget* parent = 0);
     Ui::connDialog ui;
+    
+private slots:
+    void browse();
+    void enableApplyBtn();
+    void disableApplyBtn();
+    void passFileHandle();
+    void clearLineEditOnCancel();
+    
+    
+private:
+    QString fileName; //TODO pass you a pointer...testing right now.
+
 
     
 };

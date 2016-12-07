@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
+    <width>511</width>
     <height>552</height>
    </rect>
   </property>
@@ -19,7 +19,10 @@
      <item>
       <widget class="QRadioButton" name="radioButton">
        <property name="text">
-        <string>Backtest local</string>
+        <string>Local market replay</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -29,7 +32,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Backtest network</string>
+        <string>Network market replay</string>
        </property>
       </widget>
      </item>
@@ -39,7 +42,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Real-time ITCH</string>
+        <string>Real-time ITCH Feed</string>
        </property>
       </widget>
      </item>
@@ -60,7 +63,11 @@
       <item row="0" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QLineEdit" name="lineEdit"/>
+         <widget class="QLineEdit" name="itchLineEdit">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QToolButton" name="toolButton">
@@ -344,23 +351,12 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>OK</string>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="enabled">
+        <bool>true</bool>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="text">
-        <string>Apply</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_3">
-       <property name="text">
-        <string>Cancel</string>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
        </property>
       </widget>
      </item>
@@ -368,6 +364,25 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>radioButton</tabstop>
+  <tabstop>radioButton_2</tabstop>
+  <tabstop>radioButton_3</tabstop>
+  <tabstop>itchLineEdit</tabstop>
+  <tabstop>toolButton</tabstop>
+  <tabstop>host</tabstop>
+  <tabstop>port</tabstop>
+  <tabstop>user</tabstop>
+  <tabstop>password</tabstop>
+  <tabstop>repeat</tabstop>
+  <tabstop>remember</tabstop>
+  <tabstop>proxy</tabstop>
+  <tabstop>proxyHost</tabstop>
+  <tabstop>proxyPort</tabstop>
+  <tabstop>proxyUser</tabstop>
+  <tabstop>proxyPassword</tabstop>
+  <tabstop>proxyRepeat</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

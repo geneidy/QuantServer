@@ -1,7 +1,7 @@
-#include "logwindow.h"
+#include "logwidget.h"
 
 
-void LogWindow::appendMessage(const QString& text)
+void LogWidget::appendMessage(const QString& text)
 {
     this->appendPlainText(text); // Adds the message to the widget
     this->verticalScrollBar()->setValue(this->verticalScrollBar()->maximum()); // Scrolls to the bottom

@@ -2,12 +2,55 @@
 #
 #######
 
+#include($$system(pwd)/widgets/perfWidget/perfWidget.pro)
+
 TEMPLATE = app
 TARGET = bin/qtxgui
-DEPENDPATH += .
-INCLUDEPATH += .
+DEPENDPATH += . widgets/perfWidget
+INCLUDEPATH += . widgets/perfWidget
 
 # Input
-HEADERS += QtxGui.h dialogs/connDialog.h dialogs/configdialog.h dialogs/configpages.h ../Include/Settings.h ../Include/Includes.h
-FORMS += QtxGui.ui dialogs/connDialog.ui
-SOURCES += main.cpp QtxGui.cpp dialogs/configdialog.cpp dialogs/configpages.cpp dialogs/connDialog.cpp
+HEADERS +=  QtxGui.h \
+            dialogs/connDialog.h \
+            dialogs/configdialog.h \
+            dialogs/configpages.h \
+            ../Include/Settings.h \
+            ../Include/Includes.h \
+            perfwidget.h \
+            dataQuery/cpudataquery.h \
+            dataQuery/dataquery.h \
+            dataQuery/queryresource.h \
+            dataQuery/ramdataquery.h \
+            painters/barspainter.h \
+            painters/graphmulticolorpainter.h \
+            painters/graphpainter.h \
+            painters/painterutils.h \
+            painters/performancepainter.h \
+            widgets/cpuwidget.h \
+            widgets/performancewidget.h \
+            widgets/ramwidget.h
+
+FORMS +=    QtxGui.ui \
+            dialogs/connDialog.ui \
+            perfwidget.ui
+SOURCES +=  main.cpp \
+            QtxGui.cpp \
+            dialogs/configdialog.cpp \
+            dialogs/configpages.cpp \
+            dialogs/connDialog.cpp \
+            perfwidget.cpp \
+            dataQuery/cpudataquery.cpp \
+            dataQuery/dataquery.cpp \
+            dataQuery/queryresource.cpp \
+            dataQuery/ramdataquery.cpp \
+            painters/barspainter.cpp \
+            painters/graphmulticolorpainter.cpp \
+            painters/graphpainter.cpp \
+            painters/painterutils.cpp \
+            painters/performancepainter.cpp \
+            widgets/cpuwidget.cpp \
+            widgets/performancewidget.cpp \
+            widgets/ramwidget.cpp
+
+#include(widgets/perfWidget/perfWidget.pro)
+

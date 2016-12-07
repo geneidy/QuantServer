@@ -1,6 +1,7 @@
 #define ORG_NAME "Quanticks"
 #define DOM_NAME "quanticks.com"
 #define APP_NAME "Quanticks MDI Server"
+#define VERSION_NUM "0.0.1"
 
 #include "QtxGui.h"
 #include "../Include/Settings.h"
@@ -29,6 +30,7 @@ QtxGui::QtxGui(QWidget* parent)
     QCoreApplication::setOrganizationName(ORG_NAME);
     QCoreApplication::setOrganizationDomain(DOM_NAME);
     QCoreApplication::setApplicationName(APP_NAME);
+    QCoreApplication::setApplicationVersion(VERSION_NUM);
     
     setWindowTitle(APP_NAME);
     loadSettings();
@@ -50,20 +52,21 @@ QtxGui::QtxGui(QWidget* parent)
     createActions();
     createMenu();
     createToolBars();
-    statusMessage("Ready");
+    statusMessage("Ready", 2000);
     createDockWindows();
 //     createStatusBar();
 //     
 //     //statusBar()->showMessage("Ready", 2000);
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::shutDown() {
     this->hide();
     save();
     QCoreApplication::quit();
 }
-/*
-void QtxGui::createGUI() {
+/////////////////////////////////////////////////////////////////////
+/* TODO IMPLEMENT THIS!!!
+void QtxGui::initGUI() {
     QMenuBar *menuBar = new QMenuBar();
     setMenuBar(menuBar);
     QMenu *menu = new QMenu("&Help");
@@ -77,7 +80,7 @@ void QtxGui::createGUI() {
     statusBar()->showMessage("Ready", 2000);
     
 }*/
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::loadSettings() {
     QSettings settings(ORG_NAME, APP_NAME);
     
@@ -93,7 +96,7 @@ void QtxGui::loadSettings() {
     QPoint p = settings.value("main_window_pos", QPoint(0, 0)).toPoint();
     move(p);
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::save() {
     QSettings settings(ORG_NAME, APP_NAME);
     
@@ -101,32 +104,35 @@ void QtxGui::save() {
     settings.setValue("main_window_state", saveState());
     settings.setValue("main_window_size", size());
     settings.setValue("main_window_pos", pos());
+    //settings.setValue("Connect", saveState());
 }
-
-void QtxGui::statusMessage(QString d) {
+/////////////////////////////////////////////////////////////////////
+void QtxGui::statusMessage(QString d, int milsec) {
     // update the status bar with a new message from somewhere
-    statusBar()->showMessage(d, 0);
+    statusBar()->showMessage(d, milsec);
     wakeup();
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::wakeup() {
     // force app to process the event que to keep from blocking
     qApp->processEvents();
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::aboutQtxMDI() {
     QMessageBox::information(this, "Quanticks", " Market Data Infrastructure (MDI) Server");
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::aboutQuanticks() {
     QMessageBox::information(this, "Quanticks", " WE THE BEST");
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::createActions() {
+    
+    //TODO QIcon Fallback 
     actionConfig = new QAction(QIcon::fromTheme(QString::fromUtf8("preferences-system-network")), "Con&fig", this);
     connect(actionConfig, SIGNAL(triggered(bool)), this, SLOT(onActionConfig()));
     
-    actionConnect = new QAction(QIcon::fromTheme(QString::fromUtf8("network-server")), "&Connect", this);
+    actionConnect = new QAction(QIcon::fromTheme(QString::fromUtf8("network-wired")), "&Connect", this);
     connect(actionConnect, SIGNAL(triggered()), this, SLOT(onActionConnect()));
     
     actionExit =  new QAction(QIcon::fromTheme(QString::fromUtf8("application-exit")), "E&xit", this);
@@ -149,10 +155,10 @@ void QtxGui::createActions() {
     connect(actionStopFeed, SIGNAL(triggered()), this, SLOT(onActionStopFeed()));
     
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::createMenu() {
-    menuFile = menuBar()->addMenu("&QuantServer");
-    menuFile->addAction(actionConfig);
+    menuFile = menuBar()->addMenu("&File");
+    menuFile->addAction(actionConnect);
     menuFile->addSeparator();
     menuFile->addAction(actionExit);
     
@@ -169,7 +175,7 @@ void QtxGui::createMenu() {
     
     
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::createToolBars() {
     connectToolBar = addToolBar("Connect");
     connectToolBar->addAction(actionConnect);
@@ -177,20 +183,30 @@ void QtxGui::createToolBars() {
     connectToolBar->addAction(actionPlayFeed);
     connectToolBar->addAction(actionPauseFeed);
     connectToolBar->addAction(actionStopFeed);
+    connectToolBar->addSeparator();
+    connectToolBar->setObjectName("ConnectToolBar");
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::createDockWindows() {
-    QDockWidget* dock = new QDockWidget("Log", this);
-    dock->setAllowedAreas(Qt::BottomDockWidgetArea);
-    logWindow = new QPlainTextEdit(dock);
-    dock->setWidget(logWindow);
-    addDockWidget(Qt::BottomDockWidgetArea, dock);
-    menuView->addAction(dock->toggleViewAction());
+    QDockWidget* dock0 = new QDockWidget("Log", this);
+    //dock0->setAllowedAreas(Qt::BottomDockWidgetArea);
+    logWindow = new QPlainTextEdit(dock0);
+    logWindow->setReadOnly(true);
+    dock0->setWidget(logWindow);
+    addDockWidget(Qt::BottomDockWidgetArea, dock0);
+    menuView->addAction(dock0->toggleViewAction());
+    dock0->setObjectName("Log");
     
-    
-    
+    //TODO Set default size
+    QDockWidget* dock1 = new QDockWidget("System Performance Indicator", this);
+    //dock1->setAllowedAreas(Qt::RightDockWidgetArea);
+    perfWidget = new PerfWidget(dock1);
+    dock1->setWidget(perfWidget);
+    addDockWidget(Qt::RightDockWidgetArea, dock1);
+    menuView->addAction(dock1->toggleViewAction());
+    dock1->setObjectName("SysPerfIndicator");
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::onActionConfig() {
     configDialog = new ConfigDialog(this);
     //configDialog->setWindowFlags(configDialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -203,19 +219,19 @@ void QtxGui::onActionConnect() {
     connDialog = new ConnDialog(this);
     connDialog->show();
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPlayFeed() {
     
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPauseFeed() {
     
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::onActionStopFeed() {
     
 }
-
+/////////////////////////////////////////////////////////////////////
 
 // void QtxGui::createStatusBar() {
 //     statusMessage("Ready");

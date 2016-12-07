@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "dialogs/connDialog.h"
 #include "dialogs/configdialog.h"
+#include "widgets/perfWidget/perfwidget.h"
 #include "ui_QtxGui.h"
 
 //class ConfigDialog;
@@ -21,22 +22,25 @@ class QtxGui : public QMainWindow
 
     
     // TODO make modal and set parents 
-    ConnDialog* connDialog;
-    
-    ConfigDialog* configDialog;
-    
-private:
+
+  private:
     void createActions();
     void createMenu();
     void createToolBars();
     void loadSettings();
-    void createGUI();
+    void initGUI();
     void createDockWindows();
+    
+    ConnDialog* connDialog;
+    ConfigDialog* configDialog;
+    
     QToolBar* connectToolBar;
     QPlainTextEdit* logWindow; //TODO REMOVE AND SUB FOR LOGWINDOW CLASS
+    PerfWidget* perfWidget;
 // QMenuBar* menuBar;
 // QToolBar* toolBar;
 //     void createStatusBar();
+
     QAction* actionConfig;
     QAction* actionConnect;
     QAction* actionExit;
@@ -46,6 +50,7 @@ private:
     QAction* actionPauseFeed;
     QAction* actionStopFeed;
     //QToolBar* toolMenu;
+
     QMenu* menuFile;
     QMenu* menuSettings;
     QMenu* menuView;
@@ -53,12 +58,12 @@ private:
     
   public slots:
     void save();
-    void statusMessage(QString);
+    void statusMessage(QString, int);
     void wakeup();
     void aboutQtxMDI();
     void aboutQuanticks();
 
-private slots:
+  private slots:
     void onActionConfig();
     void onActionConnect();
     void onActionPlayFeed();

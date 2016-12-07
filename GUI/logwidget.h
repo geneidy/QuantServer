@@ -1,6 +1,6 @@
 //from: http://stackoverflow.com/questions/14161100/which-qt-widget-should-i-use-for-message-display
 
-class LogWindow : public QPlainTextEdit
+class LogWidget : public QPlainTextEdit
 {
     Q_OBJECT
 /* snip */

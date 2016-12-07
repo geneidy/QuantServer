@@ -50,3 +50,4 @@ Logs/
 #moc*.cpp
 ui_*
 moc_*
+*.pro.user
