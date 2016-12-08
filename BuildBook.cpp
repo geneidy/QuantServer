@@ -16,7 +16,7 @@ CBuildBook::CBuildBook()
 
     if (!m_pCOrdersMap) {
         m_iError = 100;
-        Logger::instance().log("Obtaining File Mapping Error in Build Book", Logger::Debug);
+        Logger::instance().log("Obtaining File Mapping Error in Build Book", Logger::Error);
     }
 
     m_uiNextOrder = 0;
@@ -26,16 +26,16 @@ CBuildBook::CBuildBook()
 ////////////////////////////////////////////////////
 CBuildBook::~CBuildBook()
 {
-    Logger::instance().log("Destructing....Started Flushing All Books", Logger::Debug);
+    Logger::instance().log("Destructing....Started Flushing All Books", Logger::Info);
 
     FlushAllBooks();
 
-    Logger::instance().log("Destructing....Ended Flushing All Books", Logger::Debug);
-    Logger::instance().log("Destructing...Started Clearing Book Map", Logger::Debug);
+    Logger::instance().log("Destructing....Ended Flushing All Books", Logger::Info);
+    Logger::instance().log("Destructing...Started Clearing Book Map", Logger::Info);
 
     m_BookMap.clear();
 
-    Logger::instance().log("Destructing...Ended Clearing Book Map", Logger::Debug);
+    Logger::instance().log("Destructing...Ended Clearing Book Map", Logger::Info);
 }
 ////////////////////////////////////////////////////
 int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing...Called from a while loop in Main.cpp
@@ -179,25 +179,26 @@ bool CBuildBook::AddPriceLevel(int iSide)
         m_RetPairPriceLevelMap = m_itBookMap->second.AskPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, m_SBidAsk));
 
     //log error if any
-    if (!m_RetPairPriceLevelMap.second)
-        Logger::instance().log("Error creating book level", Logger::Debug);
-
+    if (!m_RetPairPriceLevelMap.second){
+        Logger::instance().log("Error creating book level", Logger::Error);
+	// 
+    }
     return m_RetPairPriceLevelMap.second;  //  a Bool on operation success or failure
 }
 ////////////////////////////////////////////////////
 int CBuildBook::InitLevelStats()
 {
-    m_SBidAsk.uiNumOfOrders = 1;
-    m_SBidAsk.uiQty = 0;
-    m_SBidAsk.dPrice = 0;
+    m_SBidAsk.uiNumOfOrders 	= 1;
+    m_SBidAsk.uiQty 		= 0;
+    m_SBidAsk.dPrice 		= 0;
 
-    m_SBidAsk.SLevelStat.uiAttribAdd = 0;
+    m_SBidAsk.SLevelStat.uiAttribAdd = 	0;
     m_SBidAsk.SLevelStat.uiNonAttribAdd = 0;
 
-    m_SBidAsk.SLevelStat.uiCancelled = 0;
-    m_SBidAsk.SLevelStat.uiDeleted = 0;
-    m_SBidAsk.SLevelStat.uiExecuted = 0;
-    m_SBidAsk.SLevelStat.uiReplaced = 0;
+    m_SBidAsk.SLevelStat.uiCancelled = 	0;
+    m_SBidAsk.SLevelStat.uiDeleted = 	0;
+    m_SBidAsk.SLevelStat.uiExecuted = 	0;
+    m_SBidAsk.SLevelStat.uiReplaced = 	0;
 
     return true;
 }
@@ -208,14 +209,14 @@ int CBuildBook::ProcessReplace(int iMessage)
     m_uiQty = m_pCommonOrder->iPrevShares;
 
     ProcessDelete(10);
-    
+
     m_dPrice = m_pCommonOrder->dPrice;
     m_uiQty = m_pCommonOrder->iShares;
-    
+
     ProcessAdd(10);
-    
-    m_itPriceLevelMap->second.SLevelStat.uiReplaced++; 
-  
+
+    m_itPriceLevelMap->second.SLevelStat.uiReplaced++;
+
     return 1;
 }
 ////////////////////////////////////////////////////
@@ -285,21 +286,21 @@ bool CBuildBook::UpdatePriceLevel(int iSide)
     }
 
     m_itPriceLevelMap->second.uiNumOfOrders--;
-/*
-    switch (m_iMessage) {
-    case 'E':  // Order executed
-    case 'c':  // Order executed  with price
-        m_itPriceLevelMap->second.SLevelStat.uiExecuted--;
-        break;
-    case 'X':  // Order Cancel
-        m_itPriceLevelMap->second.SLevelStat.uiCancelled--;
-        break;
-    case 'D': // Order deleted
-        m_itPriceLevelMap->second.SLevelStat.uiDeleted--;
-        break;
-    }
-*/  
-  return true;
+    /*
+        switch (m_iMessage) {
+        case 'E':  // Order executed
+        case 'c':  // Order executed  with price
+            m_itPriceLevelMap->second.SLevelStat.uiExecuted--;
+            break;
+        case 'X':  // Order Cancel
+            m_itPriceLevelMap->second.SLevelStat.uiCancelled--;
+            break;
+        case 'D': // Order deleted
+            m_itPriceLevelMap->second.SLevelStat.uiDeleted--;
+            break;
+        }
+    */
+    return true;
 }
 ////////////////////////////////////////////////////
 int CBuildBook::ListBook(char *szSymbol , uint32_t uiMaxLevels)

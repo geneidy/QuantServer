@@ -118,8 +118,8 @@ int  CReceiveITCH::ProcessFeed()
         m_pLast = m_pBegin;
         m_pBegin += (m_iPacketLength + 2);
 
-        if (!theApp.g_bReceiving)
-            break;
+//        if (!theApp.g_bReceiving)
+//            break;
     }; //
 
     m_iLen = ulBytesLeft ;
@@ -173,9 +173,9 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
         m_iLen = 0;
         do
         {
-            memset(m_pszRecvBuf, '\0', theApp.dwBufferSize);
+            memset(m_pszRecvBuf, '\0', theApp.SSettings.dwBufferSize);
 
-            i64NumberOfBytes = read(iHandle, m_pszRecvBuf, theApp.dwBufferSize);
+            i64NumberOfBytes = read(iHandle, m_pszRecvBuf, theApp.SSettings.dwBufferSize);
             memmove(&(m_pszTVBuf[m_iLen]), m_pszRecvBuf, i64NumberOfBytes);		// Accumulate in m_szTVBuf
 
             m_iLen += i64NumberOfBytes;
@@ -185,10 +185,10 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
 
             ProcessFeed();
 
-            if (!theApp.g_bReceiving)
-                break;
+//            if (!theApp.g_bReceiving)
+//                break;
 
-        } while ((i64NumberOfBytes != -1) && (i64NumberOfBytes != 0) && (theApp.g_bReceiving));
+        }  while (true); //while ((i64NumberOfBytes != -1) && (i64NumberOfBytes != 0) && (theApp.g_bReceiving));
     }
     close(iHandle);
     return true;

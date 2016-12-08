@@ -44,7 +44,8 @@ CFillMsgStructs::CFillMsgStructs(void)
 	    Logger::instance().log("Error initializing the Queue", Logger::Error);
 	    m_iError = 100;  // ::TODO enum the Error
 	}
-
+	else
+	   Logger::instance().log("Queue initialized", Logger::Info);
 }
 ////////////////////////////////////////////////////////////////////////////
 int CFillMsgStructs::GetError()
@@ -500,17 +501,17 @@ int  CFillMsgStructs::NOII(UINT8* uiMsg)
     m_IMUSys.NOII.iLocateCode			=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
     m_IMUSys.NOII.TrackingNumber		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
     m_IMUSys.NOII.iTimeStamp			=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
-    m_IMUSys.NOII.iPairedShares		=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 11, 8);
-    m_IMUSys.NOII.iImbalanceShares     =  m_pCUtil->GetValueUnsignedInt64( uiMsg, 19, 8);
-    m_IMUSys.NOII.iImbalanceDirection  =  m_pCUtil->GetValueChar( uiMsg, 27, 1);
+    m_IMUSys.NOII.iPairedShares			=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 11, 8);
+    m_IMUSys.NOII.iImbalanceShares     		=  m_pCUtil->GetValueUnsignedInt64( uiMsg, 19, 8);
+    m_IMUSys.NOII.iImbalanceDirection  		=  m_pCUtil->GetValueChar( uiMsg, 27, 1);
     strcpy(m_IMUSys.NOII.szStock, m_pCUtil->GetValueAlpha( uiMsg, 28, 8));
 
     m_IMUSys.NOII.dFarPrice =  double (m_pCUtil->GetValueUnsignedLong(uiMsg, 36, 4))/10000;
 
-    m_IMUSys.NOII.dNearPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 40, 4))/10000;
-    m_IMUSys.NOII.dRefPrice  = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 44, 4))/10000;
-    m_IMUSys.NOII.cCrossType = m_pCUtil->GetValueChar(uiMsg, 48, 1);
-    m_IMUSys.NOII.cPriceVariation = m_pCUtil->GetValueChar(uiMsg, 49, 1);
+    m_IMUSys.NOII.dNearPrice 		= double (m_pCUtil->GetValueUnsignedLong(uiMsg, 40, 4))/10000;
+    m_IMUSys.NOII.dRefPrice  		= double (m_pCUtil->GetValueUnsignedLong(uiMsg, 44, 4))/10000;
+    m_IMUSys.NOII.cCrossType 		= m_pCUtil->GetValueChar(uiMsg, 48, 1);
+    m_IMUSys.NOII.cPriceVariation 	= m_pCUtil->GetValueChar(uiMsg, 49, 1);
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'I');
@@ -529,7 +530,6 @@ int  CFillMsgStructs::RetailPriceImprovementIndicator(UINT8* uiMsg)
     strcpy(m_IMUSys.RPPI.szStock, m_pCUtil->GetValueAlpha( uiMsg, 11, 8));
 
     m_IMUSys.RPPI.cInterestFlag  = m_pCUtil->GetValueChar(uiMsg, 19, 1);
-
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'N');

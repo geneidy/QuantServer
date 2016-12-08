@@ -357,17 +357,12 @@ void TermThreadLog(int idx)
 int LoadSettings()
 {
 
-//  cout << "In Settings Before Log" << endl;
     SETTINGS  SSettings;
-//  cout << "instance of Settings created" << endl;
 
     Logger::instance().log("Loading Settings", Logger::Info);
-//  memset(&SSettings, '\0', sizeof(SETTINGS));
-//  cout << "In Settings After Log" << endl;
 
     //SSettings.start_stop_pause = 1;
     SSettings.strServerName = "Main Server";
-//  cout << "In Settings After strServerName" << endl;
     // strcpy(SSettings.szServerName, "Main Server");
 
     SSettings.bMemberOfFarm = true;  		//  bool		bMemberOfFarm;	// Y/N
@@ -389,7 +384,7 @@ int LoadSettings()
     SSettings.iarrRole[5] = 0;   		//  5= Save to DB
     SSettings.iarrRole[6] = 0;   		//  6= Play back
 
-    SSettings.iarrRole[7] = 0;   		//  7= Test File
+    SSettings.iarrRole[7] = 1;   		//  7= Test File
     SSettings.iarrRole[8] = 0;   		//  8= Distributor
     SSettings.iarrRole[9] = 0;   		//  9= Save to Disk
 
@@ -419,14 +414,14 @@ int LoadSettings()
     SSettings.ulIPAddress1	=  85236;   	//  unsigned long	ulIPAddress1;
     SSettings.uiPort1 		= 8521;  		//  uint		uiPort1;
 
-    SSettings.dwBufferSize 	= 100;  		//  unsigned long	dwBufferSize;
+    SSettings.dwBufferSize 	= 1000000;  		//  unsigned long	dwBufferSize;
 
 // ODBC connection parameters in case option 3
     SSettings.strConnName = "MySqlConnection";    	//  std::string  	strConnName;  // from ODBC
     strcpy(SSettings.szDBUserName, "MySqlUserName");  	//  char		szDBUserName[SIZE_OF_NAME];
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
-    SSettings.strTestFileName = "Test File Name";  // Test file name ...pick from UI dialog
+    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50";  // Test file name ...pick from UI dialog
     SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
 
 
@@ -440,10 +435,7 @@ int LoadSettings()
     SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
     SSettings.uiQueueSize = 10000000;  // 10 Million elements
 
-//  memset(&theApp.SSettings, '\0', sizeof(SETTINGS));
-//  cout << "In Settings Before Assigning to theApp" << endl;
     theApp.SSettings = SSettings;
-//  cout << "In Settings END" << endl;
     return 0;
 }
 ///////////////////////////////////////////////////////////////

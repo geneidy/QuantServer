@@ -3,7 +3,7 @@
 #define APP_NAME "Quanticks MDI Server"
 
 #include "QtxGui.h"
-#include "../Include/Settings.h"
+// #include "../Include/Settings.h"
 
 #include <QtDebug>
 #include <QApplication>

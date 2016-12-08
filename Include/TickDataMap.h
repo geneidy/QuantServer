@@ -6,6 +6,7 @@
 #include <time.h>
 #include "OrdersMap.h"
 #include <map>
+#include "Util.h"
 
 
 #include "ITCHMessages.h"
@@ -98,6 +99,8 @@ private:
   
   std::pair<FundamentalMap::iterator, bool>  RetPairF;
   STickDataStat m_STickDataStat;
+  
+  CUtil*	m_pcUtil;
 
   
 public:

@@ -256,15 +256,12 @@ bool CUtil::CheckInclude(char* szStock)
 
     if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included with or w/o range
         return true;
-
-
 /*
     if ((theApp.SSettings.cBeginRange == '\0') &&  (theApp.SSettings.cEndRange == '\0')) { //  No Range
         if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included
             return true;
         return false;
     }
-
 */
     if ((theApp.SSettings.cBeginRange <= *szStock) &&  (theApp.SSettings.cEndRange >= *szStock)) { // In Range
         if (strcmp(szStock, theApp.SSettings.strExclude)) { // NOT excluded

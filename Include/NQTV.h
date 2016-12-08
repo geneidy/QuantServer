@@ -50,7 +50,7 @@ public:
 	LOCALFILEDATA  		SMemoryMappedFileSSize;
 	
 	std::string	strFeedFileName;
-	DWORD		dwBufferSize;
+//	DWORD		dwBufferSize;
 
 	LOB_VIEW_CLT_OPTIONS	m_SOptions;
 	unsigned long 	g_arrTotalMessages [MAX_MESSAGE_TYPES];
