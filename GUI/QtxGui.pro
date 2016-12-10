@@ -6,8 +6,14 @@
 
 TEMPLATE = app
 TARGET = bin/qtxgui
-DEPENDPATH += . widgets/perfWidget
-INCLUDEPATH += . widgets/perfWidget
+DEPENDPATH += . widgets/perfWidget \
+                widgets/digitalclock \
+                #widgets/led-designer-plugin \
+                widgets/resourcesWidget
+INCLUDEPATH += . widgets/perfWidget \
+                 widgets/digitalclock \
+                 #widgets/led-designer-plugin \
+                 widgets/resourcesWidget 
 
 # Input
 HEADERS +=  QtxGui.h \
@@ -28,11 +34,17 @@ HEADERS +=  QtxGui.h \
             painters/performancepainter.h \
             widgets/cpuwidget.h \
             widgets/performancewidget.h \
-            widgets/ramwidget.h
-
+            widgets/ramwidget.h \
+            digitalclock.h \            
+            #LED.h \
+            memoryconversion.h \
+            resourcesworker.h \
+            workerthread.h \
+            resourcesWidget.h
 FORMS +=    QtxGui.ui \
             dialogs/connDialog.ui \
-            perfwidget.ui
+            perfwidget.ui \
+            resourcesWidget.ui
 SOURCES +=  main.cpp \
             QtxGui.cpp \
             dialogs/configdialog.cpp \
@@ -50,7 +62,14 @@ SOURCES +=  main.cpp \
             painters/performancepainter.cpp \
             widgets/cpuwidget.cpp \
             widgets/performancewidget.cpp \
-            widgets/ramwidget.cpp
+            widgets/ramwidget.cpp \
+            digitalclock.cpp \
+            #LED.cpp \
+            memoryconversion.cpp \
+            resourcesworker.cpp \
+            workerthread.cpp \
+            resourcesWidget.cpp
 
+LIBS += -L"libprocps" -lprocps            
 #include(widgets/perfWidget/perfWidget.pro)
 

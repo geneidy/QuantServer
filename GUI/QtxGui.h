@@ -5,7 +5,11 @@
 #include "dialogs/connDialog.h"
 #include "dialogs/configdialog.h"
 #include "widgets/perfWidget/perfwidget.h"
+#include "widgets/digitalclock/digitalclock.h"
+#include "widgets/resourcesWidget/resourcesWidget.h"
+//#include "LED.h"
 #include "ui_QtxGui.h"
+
 
 //class ConfigDialog;
 
@@ -34,9 +38,13 @@ class QtxGui : public QMainWindow
     ConnDialog* connDialog;
     ConfigDialog* configDialog;
     
-    QToolBar* connectToolBar;
+    
+    QToolBar* mainToolBar;
     QPlainTextEdit* logWindow; //TODO REMOVE AND SUB FOR LOGWINDOW CLASS
     PerfWidget* perfWidget;
+    ResourcesWidget* resourcesWidget;
+    //DigitalClock clock;declared and defined in cpp
+    //LED* led;//declared and defined in cpp
 // QMenuBar* menuBar;
 // QToolBar* toolBar;
 //     void createStatusBar();

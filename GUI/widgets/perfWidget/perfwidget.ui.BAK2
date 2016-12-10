@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>410</width>
-    <height>93</height>
+    <width>422</width>
+    <height>198</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,14 +18,15 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>410</width>
-     <height>93</height>
+     <width>422</width>
+     <height>198</height>
     </rect>
    </property>
    <property name="orientation">
     <enum>Qt::Vertical</enum>
    </property>
    <widget class="CpuWidget" name="widget" native="true"/>
+   <widget class="RamWidget" name="widget_2" native="true"/>
   </widget>
  </widget>
  <customwidgets>
@@ -33,6 +34,12 @@
    <class>CpuWidget</class>
    <extends>QWidget</extends>
    <header>widgets/cpuwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RamWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/ramwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

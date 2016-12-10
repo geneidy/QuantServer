@@ -52,7 +52,7 @@ QtxGui::QtxGui(QWidget* parent)
     createActions();
     createMenu();
     createToolBars();
-    statusMessage("Ready", 2000);
+    statusMessage("Ready", 5000);
     createDockWindows();
 //     createStatusBar();
 //     
@@ -154,6 +154,8 @@ void QtxGui::createActions() {
     actionStopFeed = new QAction(QIcon::fromTheme(QString::fromUtf8("media-playback-stop")), "Stop Feed", this);
     connect(actionStopFeed, SIGNAL(triggered()), this, SLOT(onActionStopFeed()));
     
+    //actionLcdClock = new QAction(
+    
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::createMenu() {
@@ -177,14 +179,36 @@ void QtxGui::createMenu() {
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::createToolBars() {
-    connectToolBar = addToolBar("Connect");
-    connectToolBar->addAction(actionConnect);
-    connectToolBar->addSeparator();
-    connectToolBar->addAction(actionPlayFeed);
-    connectToolBar->addAction(actionPauseFeed);
-    connectToolBar->addAction(actionStopFeed);
-    connectToolBar->addSeparator();
-    connectToolBar->setObjectName("ConnectToolBar");
+    mainToolBar = addToolBar("MainToolBar");
+    mainToolBar->addAction(actionConnect);
+    mainToolBar->addSeparator();
+    mainToolBar->addAction(actionPlayFeed);
+    mainToolBar->addAction(actionPauseFeed);
+    mainToolBar->addAction(actionStopFeed);
+    mainToolBar->addSeparator();
+    mainToolBar->setObjectName("MainToolBar");
+    
+    QWidget* empty = new QWidget();
+    empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    mainToolBar->addWidget(empty);
+    
+    //mainToolBar->addSeparator();
+    
+    //led = new LED;
+    //led->setState(false);
+    //mainToolBar->addWidget(led);
+    
+    //QLabel* spacer = new QLabel;
+    //mainToolBar->addWidget(spacer);
+    //mainToolBar->addSeparator();
+    
+    DigitalClock* clock = new DigitalClock;
+    clock->setSegmentStyle(QLCDNumber::Flat);
+    mainToolBar->addWidget(clock);
+    
+    
+    
+    
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::createDockWindows() {
@@ -197,11 +221,21 @@ void QtxGui::createDockWindows() {
     menuView->addAction(dock0->toggleViewAction());
     dock0->setObjectName("Log");
     
+    QWidget* sysDockWidget = new QWidget;
+    QVBoxLayout* sysDockLayout = new QVBoxLayout;
+    perfWidget = new PerfWidget(this);
+    //ResourcesWidget* resourcesWidget
+    resourcesWidget = new ResourcesWidget(this);
+    sysDockLayout->addWidget(perfWidget);
+    sysDockLayout->addWidget(resourcesWidget);
+    sysDockWidget->setLayout(sysDockLayout);
+    
+    
     //TODO Set default size
     QDockWidget* dock1 = new QDockWidget("System Performance Indicator", this);
     //dock1->setAllowedAreas(Qt::RightDockWidgetArea);
-    perfWidget = new PerfWidget(dock1);
-    dock1->setWidget(perfWidget);
+    
+    dock1->setWidget(sysDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, dock1);
     menuView->addAction(dock1->toggleViewAction());
     dock1->setObjectName("SysPerfIndicator");
@@ -221,15 +255,21 @@ void QtxGui::onActionConnect() {
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPlayFeed() {
+    //led->stopFlashing();
+    //led->setState(true);
+    statusMessage("Feed Started", 5000);
     
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPauseFeed() {
-    
+    //led->startFlashing();
+    statusMessage("Feed Paused", 5000);
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionStopFeed() {
-    
+    //led->stopFlashing();
+    //led->setState(false);
+    statusMessage("Feed Stopped", 5000);
 }
 /////////////////////////////////////////////////////////////////////
 
