@@ -275,23 +275,20 @@ void* NasdTestFile(void* pArg)
     }
     if (pCReceiveITCH->GetError() == 100) {
         Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
-        TermThreadLog(idx);
-
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
+	TermThreadLog(idx);
         return NULL;
-
     }
 
     if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.strTestFileName.c_str())) {
         Logger::instance().log("Error Reading From Test File", Logger::Error);
-        TermThreadLog(idx);
-
-        delete pCReceiveITCH;
-        pCReceiveITCH = NULL;
-        return NULL;
     }
-
+    if (pCReceiveITCH) {
+      delete pCReceiveITCH;
+      pCReceiveITCH = NULL;
+    }
+    
     TermThreadLog(idx);
 
     return pArg;

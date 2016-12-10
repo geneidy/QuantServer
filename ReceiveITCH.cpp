@@ -188,7 +188,7 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
 //            if (!theApp.g_bReceiving)
 //                break;
 
-        }  while (true); //while ((i64NumberOfBytes != -1) && (i64NumberOfBytes != 0) && (theApp.g_bReceiving));
+        }  while (i64NumberOfBytes); //while ((i64NumberOfBytes != -1) && (i64NumberOfBytes != 0) && (theApp.g_bReceiving));
     }
     close(iHandle);
     return true;

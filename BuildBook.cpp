@@ -22,7 +22,8 @@ CBuildBook::CBuildBook()
     m_uiNextOrder = 0;
     m_request.tv_nsec = 100000000;   // 1/10 of a second
     m_iSizeOfBook = sizeof( SBOOK_LEVELS);
-}
+    
+ }
 ////////////////////////////////////////////////////
 CBuildBook::~CBuildBook()
 {

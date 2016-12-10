@@ -161,7 +161,7 @@ void CQuantQueue::init()
     memset(m_NOII , '\0', sizeof(NOII_MESSAGE )*  QSIZE_NOII);
     memset(m_RPPI , '\0', sizeof(RPII_MESSAGE )* QSIZE_RPII );
 
-    m_ulWrap = 0;
+    memset(&m_sStat, 0, sizeof(SSTAT));
     bConstructed = true;
     // log
 }
@@ -180,7 +180,7 @@ void CQuantQueue::InitReader(int iPosition)
         iPosition = POSITION_TOP;
 
     if (iPosition == POSITION_TOP) {
-        if (m_ulWrap == 0) {  // did not wrap around yet....first run of the queue...poin to top of the array
+        if (m_sStat.uiQWrap == 0) {  // did not wrap around yet....first run of the queue...poin to top of the array
 //    m_pReader = &m_pWriter[0];
             m_Threadi64LastIndex = 0;       // Index Zero
         } //
@@ -298,80 +298,98 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         if (i64Idx_SystemEvent >= QSIZE_SYSTEM_EVENT) {
             i64Idx_SystemEvent = 0;
             memset(m_SystemEvent, '\0', sizeof(SYSTEM_EVENT_MESSAGE )*QSIZE_SYSTEM_EVENT  );
+	    m_sStat.uiQWrapSystemEvent++;
         }
         m_SystemEvent[ i64Idx_SystemEvent] = pQueueElement->SystemEvent;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_SystemEvent++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
     case 'R' :
         if (i64Idx_StockDirectory >= QSIZE_STOCK_DIRECTORY) {
             i64Idx_StockDirectory = 0;
             memset(m_StockDirectory , '\0', sizeof(STOCK_DIRECTORY_MESSAGE )*QSIZE_STOCK_DIRECTORY  );
+	    m_sStat.uiQWrapStockDirectory++;
         }
         m_StockDirectory[ i64Idx_StockDirectory] = pQueueElement->StockDirectory;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_StockDirectory++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'H' :
         if (i64Idx_StockTradingAction >= QSIZE_STOCK_TRADING_ACTION ) {
             i64Idx_StockTradingAction = 0;
             memset(m_StockTradingAction , '\0', sizeof(STOCK_TRADING_ACTION_MESSAGE )* QSIZE_STOCK_TRADING_ACTION );
+	    m_sStat.uiQWrapStockTradingAction++;
         }
         m_StockTradingAction[ i64Idx_StockTradingAction] = pQueueElement->StockTradingAction;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_StockTradingAction++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'Y':
         if (i64Idx_RegSho >= QSIZE_REG_SHO_RESTRICTION) {
             i64Idx_RegSho = 0;
             memset(m_RegSho , '\0', sizeof(REG_SHO_RESTRICTION_MESSAGE )* QSIZE_REG_SHO_RESTRICTION );
+	    m_sStat.uiQWrapRegSho++;
         }
         m_RegSho[ i64Idx_RegSho] = pQueueElement->RegSho;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_RegSho++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'L':
         if (i64Idx_MpPosition >= QSIZE_MP_POSITION) {
             i64Idx_MpPosition = 0;
             memset(m_MpPosition , '\0', sizeof(MP_POSITION_MESSAGE )* QSIZE_MP_POSITION );
+	    m_sStat.uiQWrapMpPosition++;
         }
         m_MpPosition[ i64Idx_MpPosition] = pQueueElement->MpPosition;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_MpPosition++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'V':
         if (i64Idx_MWCBDLM >= QSIZE_MWCBDLM) {
             i64Idx_MWCBDLM = 0;
             memset(m_MWCBDLM , '\0', sizeof(MWCBDLM_MESSAGE )* QSIZE_MWCBDLM );
+	    m_sStat.uiQWrapMWCBDLM++;
         }
         m_MWCBDLM[ i64Idx_MWCBDLM] = pQueueElement->MWCBDLM;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_MWCBDLM++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'W':
         if (i64Idx_MWCBDBM >= QSIZE_MWCBDBM) {
             i64Idx_MWCBDBM = 0;
             memset(m_MWCBDBM , '\0', sizeof(MWCBDBM_MESSAGE )* QSIZE_MWCBDBM );
+	    m_sStat.uiQWrapMWCBDBM++;
         }
         m_MWCBDBM[ i64Idx_MWCBDBM] = pQueueElement->MWCBDBM;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_MWCBDBM++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'K':
         if (i64Idx_IPOQutationUpdate >= QSIZE_IPO_QUOTATION_PERIOD_UPDATE) {
             i64Idx_IPOQutationUpdate = 0;
             memset(m_IPOQutationUpdate , '\0', sizeof(IPO_QUOTATION_PERIOD_UPDATE_MESSAGE )* QSIZE_IPO_QUOTATION_PERIOD_UPDATE );
+	    m_sStat.uiQWrapIPOQutationUpdate++;
         }
         m_IPOQutationUpdate[ i64Idx_IPOQutationUpdate] = pQueueElement->IPOQutationUpdate;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_IPOQutationUpdate++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
         break;
 
     case 'A':
         if (i64Idx_AddOrderNoMPID >= QSIZE_ADD_ORDER_NO_MPID) {
             i64Idx_AddOrderNoMPID = 0;
             memset(m_AddOrderNoMPID , '\0', sizeof(ADD_ORDER_NO_MPID_MESSAGE )* QSIZE_ADD_ORDER_NO_MPID );
+	    m_sStat.uiQWrapAddOrderNoMPID++;
         }
         m_AddOrderNoMPID[ i64Idx_AddOrderNoMPID] = pQueueElement->AddOrderNoMPID;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_AddOrderNoMPID++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
 
         break;
 
@@ -379,9 +397,11 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         if (i64Idx_AddOrderMPID >= QSIZE_ADD_ORDER_MPID) {
             i64Idx_AddOrderMPID = 0;
             memset(m_AddOrderMPID , '\0', sizeof(ADD_ORDER_MPID_MESSAGE )* QSIZE_ADD_ORDER_MPID );
+	    m_sStat.uiQWrapAddOrderMPID++;
         }
         m_AddOrderMPID[ i64Idx_AddOrderMPID] = pQueueElement->AddOrderMPID;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_AddOrderMPID++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
 
         break;
 
@@ -389,9 +409,11 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         if (i64Idx_OrderExecuted >= QSIZE_ORDER_EXECUTED) {
             i64Idx_OrderExecuted = 0;
             memset(m_OrderExecuted , '\0', sizeof(ORDER_EXECUTED_MESSAGE )* QSIZE_ORDER_EXECUTED );
+	    m_sStat.uiQWrapOrderExecuted++;
         }
         m_OrderExecuted[ i64Idx_OrderExecuted] = pQueueElement->OrderExecuted;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderExecuted++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;	
 
         break;
 
@@ -399,65 +421,84 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         if (i64Idx_OrderExecutedWithPrice >= QSIZE_ORDER_EXECUTED_WITH_PRICE) {
             i64Idx_OrderExecutedWithPrice = 0;
             memset(m_OrderExecutedWithPrice , '\0', sizeof(ORDER_EXECUTED_WITH_PRICE_MESSAGE )* QSIZE_ORDER_EXECUTED_WITH_PRICE );
+	    m_sStat.uiQWrapOrderExecutedWithPrice++;
         }
         m_OrderExecutedWithPrice[ i64Idx_OrderExecutedWithPrice] = pQueueElement->OrderExecutedWithPrice;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderExecutedWithPrice++;
-
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+	
         break;
 
     case 'X':
         if (i64Idx_OrderCancel >= QSIZE_ORDER_CANCEL) {
             i64Idx_OrderCancel = 0;
             memset(m_OrderCancel , '\0', sizeof(ORDER_CANCEL_MESSAGE )* QSIZE_ORDER_CANCEL );
+	    m_sStat.uiQWrapOrderCancel++;
         }
         m_OrderCancel[ i64Idx_OrderCancel] = pQueueElement->OrderCancel;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderCancel++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+	
         break;
 
     case 'D':
         if (i64Idx_OrderDelete >= QSIZE_ORDER_DELETE) {
             i64Idx_OrderDelete = 0;
             memset(m_OrderDelete , '\0', sizeof(ORDER_DELETE_MESSAGE)* QSIZE_ORDER_DELETE );
+	    m_sStat.uiQWrapOrderDelete++;
         }
         m_OrderDelete[ i64Idx_OrderDelete] = pQueueElement->OrderDelete;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderDelete++;
-        break;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+	
+	break;
 
     case 'U':
         if (i64Idx_OrderReplace >= QSIZE_ORDER_REPLACE) {
             i64Idx_OrderReplace = 0;
             memset(m_OrderReplace , '\0', sizeof(ORDER_REPLACE_MESSAGE )* QSIZE_ORDER_REPLACE );
+	    m_sStat.uiQWrapOrderReplace++;
         }
         m_OrderReplace[ i64Idx_OrderReplace] = pQueueElement->OrderReplace;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderReplace++;
-        break;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+	
+	break;
 
     case 'P':
         if (i64Idx_TradeNonCross >= QSIZE_TRADE_NON_CROSS) {
             i64Idx_TradeNonCross = 0;
             memset(m_TradeNonCross , '\0', sizeof(TRADE_NON_CROSS_MESSAGE )* QSIZE_TRADE_NON_CROSS  );
+	    m_sStat.uiQWrapTradeNonCross++;
         }
         m_TradeNonCross[ i64Idx_TradeNonCross] = pQueueElement->TradeNonCross;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_TradeNonCross++;
-        break;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;        
+	break;
 
     case 'I':
         if (i64Idx_NOII >= QSIZE_NOII) {
             i64Idx_NOII = 0;
             memset(m_NOII , '\0', sizeof(NOII_MESSAGE )*  QSIZE_NOII);
+	    m_sStat.uiQWrapNOII++;
         }
         m_NOII[ i64Idx_NOII] = pQueueElement->NOII;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_NOII++;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+	
         break;
 
     case 'N':
         if (i64Idx_RPPI >= QSIZE_RPII) {
             i64Idx_RPPI = 0;
             memset(m_RPPI , '\0', sizeof(RPII_MESSAGE )* QSIZE_RPII );
+	    m_sStat.uiQWrapRPPI++;
         }
         m_RPPI[ i64Idx_RPPI] = pQueueElement->RPPI;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_RPPI++;
-        break;
+	m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+	
+	break;
     default:
         return 0;  // unknown message type
     }
@@ -474,7 +515,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     {
         m_i64QueueElement = 0;   // over right...start from the begining
         m_i64FreeElements = m_i64QueueSize;  // wrap around
-        m_ulWrap++;
+        m_sStat.uiQWrap++;
     }
     else
     {
@@ -508,21 +549,18 @@ u_int64_t CQuantQueue::GetNumberQueueElements(void)
 ///////////////////////////////////////////////////////////////////////////////////////
 CQuantQueue::~CQuantQueue()
 {
-//	Logger::instance().log("Start Destructing the Queue", Logger::kLogLevelDebug);
-
-    if (m_pHead != NULL)
-    {
+  Logger::instance().log("Start Destructing the Queue", Logger::Info);
+  
+  if (m_pHead != NULL)    {
         delete[] m_pHead;
         m_pHead = NULL;
     }
-    if (m_SystemEvent != NULL )
-    {
+    if (m_SystemEvent != NULL )    {
         delete [] m_SystemEvent;
         m_SystemEvent = NULL;
     }
 
-    if (m_StockDirectory != NULL)
-    {
+    if (m_StockDirectory != NULL)    {
         delete [] m_StockDirectory;
         m_StockDirectory = NULL;
     }
@@ -610,6 +648,22 @@ CQuantQueue::~CQuantQueue()
         delete [] m_RPPI;
         m_RPPI = NULL;
     }
-//	Logger::instance().log("End Destructed the Queue", Logger::kLogLevelDebug);
+    string strLog;
+    
+    strLog = "Queue Stats....Number of Wrap around: ";
+    strLog += m_sStat.uiQWrap;
+    Logger::instance().log(strLog, Logger::Info);
+    
+    strLog.empty();
+    strLog = "Queue Stats....Number of Added Orders With MPID Wrap around: ";
+    strLog += m_sStat.uiQWrapAddOrderMPID;
+    Logger::instance().log(strLog, Logger::Info);
+    
+    strLog.empty();
+    strLog = "Queue Stats....Number of Added Orders Without MPID Wrap around: ";
+    strLog += m_sStat.uiQWrapAddOrderNoMPID;
+    Logger::instance().log(strLog, Logger::Info);
+    
+   Logger::instance().log("End Destructed the Queue", Logger::Info);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////

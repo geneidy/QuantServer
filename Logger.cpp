@@ -13,7 +13,7 @@ const string Logger::Debug = "[D]";
 const string Logger::Info  = "[I]";
 const string Logger::Error = "[E]";
 
-const char* const  Logger::kLogFileName = {"./Logs/AmrTest"};
+const char* const  Logger::kLogFileName = {""};
 
 Logger* Logger::pInstance = nullptr;
 mutex 	Logger::sMutex;
@@ -61,6 +61,7 @@ void Logger::log(const string& inMessage, const string& inLogLevel)
     lock_guard<mutex> guard(sMutex);
     logHelper(inMessage, inLogLevel);
 }
+
 ////////////////////////////////////////////////////////////////////
 void Logger::log(const vector<string>& inMessages, const string& inLogLevel)
 {
