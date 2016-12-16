@@ -15,6 +15,7 @@
 #include "OrdersMap.h"
 #include "TickDataMap.h"
 #include  "ReceiveITCH.h"
+#include  "QuantQueue.h"
 
 
 
@@ -22,11 +23,16 @@ int SaveSettings();
 int LoadSettings();
 
 enum tstate {
+  TS_STARTING,
   TS_ALIVE,
   TS_TERMINATED,
   TS_JOINED
 };
 
+typedef struct ThreadData {
+  int idx;
+  void* pVoid;
+}THREAD_DATA;
 
 typedef struct thread_info
 {    /* Used as argument to thread_start() */
@@ -37,6 +43,9 @@ typedef struct thread_info
 }THREAD_INFO;
 
 THREAD_INFO arrThreadInfo[NUMBER_OF_ROLES];
+//////////////////////////////////////
+void *MainQueue(void* );
+//////////////////////////////////////
 
 void *ReceiveFeed(void*);
 void *ParseFeed(void*);
@@ -54,12 +63,13 @@ void InitThreadLog(int);
 void TermThreadLog(int);
 
 
-void* (*func_ptr[NUMBER_OF_ROLES+ 1])(void*) = \
-{ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
+void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
+{MainQueue, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
 
-const char *ThreadMessage[NUMBER_OF_ROLES +1] = \
-{"Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Threa", "Save To DB Thread", "Play Back Thread",\
-  "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
+const char *ThreadMessage[NUMBER_OF_ROLES ] = \
+ {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Threa",\
+  "Save To DB Thread", "Play Back Thread", "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
+  
 
 #ifdef __cplusplus
 extern "C"
@@ -71,6 +81,7 @@ extern "C"
   COrdersMap* 	pCOrdersMap;
   CTickDataMap* pCTickDataMap;
   CReceiveITCH* pCReceiveITCH;
+  CQuantQueue * pCQuantQueue;
   
 #ifdef __cplusplus
 } // extern "C"

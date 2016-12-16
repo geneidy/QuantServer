@@ -139,9 +139,9 @@ class   CQuantQueue
 {
 private:
 
-    LPQUANTQUEUE		m_pHead;
-    LPQUANTQUEUE		m_pWriter;
-    LPQUANTQUEUE		m_pReader;
+    LPQUANTQUEUE	m_pHead;
+    LPQUANTQUEUE	m_pWriter;
+    LPQUANTQUEUE	m_pReader;
     int			m_iErrorCode;
     u_int64_t		m_i64QueueSize;
     u_int64_t		m_i64QueueElement;

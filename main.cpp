@@ -14,16 +14,15 @@
 #include "NQTVDlg.h"
 #include "NQTV.h"
 
-static pthread_mutex_t mtxMap = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t mtxTick = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_mutex_t mtxTick 	= PTHREAD_MUTEX_INITIALIZER;
 
-static pthread_cond_t condMap = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t condMap 	= PTHREAD_COND_INITIALIZER;
 static bool bReady = false;
 
 int main(int argc, char **argv)
 {
     using namespace std;
-//    int i = 0;
 
     Logger::instance().log("Starting Server", Logger::Debug);
     cout << "Hit 'S' or 's' to stop" << endl;
@@ -34,22 +33,31 @@ int main(int argc, char **argv)
 //    cout << "Calling Settings End" << endl;
     int iRet = 0;
 
+    pthread_mutex_lock(&mtxQueue);
+
+    THREAD_DATA SThreadData;
+
     for (uint ii=0;  ii < NUMBER_OF_ROLES; ii++ )
     {
-
         if (!theApp.SSettings.iarrRole[ii]) // option is turned off.... = 0 or bool false
             continue;
+        SThreadData.idx = ii;
+        SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
 
-        arrThreadInfo[ii].iThread_num = ii + 1;
-        iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &ii);
+        arrThreadInfo[ii].iThread_num = ii ;
+        iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &SThreadData);
         arrThreadInfo[ii].eState = TS_ALIVE;
         if(iRet)
         {
-            fprintf(stderr,"Error - pthread_create() return code: %d\n", iRet);
+            Logger::instance().log("Error pthread_create", Logger::Error);
+//            fprintf(stderr,"Error - pthread_create() return code: %d\n", iRet);
             exit(EXIT_FAILURE);
         }
+        while (!bReady)
+            pthread_cond_wait(&condMap, &mtxQueue); // Wait for the Queue to init first
     };
-
+    pthread_mutex_unlock(&mtxQueue);
+////////////////////////////////////////////////////////////////////////////////////////
     char cResp = 'A';
     while ( cResp != 'q')
     {
@@ -60,65 +68,87 @@ int main(int argc, char **argv)
             theApp.iStatus = STOPPED;
             break;
         }
-
         if ((cResp == 'p') || (cResp == 'P'))
         {
             theApp.g_bReceiving = PAUSSED;
             theApp.iStatus 	    = PAUSSED;
             continue;
         }
-
     }; // while ( cResp != 'q')
+//////////////////////////////////////////////////////////////////////////////////////////
+    string strExitMessage;
 
-    for (uint ii=0;  ii < NUMBER_OF_ROLES; ii++ ) {
-        if (arrThreadInfo[ii].eState == TS_TERMINATED)
-            pthread_join(arrThreadInfo[ii].thread_id, NULL);
+    for (uint ii = 0;  ii < NUMBER_OF_ROLES; ii++ ) {
+        if (!theApp.SSettings.iarrRole[ii]) // option is turned off.... = 0 or bool false
+            continue;
+
+        while (arrThreadInfo[ii].eState != TS_TERMINATED) {
+            sleep(3);
+        }
+        strExitMessage.empty();
+        strExitMessage = ThreadMessage[ii];
+        strExitMessage += " Joined";
+
+        pthread_join(arrThreadInfo[ii].thread_id, NULL);
+        Logger::instance().log(strExitMessage, Logger::Debug);
     }
-
     pthread_cond_destroy(&condMap);
     return 0;
+}
+////////////////////////////////////////////////////////////////
+void*  MainQueue(void* pArg)
+{
+    THREAD_DATA SThreadData;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+
+    InitThreadLog(idx);
+
+    pCQuantQueue = NULL;
+    pCQuantQueue = CQuantQueue::Instance();
+
+
+    if (!pCQuantQueue->bConstructed) {  // No need to continue
+        Logger::instance().log("Error Constructing Queue...Aborting", Logger::Error);
+        exit(EXIT_FAILURE);
+    }
+    bReady = true;
+    pthread_cond_signal(&condMap);  // so Build book to check on pCOrdersMap and decide to return
+
+    return (pCQuantQueue) ? pCQuantQueue: NULL;  // Global Object
 }
 ///////////////////////////////////////////////////////////////
 void* OrdersMap(void* pArg)  // only if buid book is checked
 {
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
     InitThreadLog(idx);
-
-    if (!theApp.SSettings.iarrRole[2])  { // Map only if buid book is checked
-        arrThreadInfo[idx].eState = TS_TERMINATED;
-        return NULL;
-    }
-
-    bReady = false;
-
-    pthread_mutex_lock(&mtxMap);
 
     pCOrdersMap = NULL;
     pCOrdersMap =  COrdersMap::instance();
 
-
     if (!pCOrdersMap) {
-        pthread_mutex_unlock(&mtxMap);
+        Logger::instance().log("Error Creating Orders Map Object", Logger::Error);
         return NULL;
     }
 
     if (pCOrdersMap->GetError()) {
         delete pCOrdersMap;
         pCOrdersMap = NULL;
-        pthread_mutex_unlock(&mtxMap);
-        pthread_cond_signal(&condMap);  // so Build book to check on pCOrdersMap and decide to return
+        Logger::instance().log("Error in Constructing Orders Map", Logger::Error);
         return NULL;  //  can't build a book w/o Memory Mappings
     }
-    bReady = true;
-    pthread_mutex_unlock(&mtxMap);
-    pthread_cond_signal(&condMap);
 
     arrThreadInfo[idx].eState = TS_ALIVE;
 
     while (theApp.iStatus != STOPPED) {
         pCOrdersMap->FillMemoryMappedFile();
-
     };
 
     delete pCOrdersMap;
@@ -132,16 +162,22 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 void* BuildBook(void* pArg)
 {
 
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
 
     InitThreadLog(idx);
-    pthread_mutex_lock(&mtxMap);
-    // Start the Memory Mapping First
+    /*    pthread_mutex_lock(&mtxMap);
+        // Start the Memory Mapping First
 
 
-    while (!bReady)
-        pthread_cond_wait(&condMap, &mtxMap);
-
+        while (!bReady)
+            pthread_cond_wait(&condMap, &mtxMap);
+    */
     pCBuildBook = NULL;
     pCBuildBook = new CBuildBook();
     if (!pCBuildBook) {
@@ -158,7 +194,6 @@ void* BuildBook(void* pArg)
         return NULL;
     }
 
-
     while (theApp.iStatus != STOPPED) {
         pCBuildBook->BuildBookFromMemoryMappedFile();
     }
@@ -174,17 +209,18 @@ void* BuildBook(void* pArg)
 void* TickDataMap(void* pArg)
 {
 
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
 
     InitThreadLog(idx);
 
     pCTickDataMap = new CTickDataMap;
 
-    while (!bReady) {
-        sleep(1);
-        if (theApp.iStatus == STOPPED)
-            break;
-    }
     while (theApp.iStatus != STOPPED) {
         pCTickDataMap->FillMemoryMappedFile();
     };
@@ -199,7 +235,13 @@ void* TickDataMap(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* ReceiveFeed(void* pArg)
 {
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
 
     InitThreadLog(idx);
 
@@ -212,7 +254,13 @@ void* ReceiveFeed(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* ParseFeed(void* pArg)
 {
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
 
     InitThreadLog(idx);    // Calls to functions and threads go here
 
@@ -223,7 +271,13 @@ void* ParseFeed(void* pArg)
 void* SaveToDB(void* pArg)
 {
 
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
     InitThreadLog(idx);
 
     pCSaveToDB = NULL;
@@ -241,8 +295,6 @@ void* SaveToDB(void* pArg)
     delete pCSaveToDB;
     pCSaveToDB = NULL;
 
-    //
-    //
     TermThreadLog(idx);
 
     return pArg;
@@ -250,7 +302,13 @@ void* SaveToDB(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* PlayBack(void* pArg)
 {
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
 
     InitThreadLog(idx);    //
     // Call Object Methods here
@@ -261,7 +319,12 @@ void* PlayBack(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* NasdTestFile(void* pArg)
 {
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
     InitThreadLog(idx);
 
@@ -277,7 +340,7 @@ void* NasdTestFile(void* pArg)
         Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
-	TermThreadLog(idx);
+        TermThreadLog(idx);
         return NULL;
     }
 
@@ -285,10 +348,10 @@ void* NasdTestFile(void* pArg)
         Logger::instance().log("Error Reading From Test File", Logger::Error);
     }
     if (pCReceiveITCH) {
-      delete pCReceiveITCH;
-      pCReceiveITCH = NULL;
+        delete pCReceiveITCH;
+        pCReceiveITCH = NULL;
     }
-    
+
     TermThreadLog(idx);
 
     return pArg;
@@ -296,7 +359,13 @@ void* NasdTestFile(void* pArg)
 ///////////////////////////////////////////////////////////////
 void *Distributor(void* pArg)
 {
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
+
 
     InitThreadLog(idx);
     // Calls to functions and threads go here
@@ -309,7 +378,12 @@ void *Distributor(void* pArg)
 void* SaveToDisk(void* pArg)
 {
 
-    int idx = *((int*) pArg);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
     InitThreadLog(idx);
 
@@ -332,6 +406,7 @@ void* SaveToDisk(void* pArg)
 ///////////////////////////////////////////////////////////////
 void InitThreadLog(int idx)
 {
+
     string  strLogMessage = ThreadMessage[idx];
 
     strLogMessage += " Started";
@@ -373,17 +448,18 @@ int LoadSettings()
 //       6			7			8		9
 // "Play Back Thread", "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
 
-    SSettings.iarrRole[0] = 0;   		//  0= Receive Feed
-    SSettings.iarrRole[1] = 0;   		//  1= Parse
-    SSettings.iarrRole[2] = 0;   		//  2= Orders Map
-    SSettings.iarrRole[3] = 0;   		//  3= Build Book
-    SSettings.iarrRole[4] = 0;   		//  4= Tick Data
-    SSettings.iarrRole[5] = 0;   		//  5= Save to DB
-    SSettings.iarrRole[6] = 0;   		//  6= Play back
+    SSettings.iarrRole[0] = 1;   		//  0= Main Queue
+    SSettings.iarrRole[1] = 0;   		//  0= Receive Feed
+    SSettings.iarrRole[2] = 0;   		//  1= Parse
+    SSettings.iarrRole[3] = 0;   		//  2= Orders Map
+    SSettings.iarrRole[4] = 0;   		//  3= Build Book
+    SSettings.iarrRole[5] = 0;   		//  4= Tick Data
+    SSettings.iarrRole[6] = 0;   		//  5= Save to DB
+    SSettings.iarrRole[7] = 0;   		//  6= Play back
 
-    SSettings.iarrRole[7] = 1;   		//  7= Test File
-    SSettings.iarrRole[8] = 0;   		//  8= Distributor
-    SSettings.iarrRole[9] = 0;   		//  9= Save to Disk
+    SSettings.iarrRole[8] = 1;   		//  7= Test File
+    SSettings.iarrRole[9] = 0;   		//  8= Distributor
+    SSettings.iarrRole[10] = 0;   		//  9= Save to Disk
 
     SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
 

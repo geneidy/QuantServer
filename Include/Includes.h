@@ -8,7 +8,7 @@
 #define  UINT		unsigned int
 #define  ULONG		unsigned long
 
-#define			NUMBER_OF_ROLES		9+1
+#define			NUMBER_OF_ROLES		11
 
 typedef unsigned long   DWORD;
 

@@ -74,12 +74,12 @@ CFillMsgStructs::~CFillMsgStructs(void)
         m_pCUtil = NULL;
     }
     // For test purposes only ...remove from here ...will find the right place for it
-    
+/*    
     if (m_pQuantQueue){
       delete m_pQuantQueue;
       m_pQuantQueue = NULL;
     }
-
+*/
     m_bConnected = false;
 }
 ////////////////////////////////////////////////////////////////////////////
