@@ -12,7 +12,7 @@
 #include "DBLayer.h"
 
 
-CReceiveITCH::CReceiveITCH () //(socket *Sock): m_Socket(*Sock)
+CReceiveITCH::CReceiveITCH (CQuantQueue* pQueue) //(socket *Sock): m_Socket(*Sock)
 {
 
     bool 	bInitError = false;
@@ -43,7 +43,7 @@ CReceiveITCH::CReceiveITCH () //(socket *Sock): m_Socket(*Sock)
     }
 
     m_pFillStructs = NULL;
-    m_pFillStructs = new CFillMsgStructs();
+    m_pFillStructs = new CFillMsgStructs(pQueue);
     if (!m_pFillStructs)
     {
         m_iError = 100;  // enum all the errors > 100   GTE 100 means do not continue

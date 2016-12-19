@@ -12,7 +12,7 @@
 class CFillMsgStructs
 {
 public:
-	CFillMsgStructs(void);
+	CFillMsgStructs(CQuantQueue*);
 	virtual ~CFillMsgStructs(void);
 
 	int DirectToMethod(UINT8* strMsg);
@@ -46,6 +46,8 @@ private:
 
 	bool		m_bConnected;
 	int		m_iError;
+	
+	timespec m_request, m_remain;
 
 /*
 	SYSTEM_EVENT_MESSAGE						m_SystemEvent;

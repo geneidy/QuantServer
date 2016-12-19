@@ -23,6 +23,7 @@ int SaveSettings();
 int LoadSettings();
 
 enum tstate {
+  TS_INACTIVE,
   TS_STARTING,
   TS_ALIVE,
   TS_TERMINATED,
@@ -32,7 +33,11 @@ enum tstate {
 typedef struct ThreadData {
   int idx;
   void* pVoid;
+  int  iTotalThreads;
+  CQuantQueue *g_pCQuantQueue;
 }THREAD_DATA;
+
+THREAD_DATA g_SThreadData;
 
 typedef struct thread_info
 {    /* Used as argument to thread_start() */

@@ -15,7 +15,7 @@ char strBuff[39];
 #define  _SP   0
 
 ////////////////////////////////////////////////////////////////////////////
-CFillMsgStructs::CFillMsgStructs(void)
+CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuantQueue)
 {
 
     time_t ltime = 0;
@@ -37,15 +37,21 @@ CFillMsgStructs::CFillMsgStructs(void)
 
     m_iError = 0;
     
-    m_pQuantQueue = NULL;
-    m_pQuantQueue = CQuantQueue::Instance();   // Only one instance is allowed of this singelton class
+//    m_pQuantQueue = NULL;
+//    m_pQuantQueue = CQuantQueue::Instance();   // Only one instance is allowed of this singelton class
 
 	if (!m_pQuantQueue){
 	    Logger::instance().log("Error initializing the Queue", Logger::Error);
 	    m_iError = 100;  // ::TODO enum the Error
 	}
-	else
+	else {
 	   Logger::instance().log("Queue initialized", Logger::Info);
+	}
+	m_remain.tv_sec = 0;
+	m_remain.tv_nsec = 0;
+	
+	m_request.tv_sec = 0;
+	m_request.tv_nsec = 10000000;   // 1/100 of a second
 }
 ////////////////////////////////////////////////////////////////////////////
 int CFillMsgStructs::GetError()
@@ -169,7 +175,10 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
         break;
     };
     theApp.g_arrTotalMessages[22]++;
-
+    
+    // :: TODO Throw away code
+    
+    nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////

@@ -92,6 +92,7 @@ public:
   COMMON_ORDER_MESSAGE* GetMappedOrder(uint64_t uiOrderRefNumber);
   int GetError();
   uint64_t GetMapSize();
+  void InitQueue(CQuantQueue* pQueue);
   
 
 };

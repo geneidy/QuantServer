@@ -70,6 +70,7 @@ CTickDataMap::CTickDataMap()
     }
     m_pCOrdersMap = NULL;
     m_pCOrdersMap = COrdersMap::instance();
+    
     m_request.tv_sec = 0;
     m_request.tv_nsec = 100000000;   // 1/10 of a second
 

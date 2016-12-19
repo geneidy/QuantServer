@@ -143,7 +143,7 @@ void CNQTVDlg::FeedStop()  // Feed Stop
 ///////////////////////////////////////////////////////////////////////////////////
 int CNQTVDlg::FeedStart()  // Incomming Feed  thread....
 {
-    memset(theApp.g_arrMessagesPerSec,	0, sizeof(theApp.g_arrMessagesPerSec));
+ /*   memset(theApp.g_arrMessagesPerSec,	0, sizeof(theApp.g_arrMessagesPerSec));
     memset(theApp.g_arrMaxMessagesPerSec,	0, sizeof(theApp.g_arrMaxMessagesPerSec));
     memset(theApp.g_arrTotalMessages,		0, sizeof(theApp.g_arrTotalMessages));
 
@@ -179,7 +179,7 @@ int CNQTVDlg::FeedStart()  // Incomming Feed  thread....
         delete m_pCQtReceiveITCH;
         m_pCQtReceiveITCH = NULL;
     }
-    /*
+   
     m_ctrlListStats.InsertItem(MAX_MESSAGE_TYPES + 1, _T("End Time"));
     m_ctrlListStats.SetItem(MAX_MESSAGE_TYPES+ 1, 1, LVIF_TEXT, CString(theApp.g_Stats.strEndTime), 0,0,0,0);
     */

@@ -179,7 +179,7 @@ void CQuantQueue::InitReader(int iPosition)
         iPosition = POSITION_TOP;
 
     if (iPosition == POSITION_TOP) {
-        if (m_sStat.uiQWrap == 0) {  // did not wrap around yet....first run of the queue...poin to top of the array
+        if (m_sStat.uiQWrap == 0) {  // did not wrap around yet....first run of the queue...point to top of the array
 //    m_pReader = &m_pWriter[0];
             m_Threadi64LastIndex = 0;       // Index Zero
         } //
@@ -651,23 +651,23 @@ CQuantQueue::~CQuantQueue()
     }
     string strLog;
 
-    strLog.empty();
+    strLog.clear();
     strLog = "Queue Stats....Total Elements Inserted: ";
     strLog += to_string (m_ulTotalElements);
     Logger::instance().log(strLog, Logger::Info);
     
     
-    strLog.empty();
+    strLog.clear();
     strLog = "Queue Stats....Number of Wrap around: ";
     strLog += to_string (m_sStat.uiQWrap);
     Logger::instance().log(strLog, Logger::Info);
 
-    strLog.empty();
+    strLog.clear();
     strLog = "Queue Stats....Number of Added Orders With MPID Wrap around: ";
     strLog += to_string (m_sStat.uiQWrapAddOrderMPID);
     Logger::instance().log(strLog, Logger::Info);
 
-    strLog.empty();
+    strLog.clear();
     strLog = "Queue Stats....Number of Added Orders Without MPID Wrap around: ";
     strLog += to_string (m_sStat.uiQWrapAddOrderNoMPID);
     Logger::instance().log(strLog, Logger::Info);

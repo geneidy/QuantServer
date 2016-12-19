@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
+#include "QuantQueue.h"
 #include  "Util.h"
 
 #include  "Includes.h"
@@ -20,7 +20,7 @@ class CReceiveITCH
     int m_Socket;
 public:
 //	CReceiveITCH(socket* );
-    CReceiveITCH();
+    CReceiveITCH(CQuantQueue* pQueue);
     virtual ~CReceiveITCH(void);
 
     int ReadFromTestFile(const char* strFileName);
