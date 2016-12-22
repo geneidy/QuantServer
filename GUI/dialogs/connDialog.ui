@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>connDialog</string>
+   <string>Connect to Feed</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_5">
    <item row="0" column="0">
@@ -29,7 +29,7 @@
      <item>
       <widget class="QRadioButton" name="radioButton_2">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>Network market replay</string>
@@ -39,7 +39,7 @@
      <item>
       <widget class="QRadioButton" name="radioButton_3">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>Real-time ITCH Feed</string>
@@ -84,7 +84,7 @@
    <item row="2" column="0">
     <widget class="QGroupBox" name="networkITCH">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="title">
       <string>Connect to ITCH Feed</string>
@@ -224,7 +224,7 @@
    <item row="3" column="0">
     <widget class="QGroupBox" name="proxy">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="toolTip">
       <string>Enable network proxy</string>

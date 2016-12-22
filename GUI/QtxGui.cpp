@@ -20,43 +20,32 @@
 #include <QMessageBox>
 #include <QLayout>
 
-//#include <QProcess>
 
 QtxGui::QtxGui(QWidget* parent)
     : QMainWindow(parent)
 {    
     ui.setupUi(this);
     
+    initGUI();
+}
+/////////////////////////////////////////////////////////////////////
+void QtxGui::initGUI() {
     QCoreApplication::setOrganizationName(ORG_NAME);
     QCoreApplication::setOrganizationDomain(DOM_NAME);
     QCoreApplication::setApplicationName(APP_NAME);
     QCoreApplication::setApplicationVersion(VERSION_NUM);
     
     setWindowTitle(APP_NAME);
+    setWindowIcon(QIcon(":/images/logo.png"));
     loadSettings();
     
     connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(shutDown()));
-    //connect(ui.action_Quit, SIGNAL(triggered()), qApp, SLOT(quit()));
-    
-    /*
-    connectionDialog = new ConnectionDialog();
-    connect(ui.actionConnect, SIGNAL(triggered()), connectionDialog, SLOT(show())); 
-    */
-    
-   //connect(ui.actionConfigure_QuantServer, SIGNAL(triggered()), this, SLOT(onActionConfigManager()));
-    //connect(ui.actionConfigure_QuantServer, SIGNAL(triggered()), configDialog, SLOT(show()));
-    
-    
-   // connect(ui.action_About, SIGNAL(triggered()), this, SLOT(about()));
     
     createActions();
     createMenu();
     createToolBars();
     statusMessage("Ready", 5000);
     createDockWindows();
-//     createStatusBar();
-//     
-//     //statusBar()->showMessage("Ready", 2000);
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::shutDown() {
@@ -64,22 +53,6 @@ void QtxGui::shutDown() {
     save();
     QCoreApplication::quit();
 }
-/////////////////////////////////////////////////////////////////////
-/* TODO IMPLEMENT THIS!!!
-void QtxGui::initGUI() {
-    QMenuBar *menuBar = new QMenuBar();
-    setMenuBar(menuBar);
-    QMenu *menu = new QMenu("&Help");
-    
-    QAction* a = new QAction("&About", this);
-    a->setIconVisibleInMenu(true);
-    connect(a, SIGNAL(activated()), this, SLOT(about()));
-    menu->addAction(a);
-    menuBar->addMenu(menu);
-    
-    statusBar()->showMessage("Ready", 2000);
-    
-}*/
 /////////////////////////////////////////////////////////////////////
 void QtxGui::loadSettings() {
     QSettings settings(ORG_NAME, APP_NAME);
@@ -191,29 +164,14 @@ void QtxGui::createToolBars() {
     QWidget* empty = new QWidget();
     empty->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
     mainToolBar->addWidget(empty);
-    
-    //mainToolBar->addSeparator();
-    
-    //led = new LED;
-    //led->setState(false);
-    //mainToolBar->addWidget(led);
-    
-    //QLabel* spacer = new QLabel;
-    //mainToolBar->addWidget(spacer);
-    //mainToolBar->addSeparator();
-    
+        
     DigitalClock* clock = new DigitalClock;
     clock->setSegmentStyle(QLCDNumber::Flat);
     mainToolBar->addWidget(clock);
-    
-    
-    
-    
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::createDockWindows() {
     QDockWidget* dock0 = new QDockWidget("Log", this);
-    //dock0->setAllowedAreas(Qt::BottomDockWidgetArea);
     logWindow = new QPlainTextEdit(dock0);
     logWindow->setReadOnly(true);
     dock0->setWidget(logWindow);
@@ -224,7 +182,6 @@ void QtxGui::createDockWindows() {
     QWidget* sysDockWidget = new QWidget;
     QVBoxLayout* sysDockLayout = new QVBoxLayout;
     perfWidget = new PerfWidget(this);
-    //ResourcesWidget* resourcesWidget
     resourcesWidget = new ResourcesWidget(this);
     sysDockLayout->addWidget(perfWidget);
     sysDockLayout->addWidget(resourcesWidget);
@@ -233,8 +190,7 @@ void QtxGui::createDockWindows() {
     
     //TODO Set default size
     QDockWidget* dock1 = new QDockWidget("System Performance Indicator", this);
-    //dock1->setAllowedAreas(Qt::RightDockWidgetArea);
-    
+        
     dock1->setWidget(sysDockWidget);
     addDockWidget(Qt::RightDockWidgetArea, dock1);
     menuView->addAction(dock1->toggleViewAction());
@@ -243,90 +199,24 @@ void QtxGui::createDockWindows() {
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionConfig() {
     configDialog = new ConfigDialog(this);
-    //configDialog->setWindowFlags(configDialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    //configDialog->setParent(this);
     configDialog->show();
-    
 }
-
+/////////////////////////////////////////////////////////////////////
 void QtxGui::onActionConnect() {
     connDialog = new ConnDialog(this);
-    connDialog->show();
+    connDialog->exec();
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPlayFeed() {
-    //led->stopFlashing();
-    //led->setState(true);
     statusMessage("Feed Started", 5000);
     
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPauseFeed() {
-    //led->startFlashing();
     statusMessage("Feed Paused", 5000);
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionStopFeed() {
-    //led->stopFlashing();
-    //led->setState(false);
     statusMessage("Feed Stopped", 5000);
 }
 /////////////////////////////////////////////////////////////////////
-
-// void QtxGui::createStatusBar() {
-//     statusMessage("Ready");
-//     //statusBar()->showMessage("Ready", 2000);
-// }
-
-// void QtxGui::onExit() {
-//     shutDown();
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-// #include "QuantServer.h"
-// #include <QVBoxLayout>
-// #include <QHBoxLayout>
-// 
-// StartStopBtnWidget::StartStopBtnWidget(QWidget *parent)
-//     : QWidget(parent) {
-//         
-//     QVBoxLayout *vbox = new QVBoxLayout(this);
-//     QHBoxLayout *hbox = new QHBoxLayout();
-//     
-//     startBtn = new QPushButton("Start", this);
-//     stopBtn = new QPushButton("Stop", this);
-//     pauseBtn = new QPushButton("Paused", this);
-//     
-//     hbox->addWidget(startBtn, 1, Qt::AlignRight);
-//     hbox->addWidget(stopBtn, 0);
-//     hbox->addWidget(pauseBtn, 0);
-//     
-//     vbox->addStretch(1);
-//     vbox->addLayout(hbox);
-//     
-//     connect(startBtn, SIGNAL(clicked()), this, SLOT(startServer()));
-//     
-// }
-// 
-// void StartStopBtnWidget::startServer() {
-//     ui_settings.start_stop_pause = 1;
-// }
-// 
-// void StartStopBtnWidget::stopServer() {
-//     ui_settings.start_stop_pause = 0;
-// }
-// 
-// void StartStopBtnWidget::pauseServer() {
-//     ui_settings.start_stop_pause = 2;
-// }

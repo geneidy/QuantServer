@@ -14,7 +14,7 @@ INCLUDEPATH += . widgets/perfWidget \
                  widgets/digitalclock \
                  #widgets/led-designer-plugin \
                  widgets/resourcesWidget 
-
+RESOURCES += resources.qrc
 # Input
 HEADERS +=  QtxGui.h \
             dialogs/connDialog.h \
