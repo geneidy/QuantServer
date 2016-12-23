@@ -17,10 +17,9 @@
 #include  "ReceiveITCH.h"
 #include  "QuantQueue.h"
 
-
-
 int SaveSettings();
 int LoadSettings();
+int GUI();
 
 enum tstate {
   TS_INACTIVE,

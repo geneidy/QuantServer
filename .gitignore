@@ -43,7 +43,7 @@ Logs/
 *.kdev*
 
 # .directory
-.directory/
+.directory*
 # qt moc
 #moc*.cpp
 ui_*
