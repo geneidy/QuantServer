@@ -9,11 +9,13 @@ TARGET = bin/qtxgui
 DEPENDPATH += . widgets/perfWidget \
                 widgets/digitalclock \
                 #widgets/led-designer-plugin \
-                widgets/resourcesWidget
+                widgets/resourcesWidget \
+                ../Include
 INCLUDEPATH += . widgets/perfWidget \
                  widgets/digitalclock \
                  #widgets/led-designer-plugin \
-                 widgets/resourcesWidget 
+                 widgets/resourcesWidget \
+                 ../Include
 RESOURCES += resources.qrc
 # Input
 HEADERS +=  QtxGui.h \
