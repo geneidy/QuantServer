@@ -103,7 +103,7 @@ int main(int argc, char **argv)
         } // for loop
         if (JJ >= g_SThreadData.iTotalThreads)  // all terminated.....waiting to do away with all this mess when the GUI is up!!!!!
 	  break;
-	sleep(3);
+	sleep(5);
     } // while loop
     pthread_cond_destroy(&condMap);
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
@@ -179,6 +179,8 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCOrdersMap->InitQueue(pQueue);
     while (theApp.iStatus != STOPPED) {
+      if (pCOrdersMap->GetError() > 0)
+	break;
         pCOrdersMap->FillMemoryMappedFile();
     };
 
@@ -342,7 +344,6 @@ void* PlayBack(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-
     InitThreadLog(idx);    //
     // Call Object Methods here
     //
@@ -384,6 +385,7 @@ void* NasdTestFile(void* pArg)
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
     }
+    theApp.iStatus = STOPPED;  // :: TODO throw away code after the Queue
 
     TermThreadLog(idx);
 
@@ -492,7 +494,7 @@ int LoadSettings()
 
     SSettings.iarrRole[8] = 1;   		//  7= Test File
     SSettings.iarrRole[9] = 0;   		//  8= Distributor
-    SSettings.iarrRole[10] = 0;   		//  9= Save to Disk
+    SSettings.iarrRole[10]= 0;   		//  9= Save to Disk
 
     SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
 
@@ -547,7 +549,6 @@ int LoadSettings()
 ///////////////////////////////////////////////////////////////
 int SaveSettings()
 {
-
     int	iNumberOfBytes = 0;
     int iHandle = open("QTSrvSettings.ini", O_RDWR );
     if (iHandle)

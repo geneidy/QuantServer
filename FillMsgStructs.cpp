@@ -37,6 +37,8 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
 
     m_iError = 0;
     
+    i64Counter = 0;
+    
 //    m_pQuantQueue = NULL;
 //    m_pQuantQueue = CQuantQueue::Instance();   // Only one instance is allowed of this singelton class
 
@@ -177,8 +179,10 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
     theApp.g_arrTotalMessages[22]++;
     
     // :: TODO Throw away code
-    
-    nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
+    if (i64Counter++ > 217000) { //  Addd messages start at 217090
+	nanosleep(&m_request, NULL);  // sleep a 1/10 of a second
+    }
+
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -361,6 +365,10 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 
     strcpy(m_IMUSys.AddOrderNoMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
     m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
+    
+    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "AAPL")){
+	int iStopHere = 0;
+    }
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'A');
@@ -384,6 +392,11 @@ int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
     m_IMUSys.AddOrderMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     strcpy(m_IMUSys.AddOrderMPID.szMPID,  m_pCUtil->GetValueAlpha(uiMsg, 36, 4));
 
+    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "AAPL")){
+	int iStopHere = 0;
+    }
+  
+    
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'F');
 

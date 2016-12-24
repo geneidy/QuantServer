@@ -41,6 +41,8 @@ private:
   CQuantQueue*		m_pQuantQueue;
   
   COMMON_ORDER_MESSAGE* m_pCommonOrder;
+  COMMON_ORDER_MESSAGE* m_pTempCommonOrder;
+  
   ITCH_MESSAGES_UNION* pItchMessageUnion;  
   
   ADD_ORDER_NO_MPID_MESSAGE  		m_Add_Order_No_Mpid;
@@ -57,7 +59,7 @@ private:
   
   int m_iMessage;
   uint64_t   m_uiSizeOfCommonOrderRecord;
-  uint64_t	m_ui64NumOfOrders;
+  static uint64_t	m_ui64NumOfOrders;
   
   uint64_t m_uiNumberOfMessagesToHold;
   

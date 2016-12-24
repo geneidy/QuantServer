@@ -213,15 +213,15 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
         m_Threadi64LastIndex = 0;
 
     // Reader catches up with Writer....can't advance any more...
-    if (m_pReader[m_Threadi64LastIndex].i64NodeNumber == m_pWriter->i64NodeNumber)
+    if (m_pReader[m_Threadi64LastIndex].i64NodeNumber == m_pWriter[ m_i64QueueElement ].i64NodeNumber)
     {
         m_ThreadiStatus = E_READER_EQ_WRITER;  // Calling thread should sleep
         *iMessgaType = E_READER_EQ_WRITER;
         return NULL; // Get error code and act accordingly
     }
 
-    iMessgaType = &m_pReader[m_Threadi64LastIndex].iMessagetype;
-    switch (m_pReader->iMessagetype)
+    *iMessgaType = m_pReader[m_Threadi64LastIndex].iMessagetype;
+    switch (*iMessgaType)
     {
     case 'S':
         return  &m_SystemEvent[m_pReader[m_Threadi64LastIndex++].i64Index];
@@ -301,7 +301,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_SystemEvent[ i64Idx_SystemEvent] = pQueueElement->SystemEvent;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_SystemEvent++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
     case 'R' :
         if (i64Idx_StockDirectory >= QSIZE_STOCK_DIRECTORY) {
@@ -311,7 +311,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_StockDirectory[ i64Idx_StockDirectory] = pQueueElement->StockDirectory;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_StockDirectory++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'H' :
@@ -322,7 +322,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_StockTradingAction[ i64Idx_StockTradingAction] = pQueueElement->StockTradingAction;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_StockTradingAction++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'Y':
@@ -333,7 +333,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_RegSho[ i64Idx_RegSho] = pQueueElement->RegSho;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_RegSho++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'L':
@@ -344,7 +344,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_MpPosition[ i64Idx_MpPosition] = pQueueElement->MpPosition;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_MpPosition++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'V':
@@ -355,7 +355,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_MWCBDLM[ i64Idx_MWCBDLM] = pQueueElement->MWCBDLM;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_MWCBDLM++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'W':
@@ -366,7 +366,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_MWCBDBM[ i64Idx_MWCBDBM] = pQueueElement->MWCBDBM;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_MWCBDBM++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'K':
@@ -377,7 +377,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_IPOQutationUpdate[ i64Idx_IPOQutationUpdate] = pQueueElement->IPOQutationUpdate;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_IPOQutationUpdate++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'A':
@@ -388,7 +388,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_AddOrderNoMPID[ i64Idx_AddOrderNoMPID] = pQueueElement->AddOrderNoMPID;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_AddOrderNoMPID++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -400,7 +400,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_AddOrderMPID[ i64Idx_AddOrderMPID] = pQueueElement->AddOrderMPID;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_AddOrderMPID++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -412,7 +412,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_OrderExecuted[ i64Idx_OrderExecuted] = pQueueElement->OrderExecuted;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderExecuted++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -424,7 +424,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_OrderExecutedWithPrice[ i64Idx_OrderExecutedWithPrice] = pQueueElement->OrderExecutedWithPrice;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderExecutedWithPrice++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -436,7 +436,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_OrderCancel[ i64Idx_OrderCancel] = pQueueElement->OrderCancel;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderCancel++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -448,7 +448,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_OrderDelete[ i64Idx_OrderDelete] = pQueueElement->OrderDelete;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderDelete++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -460,7 +460,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_OrderReplace[ i64Idx_OrderReplace] = pQueueElement->OrderReplace;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_OrderReplace++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -472,7 +472,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_TradeNonCross[ i64Idx_TradeNonCross] = pQueueElement->TradeNonCross;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_TradeNonCross++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
         break;
 
     case 'I':
@@ -483,7 +483,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_NOII[ i64Idx_NOII] = pQueueElement->NOII;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_NOII++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
 
@@ -495,21 +495,20 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         }
         m_RPPI[ i64Idx_RPPI] = pQueueElement->RPPI;
         m_pWriter[ m_i64QueueElement ].i64Index = i64Idx_RPPI++;
-        m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
+//      m_pWriter[ m_i64QueueElement ].i64NodeNumber++;
 
         break;
     default:
         return 0;  // unknown message type
     }
     gettimeofday(&m_pWriter[m_i64QueueElement].lTime, NULL);
+    
     m_Threadi64LastNode = m_pWriter[m_i64QueueElement].i64NodeNumber;   // Always keep track of the last node number
 
     m_pWriter[m_i64QueueElement].i64NodeNumber++; // never reset
     m_pWriter[m_i64QueueElement].iMessagetype = iMessageType;
 
     m_i64QueueElement++;	// advance to the next location to write
-    
-
     m_ulTotalElements++;
     
     if (m_i64QueueElement >= m_i64QueueSize)

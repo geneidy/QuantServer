@@ -253,6 +253,10 @@ char* CUtil::GetFormatedTime()
 ///////////////////////////////////////////////////////////////////////////////////
 bool CUtil::CheckInclude(char* szStock)
 {
+  
+  // ::TODO Throw away code ...for now until all testing is ready
+  
+    return true;
 
     if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included with or w/o range
         return true;

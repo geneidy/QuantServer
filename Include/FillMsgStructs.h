@@ -47,6 +47,8 @@ private:
 	bool		m_bConnected;
 	int		m_iError;
 	
+	uint64_t	i64Counter;
+	
 	timespec m_request, m_remain;
 
 /*

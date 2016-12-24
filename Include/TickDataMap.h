@@ -81,6 +81,7 @@ private:
   SFUNDAMENTAL_RECORD 		m_SFundamentalRecord;
   
   int InitMemoryMappedFile();
+  void InitQueue(CQuantQueue* pQueue);
   inline void InitFundamentalRecord();
 
   int m_iError;

@@ -29,51 +29,54 @@ CTickDataMap::CTickDataMap()
     m_fd = open64(strTickFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
 
     if (m_fd == -1) {
-        Logger::instance().log("Open File Mapping Error", Logger::Error);
+        Logger::instance().log("Tick Data open File Mapping Error", Logger::Error);
         m_iError = 100;
         // Set error code and exit
     }
-
-    if (fstat64(m_fd, &m_sb) == -1) {
-        Logger::instance().log("Error fstat", Logger::Error);
-        m_iError = 110;
-        // Set error code and exit
-    }
-    m_iSizeOfCommonTradeRecord = sizeof(COMMON_TRADE_MESSAGE); // Avoid computing the size million times every second
-
-    if (!InitMemoryMappedFile()) {
-        Logger::instance().log("Error Initializing", Logger::Error);
-        close(m_fd);
-        m_iError = 120;
-        // Set error code and exit
-    }
-
     if (!m_iError) {
-        m_addr = mmap(NULL, m_sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
 
-        if (m_addr == MAP_FAILED) {
-            Logger::instance().log("Error Mapping Failed", Logger::Error);
-            m_iError = 130;
+        if (fstat64(m_fd, &m_sb) == -1) {
+            Logger::instance().log("Error fstat", Logger::Error);
+            m_iError = 110;
             // Set error code and exit
         }
-        m_pCommonTrade = (COMMON_TRADE_MESSAGE*) m_addr;  //  cast in COMMON_TRADE_MESSAGE...now you have an array in memory of common orders
+        else {
+            m_iSizeOfCommonTradeRecord = sizeof(COMMON_TRADE_MESSAGE); // Avoid computing the size million times every second
 
-        // Init the Queue
-        m_pQuantQueue = NULL;
-        m_pQuantQueue = CQuantQueue::Instance();   // Only one instance is allowed of this singelton class
+            if (!InitMemoryMappedFile()) {
+                Logger::instance().log("Error Initializing", Logger::Error);
+                close(m_fd);
+                m_iError = 120;
+                // Set error code and exit
+            }
+            else {
 
-        if (!m_pQuantQueue) {
-            Logger::instance().log("Error initialized the Queue", Logger::Error);
-            m_iError = 140;
+                m_addr = mmap(NULL, m_sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
+
+                if (m_addr == MAP_FAILED) {
+                    Logger::instance().log("Error Mapping Failed", Logger::Error);
+                    m_iError = 130;
+                    // Set error code and exit
+                }
+                m_pCommonTrade = (COMMON_TRADE_MESSAGE*) m_addr;  //  cast in COMMON_TRADE_MESSAGE...now you have an array in memory of common orders
+
+                // Init the Queue
+            }
+            m_pCOrdersMap = NULL;
+            m_pCOrdersMap = COrdersMap::instance();
+
+            m_request.tv_sec = 0;
+            m_request.tv_nsec = 100000000;   // 1/10 of a second
         }
-        m_pQuantQueue->InitReader(POSITION_TOP);
     }
-    m_pCOrdersMap = NULL;
-    m_pCOrdersMap = COrdersMap::instance();
-    
-    m_request.tv_sec = 0;
-    m_request.tv_nsec = 100000000;   // 1/10 of a second
-
+}
+//////////////////////////////////////////////////////////////////////////////////
+void CTickDataMap::InitQueue(CQuantQueue* pQueue)
+{
+    m_pQuantQueue = pQueue;
+    // Init the Queue
+    m_pQuantQueue->InitReader(POSITION_TOP);
+    Logger::instance().log("Queue initialized in Orders Data Map file", Logger::Info);
 }
 //////////////////////////////////////////////////////////////////////////////////
 CTickDataMap::~CTickDataMap()
@@ -82,18 +85,18 @@ CTickDataMap::~CTickDataMap()
     munmap(m_addr, m_sb.st_size);
     Logger::instance().log("End...UnMapping TickDataMap file", Logger::Info);
 
-    Logger::instance().log("Start...Clearing TickMap", Logger::Info);    
+    Logger::instance().log("Start...Clearing TickMap", Logger::Info);
     m_TickMap.clear();
-    Logger::instance().log("End...Clearing TickMap", Logger::Info);      
-    
-    Logger::instance().log("Start...Clearing Fundamental Map", Logger::Info);        
+    Logger::instance().log("End...Clearing TickMap", Logger::Info);
+
+    Logger::instance().log("Start...Clearing Fundamental Map", Logger::Info);
     m_FundamentalMap.clear();
-    Logger::instance().log("End...Clearing Fundamental Map", Logger::Info);        
+    Logger::instance().log("End...Clearing Fundamental Map", Logger::Info);
     close(m_fd);
-    
+
     if (m_pcUtil) {
-      delete m_pcUtil;
-      m_pcUtil = NULL;
+        delete m_pcUtil;
+        m_pcUtil = NULL;
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +117,7 @@ int CTickDataMap::InitMemoryMappedFile()
     int iRet = 0;
     if (m_sb.st_size < (theApp.SSettings.ui64SizeOfTickDataMappedFile* 1000000000)) { // Fresh file
         Logger::instance().log("Initializing Tick Data Mapped File", Logger::Info);
-        for (uint64_t ii = 0; ii < m_uiNumberOfMessagesToHold; ii++) {
+        for (uint64_t ii = 0; ii < (m_uiNumberOfMessagesToHold +1); ii++) {
             iRet = write(m_fd, &SCommonTrade, m_iSizeOfCommonTradeRecord);  // init with NULL
             // check for errors
         }
@@ -281,7 +284,7 @@ uint64_t CTickDataMap::FillMemoryMappedFile()
         if (!m_pCommonOrder)
             break;
 
-	if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
+        if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
             return 0;
 
 

@@ -46,7 +46,7 @@ Logger::Logger()
     std::string strkLogFileName;
     strkLogFileName.empty();
 
-    strkLogFileName = "../Logs/";
+    strkLogFileName = "../Logs/"; //TODO fix relative path...
     strkLogFileName += Util.GetFormatedDate();
     strkLogFileName += "Logs.txt";
 
