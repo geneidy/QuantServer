@@ -4,7 +4,6 @@
 #define VERSION_NUM "0.0.1"
 
 #include "QtxGui.h"
-#include "../Include/Settings.h"
 
 #include <QtDebug>
 #include <QApplication>
@@ -46,6 +45,8 @@ void QtxGui::initGUI() {
     createToolBars();
     statusMessage("Ready", 5000);
     createDockWindows();
+    
+    //theApp.SSettings = SGSettings;
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::shutDown() {
@@ -208,15 +209,17 @@ void QtxGui::onActionConnect() {
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPlayFeed() {
+    theApp.iStatus = RUNNING;
     statusMessage("Feed Started", 5000);
-    
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionPauseFeed() {
+    theApp.iStatus = PAUSSED;
     statusMessage("Feed Paused", 5000);
 }
 /////////////////////////////////////////////////////////////////////
 void QtxGui::onActionStopFeed() {
+    theApp.iStatus = STOPPED;
     statusMessage("Feed Stopped", 5000);
 }
 /////////////////////////////////////////////////////////////////////

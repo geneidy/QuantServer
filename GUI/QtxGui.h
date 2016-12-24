@@ -9,6 +9,8 @@
 #include "widgets/resourcesWidget/resourcesWidget.h"
 //#include "LED.h"
 #include "ui_QtxGui.h"
+#include "../Include/Settings.h"
+#include "../Include/NQTV.h"
 
 
 //class ConfigDialog;
@@ -34,6 +36,8 @@ class QtxGui : public QMainWindow
     void loadSettings();
     void initGUI();
     void createDockWindows();
+    
+    //SETTINGS SGSettings;
     
     ConnDialog* connDialog;
     ConfigDialog* configDialog;

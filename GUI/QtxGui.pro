@@ -22,6 +22,7 @@ HEADERS +=  QtxGui.h \
             dialogs/configpages.h \
             ../Include/Settings.h \
             ../Include/Includes.h \
+            ../Include/NQTV.h \
             perfwidget.h \
             dataQuery/cpudataquery.h \
             dataQuery/dataquery.h \

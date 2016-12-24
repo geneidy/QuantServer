@@ -26,6 +26,42 @@ ConnDialog::ConnDialog(QWidget* child)
     
     connect(ui.itchLineEdit, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
     
+    QRegExp rx("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}");
+    QRegExpValidator ipRegValidator(rx, 0);
+    
+    ui.host->setValidator(&ipRegValidator);
+    ui.host->setInputMask("000.000.000.000");
+    connect(ui.host, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    
+    ui.proxyHost->setValidator(&ipRegValidator);
+    ui.proxyHost->setInputMask("000.000.000.000");
+    connect(ui.proxyHost, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    
+    connect(ui.radioButton, SIGNAL(clicked()), this, SLOT(enableApplyBtn()));
+    connect(ui.radioButton_2, SIGNAL(clicked()), this, SLOT(enableApplyBtn()));
+    connect(ui.radioButton_3, SIGNAL(clicked()), this, SLOT(enableApplyBtn()));
+    
+    connect(ui.remember, SIGNAL(stateChanged(int)), this, SLOT(enableApplyBtn()));
+    
+    connect(ui.port, SIGNAL(valueChanged(int)), this, SLOT(enableApplyBtn()));
+    
+    connect(ui.proxyPort, SIGNAL(valueChanged(int)), this, SLOT(enableApplyBtn()));
+    
+    connect(ui.user, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    
+    connect(ui.proxyUser, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    
+    //ui.proxyPassword->setValidator(&ipRegValidator);
+    //ui.proxyRepeat->setValidator(&ipRegValidator);
+    connect(ui.password, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    connect(ui.repeat, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    connect(ui.proxyPassword, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    connect(ui.proxyRepeat, SIGNAL(textChanged(const QString &)), this, SLOT(enableApplyBtn()));
+    
+    
+    
+    
+    
     //connect(ui.buttonBox.button(QDialogButtonBox::Ok), SIGNAL(clicked()), this, SLOT(accepted()));
     
     connect(ui.buttonBox->button(QDialogButtonBox::Apply), SIGNAL(clicked()), this, SLOT(passFileHandle()));
