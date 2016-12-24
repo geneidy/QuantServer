@@ -1,6 +1,12 @@
 [Dolphin]
+<<<<<<< HEAD
 HeaderColumnWidths=547,72,126
 Timestamp=2016,12,23,23,0,55
+=======
+SortOrder=1
+SortRole=size
+Timestamp=2016,12,23,14,38,15
+>>>>>>> 19a0d41f3a3cab7ee93d2c811e56bdbc15f7bf36
 Version=3
 
 [Settings]

@@ -14,6 +14,10 @@
 #include "NQTVDlg.h"
 #include "NQTV.h"
 
+#include <QApplication>
+
+#include "GUI/QtxGui.h"
+
 static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
 //static pthread_mutex_t mtxTick 	= PTHREAD_MUTEX_INITIALIZER;
 
@@ -25,7 +29,13 @@ int main(int argc, char **argv)
     using namespace std;
 
     Logger::instance().log("Starting Server", Logger::Debug);
-    cout << "Hit 'S' or 's' to stop" << endl;
+//    cout << "Hit 'S' or 's' to stop" << endl;
+//    QApplication a(argc, argv);
+//    QtxGui app;
+//    Logger::instance().log("qt app instaniated", Logger::Debug);
+//    app.show();
+    GUI();
+    Logger::instance().log("GUI() called", Logger::Debug);
 
 // open Settings file to fill the Settings structure
 //    cout << "Calling Settings Begin" << endl;
@@ -108,7 +118,7 @@ int main(int argc, char **argv)
     pthread_cond_destroy(&condMap);
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
     Logger::instance().log("Normal Termination", Logger::Debug);
-    return 0;
+    return 0/*a.exec()*/;
 }
 ////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
@@ -529,7 +539,8 @@ int LoadSettings()
     strcpy(SSettings.szDBUserName, "MySqlUserName");  	//  char		szDBUserName[SIZE_OF_NAME];
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
-    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50";  // Test file name ...pick from UI dialog
+    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
+    //"/home/gen/itch_data/08022014.NASDAQ_ITCH50";  
     SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
 
 
@@ -595,4 +606,17 @@ static void *NQTVFunction(void* ptr)
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////
-
+int GUI()
+{
+/* FOR REFERENCE: http://stackoverflow.com/questions/1519885/defining-own-main-functions-arguments-argc-and-argv?rq=1 */
+    char arg0[] = "QuantServer";
+    //char arg1[] = "arg";
+    //char arg2[] = "another arg";
+    char* argv[] = { &arg0[0]/*, &arg1[0], &arg2[0]*/, NULL };
+    int argc = (int)(sizeof(argv) / sizeof(argv[0])) - 1;
+    
+    QApplication a(argc, &argv[0]);
+    QtxGui app;
+    app.show();
+    return a.exec();
+}
