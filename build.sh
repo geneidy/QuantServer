@@ -32,8 +32,16 @@ cd GUI/
 pwd
 echo "Entering GUI/"
 echo "Building GUI...Disregard errors: 'undefined reference'"
-/usr/bin/qmake-qt4 QtxGui.pro
-/usr/bin/qmake-qt4
+if [ -x /usr/bin/qmake-qt4 ] 
+then
+    echo "/usr/bin/qmake-qt4 found"
+    /usr/bin/qmake-qt4 QtxGui.pro
+    /usr/bin/qmake-qt4
+else
+    echo "/usr/bin/qmake found"
+    /usr/bin/qmake QtxGui.pro
+    /usr/bin/qmake
+fi
 make
 echo "Exiting GUI/"
 cd ..
