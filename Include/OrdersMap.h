@@ -27,7 +27,7 @@
   }SOrdersDataStat;
 
 
-typedef unordered_map<uint64_t , uint64_t> OrdersUnOrderedMap;  // <  Order Ref Number  ,   Location in File   >
+typedef unordered_map<  uint64_t , uint64_t > OrdersUnOrderedMap;  // <  Order Ref Number  ,   Location in File   >
 
 class COrdersMap 
 {
@@ -36,12 +36,22 @@ private:
   int m_fd;
   struct stat64 m_sb;
   
-  OrdersUnOrderedMap 	 	m_SymbolMap;
-  OrdersUnOrderedMap::iterator		m_itSymbolMap;
+  static OrdersUnOrderedMap 	 	m_SymbolMap;
+  OrdersUnOrderedMap::const_iterator		m_itSymbolMap;
+  
+  OrdersUnOrderedMap::const_iterator		m_itAuxSymbolMap;
+  OrdersUnOrderedMap::const_iterator		m_itRefAuxSymbolMap;  
+  
   CQuantQueue*		m_pQuantQueue;
   
   COMMON_ORDER_MESSAGE* m_pCommonOrder;
-  COMMON_ORDER_MESSAGE* m_pTempCommonOrder;
+  COMMON_ORDER_MESSAGE* m_pReturnCommonOrder;
+  
+  COMMON_ORDER_MESSAGE* m_pRefCommonOrder;  
+
+  
+  
+  static __thread COMMON_ORDER_MESSAGE* m_pTempCommonOrder;
   
   ITCH_MESSAGES_UNION* pItchMessageUnion;  
   
@@ -70,28 +80,26 @@ private:
 //  static mutex m_;
   
   static std::mutex MapMutex;
+  static std::mutex FindMapMutex;
+  
+  COMMON_ORDER_MESSAGE* GetMappedOrder(uint64_t uiOrderRefNumber);
 
    COrdersMap();
    pair<OrdersUnOrderedMap::iterator, bool>  RetPair;
 protected:
 	static COrdersMap *pInstance;  
-	friend class Cleanup;
-	class Cleanup
-	{
-	public:
-		~Cleanup();
-	};
  
 public:
 
   ~COrdersMap();
   static COrdersMap* instance();
+  static uint iNInstance;
   uint64_t FillMemoryMappedFile();
   uint64_t GetNumberOfOrders();
   
   SOrdersDataStat GetOrdersDataStat();
   SOrdersDataStat  m_SOrdersDataStat;
-  COMMON_ORDER_MESSAGE* GetMappedOrder(uint64_t uiOrderRefNumber);
+  COMMON_ORDER_MESSAGE* GetOrder(uint64_t uiOrderRefNumber);
   int GetError();
   uint64_t GetMapSize();
   void InitQueue(CQuantQueue* pQueue);

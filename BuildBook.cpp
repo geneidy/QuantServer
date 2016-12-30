@@ -42,7 +42,7 @@ CBuildBook::~CBuildBook()
 int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing...Called from a while loop in Main.cpp
 {
 
-    m_pCommonOrder = m_pCOrdersMap->GetMappedOrder(m_uiNextOrder++); // start with Order Zero
+    m_pCommonOrder = m_pCOrdersMap->GetOrder(m_uiNextOrder++); // start with Order Zero
     if (m_pCommonOrder == NULL) {
         m_uiNextOrder--;
         nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second

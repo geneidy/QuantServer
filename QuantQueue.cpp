@@ -654,7 +654,11 @@ CQuantQueue::~CQuantQueue()
     strLog = "Queue Stats....Total Elements Inserted: ";
     strLog += to_string (m_ulTotalElements);
     Logger::instance().log(strLog, Logger::Info);
-    
+        
+    strLog.clear();
+    strLog = "Queue Stats....Total Elements Dequeued: ";
+    strLog += to_string (m_Threadi64LastIndex);
+    Logger::instance().log(strLog, Logger::Info);
     
     strLog.clear();
     strLog = "Queue Stats....Number of Wrap around: ";

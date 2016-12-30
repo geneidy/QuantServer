@@ -63,7 +63,7 @@ private:
   
   COMMON_TRADE_MESSAGE* 	m_pCommonTrade;
   
-  COrdersMap*			m_pCOrdersMap;
+
   COMMON_ORDER_MESSAGE* 	m_pCommonOrder;
   
   ITCH_MESSAGES_UNION* 		pItchMessageUnion;  
@@ -81,7 +81,7 @@ private:
   SFUNDAMENTAL_RECORD 		m_SFundamentalRecord;
   
   int InitMemoryMappedFile();
-  void InitQueue(CQuantQueue* pQueue);
+
   inline void InitFundamentalRecord();
 
   int m_iError;
@@ -108,6 +108,9 @@ public:
   CTickDataMap();
 
   ~CTickDataMap();
+
+  COrdersMap*	m_pCOrdersMap;  
+  void InitQueue(CQuantQueue* pQueue);
   uint64_t FillMemoryMappedFile();
   STickDataStat GetTickDataStat();
   

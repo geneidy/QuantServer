@@ -1,6 +1,5 @@
 #include "TickDataMap.h"
 
-
 #define SIZE_OF_ORDERS_FILE_NAME  71
 //////////////////////////////////////////////////////////////////////////////////
 CTickDataMap::CTickDataMap()
@@ -14,7 +13,7 @@ CTickDataMap::CTickDataMap()
     m_pcUtil = new CUtil();
 
     if (!m_pcUtil) {
-        Logger::instance().log("Open File Mapping Error", Logger::Error);
+        Logger::instance().log("Error Initializing CUtil", Logger::Error);
         m_iError = 100;
     }
 
@@ -64,7 +63,13 @@ CTickDataMap::CTickDataMap()
             }
             m_pCOrdersMap = NULL;
             m_pCOrdersMap = COrdersMap::instance();
-
+	    if (m_pCOrdersMap){
+	      Logger::instance().log("Order Map File instance in Tick Data", Logger::Info);
+	    }
+	    else{
+	       m_iError = 200;  // enum later
+	       Logger::instance().log("Error Getting Order Map File instance in Tick Data", Logger::Error);
+	    }
             m_request.tv_sec = 0;
             m_request.tv_nsec = 100000000;   // 1/10 of a second
         }
@@ -76,11 +81,15 @@ void CTickDataMap::InitQueue(CQuantQueue* pQueue)
     m_pQuantQueue = pQueue;
     // Init the Queue
     m_pQuantQueue->InitReader(POSITION_TOP);
-    Logger::instance().log("Queue initialized in Orders Data Map file", Logger::Info);
+    Logger::instance().log("Queue initialized in Tick Data Map file", Logger::Info);
 }
 //////////////////////////////////////////////////////////////////////////////////
 CTickDataMap::~CTickDataMap()
 {
+    if (m_pCOrdersMap)
+      m_pCOrdersMap->iNInstance--;
+  
+  
     Logger::instance().log("Start...UnMapping TickDataMap file", Logger::Info);
     munmap(m_addr, m_sb.st_size);
     Logger::instance().log("End...UnMapping TickDataMap file", Logger::Info);
@@ -98,6 +107,7 @@ CTickDataMap::~CTickDataMap()
         delete m_pcUtil;
         m_pcUtil = NULL;
     }
+
 }
 //////////////////////////////////////////////////////////////////////////////////
 int CTickDataMap::GetError()
@@ -167,7 +177,7 @@ uint64_t CTickDataMap::FillMemoryMappedFile()
     memset(&m_pCommonTrade[m_ui64NumOfTickData], '\0', m_iSizeOfCommonOrderRecord);
     switch (m_iMessage) {
     case 'E':  // Executed Order  // Tick Data
-        m_pCommonOrder     = m_pCOrdersMap->GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+        m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
         if (!m_pCommonOrder)
             break;
 
@@ -224,7 +234,7 @@ uint64_t CTickDataMap::FillMemoryMappedFile()
         break;
 
     case 'c': // Executed with price   // Tick Data
-        m_pCommonOrder     = m_pCOrdersMap->GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+        m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
         if (!m_pCommonOrder)
             break;
 
@@ -280,7 +290,7 @@ uint64_t CTickDataMap::FillMemoryMappedFile()
         break;
 
     case 'P' :  // TRADE_NON_CROSS_MESSAGE
-        m_pCommonOrder     = m_pCOrdersMap->GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+        m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
         if (!m_pCommonOrder)
             break;
 

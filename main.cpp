@@ -14,48 +14,48 @@
 #include "NQTVDlg.h"
 #include "NQTV.h"
 
-#include <QApplication>
-
-#include "GUI/QtxGui.h"
-
 static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
 //static pthread_mutex_t mtxTick 	= PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_cond_t condMap 	= PTHREAD_COND_INITIALIZER;
 static bool bReady = false;
 
+//////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
     using namespace std;
 
+//    theApp.iStatus = STOPPED;
+
     Logger::instance().log("Starting Server", Logger::Debug);
-//    cout << "Hit 'S' or 's' to stop" << endl;
-//    QApplication a(argc, argv);
-//    QtxGui app;
-//    Logger::instance().log("qt app instaniated", Logger::Debug);
-//    app.show();
-    GUI();
+/*    GUI();
     Logger::instance().log("GUI() called", Logger::Debug);
 
+    while (theApp.iStatus == STOPPED) {
+        if (theApp.iStatus == RUNNING) {
+            Logger::instance().log("Received RUNNING Signal", Logger::Debug);
+            break;
+        }
+        sleep(1);
+    }
+*/
 // open Settings file to fill the Settings structure
 //    cout << "Calling Settings Begin" << endl;
     LoadSettings();
+    theApp.iStatus = RUNNING;  // ::TODO throw away after the GUI
 //    cout << "Calling Settings End" << endl;
     int iRet = 0;
     g_SThreadData.iTotalThreads = 0;
-
     pthread_mutex_lock(&mtxQueue);
 
     for (uint ii=0;  ii < NUMBER_OF_ROLES; ii++ )
     {
-        if (!theApp.SSettings.iarrRole[ii]){ // option is turned off.... = 0 or bool false
-	  arrThreadInfo[ii].eState = TS_INACTIVE;
+        if (!theApp.SSettings.iarrRole[ii]) { // option is turned off.... = 0 or bool false
+            arrThreadInfo[ii].eState = TS_INACTIVE;
             continue;
-	}
-
+        }
         g_SThreadData.idx = ii;
 //        g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
-
         arrThreadInfo[ii].iThread_num = ii ;
         iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &g_SThreadData);
         g_SThreadData.iTotalThreads++;
@@ -63,64 +63,50 @@ int main(int argc, char **argv)
         if(iRet)
         {
             Logger::instance().log("Error pthread_create", Logger::Error);
-//            fprintf(stderr,"Error - pthread_create() return code: %d\n", iRet);
             exit(EXIT_FAILURE);
         }
         while (!bReady)
             pthread_cond_wait(&condMap, &mtxQueue); // Wait for the Queue to init first
     };
     pthread_mutex_unlock(&mtxQueue);
-/*///////////////////////////////////////////////////////////////////////////////////////
-    char cResp = 'A';
-    while ( cResp != 'q')
-    {
-        std::cin >> cResp;
-        if ((cResp == 's') || (cResp == 'S'))
-        {
-            theApp.g_bReceiving = false;
-            theApp.iStatus = STOPPED;
-            break;
-        }
-        if ((cResp == 'p') || (cResp == 'P'))
-        {
-            theApp.g_bReceiving = PAUSSED;
-            theApp.iStatus 	    = PAUSSED;
-            continue;
-        }
-    }; // while ( cResp != 'q')
-*//////////////////////////////////////////////////////////////////////////////////////////
-    int JJ = 0;
-    int kk = 0;
-    string strExitMessage;
+
+int jj = 0;
+
     while (theApp.iStatus != STOPPED) {
+      jj++;
+      sleep(3);
+      if (jj > 100)  // 300 seconds
+	theApp.iStatus = STOPPED;
+    };
+    
+    int iJoined = 0;
+
+    string strExitMessage;
+    while (iJoined < g_SThreadData.iTotalThreads) {
         // keep on checking for all terminated threads every three seconds
+	  
         for (uint ii = 0;  ii < NUMBER_OF_ROLES; ii++ ) {
-            if (arrThreadInfo[ii].eState == TS_INACTIVE) // option is turned off.... = 0 or bool false
-                continue;
-            if (arrThreadInfo[ii].eState == TS_JOINED)
+            if ((arrThreadInfo[ii].eState == TS_INACTIVE)|| (arrThreadInfo[ii].eState == TS_JOINED)|| (arrThreadInfo[ii].eState == TS_ALIVE)|| (arrThreadInfo[ii].eState == TS_STARTED))
                 continue;
             if (arrThreadInfo[ii].eState == TS_TERMINATED) {
-                strExitMessage.clear();
-                strExitMessage = ThreadMessage[ii];
-                strExitMessage += " Joined";
                 pthread_join(arrThreadInfo[ii].thread_id, NULL);
                 arrThreadInfo[ii].eState = TS_JOINED;
+
+		strExitMessage.clear();
+                strExitMessage = ThreadMessage[ii];
+                strExitMessage += " Joined";
                 Logger::instance().log(strExitMessage, Logger::Debug);
-		JJ++;
-		if (JJ >= (g_SThreadData.iTotalThreads - 1))
-		    theApp.iStatus = TERMINATE_QUEUE;
-	    }
+		iJoined++;
+            }
         } // for loop
-        if (JJ >= g_SThreadData.iTotalThreads)  // all terminated.....waiting to do away with all this mess when the GUI is up!!!!!
-	  break;
-	sleep(5);
+        sleep(3);
     } // while loop
     pthread_cond_destroy(&condMap);
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
     Logger::instance().log("Normal Termination", Logger::Debug);
     return 0/*a.exec()*/;
 }
-////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
 {
     THREAD_DATA SThreadData;
@@ -136,18 +122,18 @@ void*  MainQueue(void* pArg)
 
     if (!pCQuantQueue->bConstructed) {  // No need to continue
         Logger::instance().log("Error Constructing Queue...Aborting", Logger::Error);
-	    delete pCQuantQueue;
-	    pCQuantQueue = NULL;
-	    TermThreadLog(idx);
-	    exit(EXIT_FAILURE);
+        delete pCQuantQueue;
+        pCQuantQueue = NULL;
+        TermThreadLog(idx);
+        exit(EXIT_FAILURE);
     }
-    
+
     g_SThreadData.g_pCQuantQueue = pCQuantQueue;
 
     bReady = true;
     pthread_cond_signal(&condMap);  // so Build book to check on pCOrdersMap and decide to return
 
-    while (theApp.iStatus != TERMINATE_QUEUE) { //  the last thread to terminate...check with the for loop within the while loop in main
+    while (theApp.iStatus == RUNNING) { //  the last thread to terminate...check with the for loop within the while loop in main
         sleep(3);
     }
 
@@ -155,9 +141,9 @@ void*  MainQueue(void* pArg)
     pCQuantQueue = NULL;
     TermThreadLog(idx);
 
-    return  NULL;  
+    return  NULL;
 }
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 void* OrdersMap(void* pArg)  // only if buid book is checked
 {
     THREAD_DATA SThreadData;
@@ -174,7 +160,7 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 
     if (!pCOrdersMap) {
         Logger::instance().log("Error Creating Orders Map Object", Logger::Error);
-	TermThreadLog(idx);
+        TermThreadLog(idx);
         return NULL;
     }
 
@@ -182,26 +168,70 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
         delete pCOrdersMap;
         pCOrdersMap = NULL;
         Logger::instance().log("Error in Constructing Orders Map", Logger::Error);
-	TermThreadLog(idx);
+        TermThreadLog(idx);
         return NULL;  //  can't build a book w/o Memory Mappings
     }
 
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCOrdersMap->InitQueue(pQueue);
     while (theApp.iStatus != STOPPED) {
-      if (pCOrdersMap->GetError() > 0)
-	break;
+        if (pCOrdersMap->GetError() > 0)
+            break;
         pCOrdersMap->FillMemoryMappedFile();
     };
 
+    pCOrdersMap->iNInstance--;
+    Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
+    while (pCOrdersMap->iNInstance > 0) {  
+      sleep(3);    //wait for last instance
+    }
+    Logger::instance().log("Deleting instance of the Orders Map", Logger::Info);
     delete pCOrdersMap;
     pCOrdersMap = NULL;
+    
+    Logger::instance().log("Orders Map destructed", Logger::Info);
 
     TermThreadLog(idx);
 
     return pArg;
 }
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+void* TickDataMap(void* pArg)
+{
+
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;    
+
+    InitThreadLog(idx);
+
+    pCTickDataMap = new CTickDataMap;
+    
+    if (!pCTickDataMap){
+	arrThreadInfo[idx].eState = TS_TERMINATED;
+	return NULL;
+    }
+    
+    arrThreadInfo[idx].eState = TS_ALIVE;
+    pCTickDataMap->InitQueue(pQueue);
+    
+    while (theApp.iStatus != STOPPED) {
+        if (pCTickDataMap->GetError() > 0)
+            break;
+        pCTickDataMap->FillMemoryMappedFile();
+    };
+    
+    delete pCTickDataMap;
+    pCTickDataMap = NULL;
+
+    TermThreadLog(idx);
+
+    return pArg;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
 void* BuildBook(void* pArg)
 {
 
@@ -233,8 +263,8 @@ void* BuildBook(void* pArg)
 //  pthread_mutex_unlock(&mtxMap);
 
     if (pCBuildBook->m_iError) {
-	delete pCBuildBook;
-	pCBuildBook = NULL;
+        delete pCBuildBook;
+        pCBuildBook = NULL;
         arrThreadInfo[idx].eState = TS_TERMINATED;
         return NULL;
     }
@@ -250,34 +280,7 @@ void* BuildBook(void* pArg)
 
     return pArg;
 }
-///////////////////////////////////////////////////////////////
-void* TickDataMap(void* pArg)
-{
-
-    THREAD_DATA SThreadData;
-    CQuantQueue* pQueue = NULL;
-
-    SThreadData =  *((THREAD_DATA*)pArg) ;
-    int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
-
-
-    InitThreadLog(idx);
-
-    pCTickDataMap = new CTickDataMap;
-
-    while (theApp.iStatus != STOPPED) {
-        pCTickDataMap->FillMemoryMappedFile();
-    };
-
-    delete pCTickDataMap;
-    pCTickDataMap = NULL;
-
-    TermThreadLog(idx);
-
-    return pArg;
-}
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 void* ReceiveFeed(void* pArg)
 {
     THREAD_DATA SThreadData;
@@ -296,7 +299,7 @@ void* ReceiveFeed(void* pArg)
 
     return pArg;
 }
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 void* ParseFeed(void* pArg)
 {
     THREAD_DATA SThreadData;
@@ -312,7 +315,7 @@ void* ParseFeed(void* pArg)
     TermThreadLog(idx);
     return pArg;
 }
-///////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 void* SaveToDB(void* pArg)
 {
 
@@ -395,7 +398,6 @@ void* NasdTestFile(void* pArg)
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
     }
-    theApp.iStatus = STOPPED;  // :: TODO throw away code after the Queue
 
     TermThreadLog(idx);
 
@@ -437,7 +439,7 @@ void* SaveToDisk(void* pArg)
     pCSaveToDisk = new  CSaveToDisk();
     // check for class errors then log and exit
     // Calls to functions and threads go here
-    while(theApp.g_iFeedStatus == FEED_01_RUNNING) { // ::TODO  check from UI
+    while(theApp.iStatus != STOPPED) { // ::TODO  check from UI
         pCSaveToDisk->WriteFeedToFile();
     }
 
@@ -451,14 +453,12 @@ void* SaveToDisk(void* pArg)
 ///////////////////////////////////////////////////////////////
 void InitThreadLog(int idx)
 {
-
     string  strLogMessage = ThreadMessage[idx];
-    
-    strLogMessage += " Started";
+
+    strLogMessage += " Starting";
 
     Logger::instance().log(strLogMessage, Logger::Info);
-    arrThreadInfo[idx].eState = TS_STARTING;
-
+    arrThreadInfo[idx].eState = TS_STARTED;
 }
 ///////////////////////////////////////////////////////////////
 void TermThreadLog(int idx)
@@ -468,12 +468,10 @@ void TermThreadLog(int idx)
     strLogMessage += " Finished";
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_TERMINATED;
-
 }
 ///////////////////////////////////////////////////////////////
 int LoadSettings()
 {
-
     SETTINGS  SSettings;
 
     Logger::instance().log("Loading Settings", Logger::Info);
@@ -498,7 +496,7 @@ int LoadSettings()
     SSettings.iarrRole[2] = 0;   		//  1= Parse
     SSettings.iarrRole[3] = 1;   		//  2= Orders Map
     SSettings.iarrRole[4] = 0;   		//  3= Build Book
-    SSettings.iarrRole[5] = 0;   		//  4= Tick Data
+    SSettings.iarrRole[5] = 1;   		//  4= Tick Data
     SSettings.iarrRole[6] = 0;   		//  5= Save to DB
     SSettings.iarrRole[7] = 0;   		//  6= Play back
 
@@ -521,8 +519,6 @@ int LoadSettings()
     strcpy(SSettings.strInclude, "AAPL");		//	char  strInclude[5];  // include from another range that was excluded from another partition
     strcpy(SSettings.strExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
 
-
-
     strcpy(SSettings.szUserName, "UserName");   		//  char		szUserName[SIZE_OF_NAME];
     strcpy(SSettings.szPassword, "Password");	// char		szPassword[SIZE_OF_PASSWORD];
 
@@ -540,7 +536,7 @@ int LoadSettings()
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
     SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
-    //"/home/gen/itch_data/08022014.NASDAQ_ITCH50";  
+    //"/home/gen/itch_data/08022014.NASDAQ_ITCH50";
     SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
 
 
@@ -603,20 +599,19 @@ static void *NQTVFunction(void* ptr)
           delete (pCNQTVDlg);
      */
     return NULL;
-
 }
 ////////////////////////////////////////////////////////////////////////////////////////
-int GUI()
-{
-/* FOR REFERENCE: http://stackoverflow.com/questions/1519885/defining-own-main-functions-arguments-argc-and-argv?rq=1 */
-    char arg0[] = "QuantServer";
-    //char arg1[] = "arg";
-    //char arg2[] = "another arg";
-    char* argv[] = { &arg0[0]/*, &arg1[0], &arg2[0]*/, NULL };
-    int argc = (int)(sizeof(argv) / sizeof(argv[0])) - 1;
-    
-    QApplication a(argc, &argv[0]);
-    QtxGui app;
-    app.show();
-    return a.exec();
-}
+// int GUI()
+// {
+//     /* FOR REFERENCE: http://stackoverflow.com/questions/1519885/defining-own-main-functions-arguments-argc-and-argv?rq=1 */
+//     char arg0[] = "QuantServer";
+//     //char arg1[] = "arg";
+//     //char arg2[] = "another arg";
+//     char* argv[] = { &arg0[0]/*, &arg1[0], &arg2[0]*/, NULL };
+//     int argc = (int)(sizeof(argv) / sizeof(argv[0])) - 1;
+// 
+//     QApplication a(argc, &argv[0]);
+//     QtxGui app;
+//     app.show();
+//     return a.exec();
+// }

@@ -19,11 +19,12 @@
 
 int SaveSettings();
 int LoadSettings();
-int GUI();
+// int GUI();
 
 enum tstate {
   TS_INACTIVE,
   TS_STARTING,
+  TS_STARTED,
   TS_ALIVE,
   TS_TERMINATED,
   TS_JOINED

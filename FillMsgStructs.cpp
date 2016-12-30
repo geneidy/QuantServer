@@ -178,11 +178,11 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
     };
     theApp.g_arrTotalMessages[22]++;
     
-    // :: TODO Throw away code
+/*    // :: TODO Throw away code
     if (i64Counter++ > 217000) { //  Addd messages start at 217090
 	nanosleep(&m_request, NULL);  // sleep a 1/10 of a second
     }
-
+*/
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,6 @@ int  CFillMsgStructs::SystemEvent(UINT8* uiMsg)
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'S');
-
 
     return 0;
 }

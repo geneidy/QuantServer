@@ -5,24 +5,26 @@
 COrdersMap* COrdersMap::pInstance = nullptr;
 mutex 	COrdersMap::MapMutex;
 
+static pthread_mutex_t mtxFindMap = PTHREAD_MUTEX_INITIALIZER;
+
+uint COrdersMap::iNInstance = 0;
 uint64_t   COrdersMap::m_ui64NumOfOrders = 0;
+
+__thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pTempCommonOrder = NULL;
+
+OrdersUnOrderedMap COrdersMap::m_SymbolMap;
 
 ////////////////////////////////////////////////////////////////////
 COrdersMap* COrdersMap::instance()
 {
-    static Cleanup cleanup;
 
     lock_guard<mutex> guard(COrdersMap::MapMutex);
-    if (pInstance == nullptr)
+    if (pInstance == nullptr){
         pInstance = new COrdersMap();
+    }
+    iNInstance++;
+    
     return pInstance;
-}
-////////////////////////////////////////////////////////////////////
-COrdersMap::Cleanup::~Cleanup()
-{
-    lock_guard<mutex> guard(COrdersMap::MapMutex);
-    delete COrdersMap::pInstance;
-    COrdersMap::pInstance = nullptr;
 }
 //////////////////////////////////////////////////////////////////////////////////
 COrdersMap::COrdersMap()
@@ -43,6 +45,8 @@ COrdersMap::COrdersMap()
     }
      *
      */
+    m_SymbolMap.clear();
+    
     string strOrdersFile;
     strOrdersFile.empty();
 
@@ -79,11 +83,14 @@ COrdersMap::COrdersMap()
                     // Set error code and exit
                 }
                 m_pCommonOrder = (COMMON_ORDER_MESSAGE*) m_addr;  //  cast in COMMON_ORDER_MESSAGE...now you have an array in memory of common orders
+                m_pReturnCommonOrder 	= m_pCommonOrder;
+		m_pRefCommonOrder 	= m_pCommonOrder;
             }
             m_request.tv_sec = 0;
             m_request.tv_nsec = 100000000;   // 1/10 of a second
         }
     } //   if (!m_iError) {
+    
 }
 //////////////////////////////////////////////////////////////////////////////////
 void COrdersMap::InitQueue(CQuantQueue* pQueue)
@@ -105,6 +112,8 @@ COrdersMap::~COrdersMap()
     Logger::instance().log("End...Clearing Orders Map", Logger::Info);
 
     close(m_fd);
+    
+    pthread_mutex_destroy(&mtxFindMap);
 
     if (m_Util) {
         delete m_Util;
@@ -155,14 +164,40 @@ SOrdersDataStat COrdersMap::GetOrdersDataStat() // Total Trade records inserted
     return m_SOrdersDataStat;
 }
 //////////////////////////////////////////////////////////////////////////////////
+COMMON_ORDER_MESSAGE* COrdersMap::GetOrder(uint64_t uiOrderNumber)
+{
+    pthread_mutex_lock(&mtxFindMap);
+    m_itRefAuxSymbolMap =  m_SymbolMap.find(uiOrderNumber);
+
+    if (m_itRefAuxSymbolMap == m_SymbolMap.end()){
+      pthread_mutex_unlock(&mtxFindMap); 
+      return NULL;
+    }
+    else{
+	uint64_t uiRecordNumber = 0;
+	uiRecordNumber = m_itRefAuxSymbolMap->second;
+	pthread_mutex_unlock(&mtxFindMap); 
+	if (m_ui64NumOfOrders > uiRecordNumber)
+	  return &m_pReturnCommonOrder[m_itRefAuxSymbolMap->second];
+	else
+	  return NULL;
+
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////
 COMMON_ORDER_MESSAGE* COrdersMap::GetMappedOrder(uint64_t uiOrderRefNumber)
 {
-    m_itSymbolMap =  m_SymbolMap.find(uiOrderRefNumber);
+    pthread_mutex_lock(&mtxFindMap);
+    m_itAuxSymbolMap =  m_SymbolMap.find(uiOrderRefNumber);
 
-    if (m_itSymbolMap == m_SymbolMap.end())
-        return NULL;
-    else
-        return &m_pCommonOrder[m_itSymbolMap->second];
+    if (m_itAuxSymbolMap == m_SymbolMap.end()){
+      pthread_mutex_unlock(&mtxFindMap); 
+      return NULL;
+    }
+    else{
+      pthread_mutex_unlock(&mtxFindMap); 
+      return &m_pReturnCommonOrder[m_itAuxSymbolMap->second];
+    }
 }
 //////////////////////////////////////////////////////////////////////////////////
 uint64_t COrdersMap::FillMemoryMappedFile()
@@ -199,10 +234,15 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderNoMPID.szStock)) // check for Range
             return 0;
-
         //     m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderNoMPID.TrackingNumber;
-
-        RetPair = m_SymbolMap.insert(std::pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
+	pthread_mutex_lock(&mtxFindMap);
+	RetPair = m_SymbolMap.insert(std::pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
+	pthread_mutex_unlock(&mtxFindMap); 
+	if (!RetPair.second) {
+	  Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Add Order No MPID) ", Logger::Error);
+	  break;
+	}
+	
         m_ui64NumOfOrders++;
 
         break;
@@ -219,12 +259,14 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         //       m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderMPID.TrackingNumber;
         if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderMPID.szStock)) // check for Range
             return 0;
-
-
+	pthread_mutex_lock(&mtxFindMap);
         RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
-
-        m_ui64NumOfOrders++;
-
+	pthread_mutex_unlock(&mtxFindMap); 
+	if (!RetPair.second) {
+	  Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Add Order With MPID) ", Logger::Error);
+	  break;
+	}
+	m_ui64NumOfOrders++;
         break;
 
     case 'U':   // Replace Order ... Delete OldOrderRefNumber  and Add NewOrderRefNumber >>>Copy MPID if exist
@@ -238,11 +280,9 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
 
-
         m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
         m_pCommonOrder[m_ui64NumOfOrders].iPrevShares          =   m_pTempCommonOrder->iPrevShares;
         m_pCommonOrder[m_ui64NumOfOrders].dPrevPrice	       =   m_pTempCommonOrder->dPrevPrice;
-
 
         // Add the new one
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderReplace.cMessageType;
@@ -253,19 +293,27 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderReplace.iTimeStamp;
 //        m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderReplace.TrackingNumber;
         // find the old one
-        m_itSymbolMap = m_SymbolMap.find(pItchMessageUnion->OrderReplace.iOldOrderRefNumber);
+        pthread_mutex_lock(&mtxFindMap);
+	m_itSymbolMap = m_SymbolMap.find(pItchMessageUnion->OrderReplace.iOldOrderRefNumber);
         if(m_itSymbolMap ==  m_SymbolMap.end()) {
             // Log Error
+	    pthread_mutex_unlock(&mtxFindMap); 
             break;
         }
+
         // delete the old one
         m_SymbolMap.erase(m_itSymbolMap);
         // Insert new 0rder in Map
         RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
-        // ::TODO log error if any
-
+	pthread_mutex_unlock(&mtxFindMap); 
+	
+	if (!RetPair.second) {
+	  Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Replace Order) ", Logger::Error);
+	  break;
+	}
+	
+	// ::TODO log error if any
         m_ui64NumOfOrders++;
-
         break;
 
     case 'E':  // Executed Order  // Tick Data  /// Where do I get the execution price from
@@ -362,16 +410,11 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderDelete.iTimeStamp;
 //        m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderDelete.TrackingNumber;
         m_ui64NumOfOrders++;
-
         break;
 
     default:
         break;
     };
-
-    if (!RetPair.second) {
-        Logger::instance().log("Error inserting in 'Map' in Orders Mapped File ", Logger::Error);
-    }
 
     return m_ui64NumOfOrders;
 }
