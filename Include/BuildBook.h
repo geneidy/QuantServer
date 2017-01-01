@@ -87,7 +87,7 @@ struct classcomp {
 
 */
 
-typedef unordered_map<char* , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
+typedef unordered_map<const char* , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
 
 
 class CBuildBook
@@ -163,7 +163,7 @@ public:
   
   uint32_t	FlushBook(char* szSymbol);
   uint64_t	FlushAllBooks();
-  int 		ListBook(char *szSymbol, uint32_t uiMaxLevels);
+  int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
  
   
   SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);

@@ -22,11 +22,17 @@ CBuildBook::CBuildBook()
     m_uiNextOrder = 0;
     m_request.tv_nsec = 100000000;   // 1/10 of a second
     m_iSizeOfBook = sizeof( SBOOK_LEVELS);
-    
- }
+
+}
 ////////////////////////////////////////////////////
 CBuildBook::~CBuildBook()
 {
+
+    ListBook("MSFT", 10);
+
+    if (m_pCOrdersMap)
+        m_pCOrdersMap->iNInstance--;
+
     Logger::instance().log("Destructing....Started Flushing All Books", Logger::Info);
 
     FlushAllBooks();
@@ -35,14 +41,14 @@ CBuildBook::~CBuildBook()
     Logger::instance().log("Destructing...Started Clearing Book Map", Logger::Info);
 
     m_BookMap.clear();
-
     Logger::instance().log("Destructing...Ended Clearing Book Map", Logger::Info);
+
 }
 ////////////////////////////////////////////////////
 int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing...Called from a while loop in Main.cpp
 {
 
-    m_pCommonOrder = m_pCOrdersMap->GetOrder(m_uiNextOrder++); // start with Order Zero
+    m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_uiNextOrder++); // start with Order Zero
     if (m_pCommonOrder == NULL) {
         m_uiNextOrder--;
         nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
@@ -55,7 +61,7 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     switch (m_iMessage) {
     case 'A': // Add orders No MPID
     case 'F': // Add orders
-//        ProcessAdd(m_iMessage);
+        ProcessAdd(m_iMessage);
         break;
 
     case 'E':  // Order executed
@@ -77,11 +83,22 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
 ////////////////////////////////////////////////////
 string CBuildBook::MakeKey()
 {
-    std::ostringstream strstrm;
+    char  strOut[20];
 
-    strstrm << setprecision(4) << m_pCommonOrder->dPrice << "+" << m_pCommonOrder->szMPID;
+    memset(strOut, '\0', 20);
 
-    return strstrm.str();
+//    std::ostringstream strstrm;
+//    strstrm << setprecision(4) << m_pCommonOrder->dPrice << "+" << m_pCommonOrder->szMPID;
+    string strstrm;
+    strstrm.empty();
+
+    strstrm = to_string( m_pCommonOrder->dPrice);
+    strstrm +=  "+";
+    strstrm += m_pCommonOrder->szMPID;
+
+    strncpy(strOut, strstrm.c_str(), 19);  //  for debug only ... throw away code
+
+    return strstrm;
 
 }
 ////////////////////////////////////////////////////
@@ -103,7 +120,7 @@ int CBuildBook::ProcessAdd(int iMessage)
             // search for price level
             m_itPriceLevelMap = m_itBookMap->second.BidPLMap.find(m_strPriceMM);
 
-            if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
+            if ( m_itPriceLevelMap != m_itBookMap->second.BidPLMap.end()) { // Price level found....Update it
                 m_itPriceLevelMap->second.uiQty += m_uiQty;
                 m_itPriceLevelMap->second.uiNumOfOrders++;
                 if (strcmp(m_SBidAsk.szMPID, "NSDQ"))
@@ -134,7 +151,7 @@ int CBuildBook::ProcessAdd(int iMessage)
             // search for price level
             m_itPriceLevelMap = m_itBookMap->second.AskPLMap.find(m_strPriceMM);
 
-            if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
+            if ( m_itPriceLevelMap != m_itBookMap->second.AskPLMap.end()) { // Price level found....Update it
                 m_itPriceLevelMap->second.uiQty += m_uiQty;
                 m_itPriceLevelMap->second.uiNumOfOrders++;
                 if (strcmp(m_SBidAsk.szMPID, "NSDQ"))
@@ -180,9 +197,9 @@ bool CBuildBook::AddPriceLevel(int iSide)
         m_RetPairPriceLevelMap = m_itBookMap->second.AskPLMap.insert(pair<string /*Price+MM */, SBID_ASK >(m_strPriceMM, m_SBidAsk));
 
     //log error if any
-    if (!m_RetPairPriceLevelMap.second){
+    if (!m_RetPairPriceLevelMap.second) {
         Logger::instance().log("Error creating book level", Logger::Error);
-	// 
+        //
     }
     return m_RetPairPriceLevelMap.second;  //  a Bool on operation success or failure
 }
@@ -239,7 +256,7 @@ int CBuildBook::ProcessDelete(int iMessage)
             // search for price level
             m_itPriceLevelMap = m_itBookMap->second.BidPLMap.find(m_strPriceMM);
 
-            if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
+            if ( m_itPriceLevelMap != m_itBookMap->second.BidPLMap.end()) { // Price level found....Update it
                 UpdatePriceLevel('B');
             }
             else { // Price level not found...Log error
@@ -257,7 +274,7 @@ int CBuildBook::ProcessDelete(int iMessage)
             // search for price level
             m_itPriceLevelMap = m_itBookMap->second.AskPLMap.find(m_strPriceMM);
 
-            if ( m_itPriceLevelMap != m_PriceLevelMap.end()) { // Price level found....Update it
+            if ( m_itPriceLevelMap != m_itBookMap->second.AskPLMap.end()) { // Price level found....Update it
                 UpdatePriceLevel('A');
             }
             else { // Price level not found...Log error
@@ -304,7 +321,7 @@ bool CBuildBook::UpdatePriceLevel(int iSide)
     return true;
 }
 ////////////////////////////////////////////////////
-int CBuildBook::ListBook(char *szSymbol , uint32_t uiMaxLevels)
+int CBuildBook::ListBook(const char *szSymbol , uint32_t uiMaxLevels)
 {
 
     BookMap::iterator	itBookMap;

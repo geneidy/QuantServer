@@ -15,7 +15,7 @@
 #include "NQTV.h"
 
 static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
-//static pthread_mutex_t mtxTick 	= PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mtxTick 	= PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_cond_t condMap 	= PTHREAD_COND_INITIALIZER;
 static bool bReady = false;
@@ -101,7 +101,11 @@ int jj = 0;
         } // for loop
         sleep(3);
     } // while loop
+
     pthread_cond_destroy(&condMap);
+    pthread_mutex_destroy(&mtxTick);
+    pthread_mutex_destroy(&mtxQueue);
+    
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
     Logger::instance().log("Normal Termination", Logger::Debug);
     return 0/*a.exec()*/;
@@ -240,17 +244,10 @@ void* BuildBook(void* pArg)
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
-
+    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;    
 
     InitThreadLog(idx);
-    /*    pthread_mutex_lock(&mtxMap);
-        // Start the Memory Mapping First
 
-
-        while (!bReady)
-            pthread_cond_wait(&condMap, &mtxMap);
-    */
     pCBuildBook = NULL;
     pCBuildBook = new CBuildBook();
     if (!pCBuildBook) {
@@ -259,6 +256,7 @@ void* BuildBook(void* pArg)
         arrThreadInfo[idx].eState = TS_TERMINATED;
         return NULL;
     }
+    arrThreadInfo[idx].eState = TS_ALIVE;
 
 //  pthread_mutex_unlock(&mtxMap);
 
@@ -430,7 +428,7 @@ void* SaveToDisk(void* pArg)
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
+ /*   pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
     InitThreadLog(idx);
 
@@ -447,27 +445,31 @@ void* SaveToDisk(void* pArg)
     pCSaveToDisk = NULL;
 
     TermThreadLog(idx);
-
+*/
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
 void InitThreadLog(int idx)
 {
+    pthread_mutex_lock(&mtxTick);
     string  strLogMessage = ThreadMessage[idx];
-
     strLogMessage += " Starting";
 
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_STARTED;
+    pthread_mutex_unlock(&mtxTick);
 }
 ///////////////////////////////////////////////////////////////
 void TermThreadLog(int idx)
 {
+  
+    pthread_mutex_lock(&mtxTick);
     string  strLogMessage = ThreadMessage[idx];
 
     strLogMessage += " Finished";
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_TERMINATED;
+    pthread_mutex_unlock(&mtxTick);    
 }
 ///////////////////////////////////////////////////////////////
 int LoadSettings()
@@ -495,8 +497,8 @@ int LoadSettings()
     SSettings.iarrRole[1] = 0;   		//  0= Receive Feed
     SSettings.iarrRole[2] = 0;   		//  1= Parse
     SSettings.iarrRole[3] = 1;   		//  2= Orders Map
-    SSettings.iarrRole[4] = 0;   		//  3= Build Book
-    SSettings.iarrRole[5] = 1;   		//  4= Tick Data
+    SSettings.iarrRole[4] = 1;   		//  3= Build Book
+    SSettings.iarrRole[5] = 0;   		//  4= Tick Data
     SSettings.iarrRole[6] = 0;   		//  5= Save to DB
     SSettings.iarrRole[7] = 0;   		//  6= Play back
 

@@ -45,7 +45,7 @@ private:
   CQuantQueue*		m_pQuantQueue;
   
   COMMON_ORDER_MESSAGE* m_pCommonOrder;
-  COMMON_ORDER_MESSAGE* m_pReturnCommonOrder;
+  static __thread COMMON_ORDER_MESSAGE* m_pReturnCommonOrder;
   
   COMMON_ORDER_MESSAGE* m_pRefCommonOrder;  
 
@@ -96,6 +96,8 @@ public:
   static uint iNInstance;
   uint64_t FillMemoryMappedFile();
   uint64_t GetNumberOfOrders();
+  
+  COMMON_ORDER_MESSAGE* GetMemoryMappedOrder(uint64_t);
   
   SOrdersDataStat GetOrdersDataStat();
   SOrdersDataStat  m_SOrdersDataStat;

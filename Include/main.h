@@ -72,7 +72,7 @@ void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
 {MainQueue, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
 
 const char *ThreadMessage[NUMBER_OF_ROLES ] = \
- {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Threa",\
+ {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
   "Save To DB Thread", "Play Back Thread", "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
   
 

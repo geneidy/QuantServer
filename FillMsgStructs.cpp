@@ -13,7 +13,8 @@ char strBuff[39];
 //struct _timeb timebuffer;
 
 #define  _SP   0
-
+uint32_t iStopHere = 0;
+uint32_t iPassedHere = 0;
 ////////////////////////////////////////////////////////////////////////////
 CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuantQueue)
 {
@@ -349,6 +350,7 @@ int  CFillMsgStructs::IPOQuotingPeriodUpdate(UINT8* uiMsg)
 
     return 0;
 }
+
 ///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 {
@@ -365,9 +367,18 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
     strcpy(m_IMUSys.AddOrderNoMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
     m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     
-    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "AAPL")){
-	int iStopHere = 0;
+    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "MSFT")){
+	int iStop = 0;
     }
+    
+    if (m_IMUSys.AddOrderNoMPID.iOrderRefNumber == 0){
+	iStopHere++;
+    }
+    else{
+       iPassedHere++;
+    }
+      
+    
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'A');

@@ -9,7 +9,7 @@ static pthread_mutex_t mtxFindMap = PTHREAD_MUTEX_INITIALIZER;
 
 uint COrdersMap::iNInstance = 0;
 uint64_t   COrdersMap::m_ui64NumOfOrders = 0;
-
+__thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pReturnCommonOrder = NULL;
 __thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pTempCommonOrder = NULL;
 
 OrdersUnOrderedMap COrdersMap::m_SymbolMap;
@@ -164,7 +164,17 @@ SOrdersDataStat COrdersMap::GetOrdersDataStat() // Total Trade records inserted
     return m_SOrdersDataStat;
 }
 //////////////////////////////////////////////////////////////////////////////////
-COMMON_ORDER_MESSAGE* COrdersMap::GetOrder(uint64_t uiOrderNumber)
+COMMON_ORDER_MESSAGE* COrdersMap::GetMemoryMappedOrder(uint64_t ui64OrderIndex)
+{
+  
+    if (ui64OrderIndex >= (m_ui64NumOfOrders -1))
+      return NULL;
+   
+    return &m_pRefCommonOrder[ui64OrderIndex];
+  
+}
+//////////////////////////////////////////////////////////////////////////////////
+COMMON_ORDER_MESSAGE* COrdersMap::GetOrder(uint64_t uiOrderNumber) // called from other threads
 {
     pthread_mutex_lock(&mtxFindMap);
     m_itRefAuxSymbolMap =  m_SymbolMap.find(uiOrderNumber);
@@ -185,7 +195,7 @@ COMMON_ORDER_MESSAGE* COrdersMap::GetOrder(uint64_t uiOrderNumber)
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
-COMMON_ORDER_MESSAGE* COrdersMap::GetMappedOrder(uint64_t uiOrderRefNumber)
+COMMON_ORDER_MESSAGE* COrdersMap::GetMappedOrder(uint64_t uiOrderRefNumber)  // called internally
 {
     pthread_mutex_lock(&mtxFindMap);
     m_itAuxSymbolMap =  m_SymbolMap.find(uiOrderRefNumber);
@@ -219,7 +229,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
     }
 
     RetPair.second = true;  // not all the switch statements cases do an insert....
-//   memset(&m_pCommonOrder[m_ui64NumOfOrders], '\0', m_uiSizeOfCommonOrderRecord);
+    memset(&m_pCommonOrder[m_ui64NumOfOrders], '\0', m_uiSizeOfCommonOrderRecord);
     switch (m_iMessage) {
     case 'A':  // Add Order NO MPID
         m_pCommonOrder[m_ui64NumOfOrders].cBuySell 		= pItchMessageUnion->AddOrderNoMPID.cBuySell;
@@ -236,13 +246,12 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             return 0;
         //     m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderNoMPID.TrackingNumber;
 	pthread_mutex_lock(&mtxFindMap);
-	RetPair = m_SymbolMap.insert(std::pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
+	RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
 	pthread_mutex_unlock(&mtxFindMap); 
 	if (!RetPair.second) {
 	  Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Add Order No MPID) ", Logger::Error);
 	  break;
 	}
-	
         m_ui64NumOfOrders++;
 
         break;
@@ -259,6 +268,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         //       m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderMPID.TrackingNumber;
         if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderMPID.szStock)) // check for Range
             return 0;
+	
 	pthread_mutex_lock(&mtxFindMap);
         RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
 	pthread_mutex_unlock(&mtxFindMap); 
@@ -326,6 +336,8 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             return 0;
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
+	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
+	
         m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecuted.cMessageType;
@@ -349,6 +361,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             return 0;
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
+	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
         m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
