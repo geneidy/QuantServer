@@ -75,7 +75,7 @@ int jj = 0;
     while (theApp.iStatus != STOPPED) {
       jj++;
       sleep(3);
-      if (jj > 100)  // 300 seconds
+      if (jj > 20)  // 300 seconds
 	theApp.iStatus = STOPPED;
     };
     

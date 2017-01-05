@@ -15,6 +15,38 @@ typedef struct {
 } NLEVELS;
 
 
+typedef struct // Moving averages
+{
+  double	dAvg3;		// three day moving average
+  double	dAvg5;		// five day moving average
+  double	dAvg9;		// nine day moving average
+  double	dAvg11;		// eleven day moving average
+  double	dAvg13;		// thirteen day moving average
+}SMOVING_AVERAGE;
+/*
+typedef struct SBidAsk
+{
+  char		szMPID;
+  double	dPrice;
+  unsigned 	uiQty;
+  unsigned 	uiNumOfOrders;
+  SLEVELSTAT  	SLevelStat;   // Stats per Level
+  SBidAsk* 	pNextBidAsk;		// for the linked list
+}SBID_ASK;
+*/
+
+/*
+typedef struct _BookLevels  // Per Symbol
+{
+//  char 		szSymbol[5];
+  SBID_ASK*	pTopBid;
+  SBID_ASK*	pTopAsk;
+
+  uint16_t	m_iBidLevels;
+  uint16_t	m_iAskLevels;
+}SBOOK_LEVELS;
+*/
+
 typedef struct 
 {
   uint32_t 	uiAttribAdd;
@@ -25,41 +57,38 @@ typedef struct
   uint32_t 	uiExecuted; 
 }SLEVELSTAT;  // consider adding per Second stats in the future
 
-
-typedef struct // Moving averages
-{
-  double	dAvg3;		// three day moving average
-  double	dAvg5;		// five day moving average
-  double	dAvg9;		// nine day moving average
-  double	dAvg11;		// eleven day moving average
-  double	dAvg13;		// thirteen day moving average
-}SMOVING_AVERAGE;
-
 typedef struct SBidAsk
 {
   char		szMPID[5];
   double	dPrice;
   unsigned 	uiQty;
   unsigned 	uiNumOfOrders;
-  //SLEVELSTAT  	SLevelStat;   // Stats per Level
-  SBidAsk* 	pNextBidAsk;		// for the linked list
+  SLEVELSTAT  	SLevelStat;   // Stats per Level
 }SBID_ASK;
+
+typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
 
 typedef struct _BookLevels  // Per Symbol
 {
 //  char 		szSymbol[5];
-  SBID_ASK*	pTopBid;
-  SBID_ASK*	pTopAsk;
-
-  uint16_t	m_iBidLevels;
-  uint16_t	m_iAskLevels;
+  PriceLevelMap BidPLMap;  // Bid Price Level Map
+  PriceLevelMap AskPLMap;  // Ask Price Level Map
+  uint16_t	m_iBidLevels;  // Stats
+  uint16_t	m_iAskLevels;  // Stats
 }SBOOK_LEVELS;
 
+/*
+bool fncomp (char lhs, char rhs) {return lhs<rhs;}
 
-// typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
+struct classcomp {
+  bool operator() (const char& lhs, const char& rhs) const
+  {return lhs<rhs;}
+};
 
+*/
 
-typedef unordered_map<string , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
+typedef unordered_map<const char* , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
+
 
 class CBuildBook
 {
@@ -77,8 +106,11 @@ private:   // by default
   BookMap  		m_BookMap;
   BookMap::iterator	m_itBookMap;
   
+  PriceLevelMap 	m_PriceLevelMap;
+  PriceLevelMap::iterator m_itPriceLevelMap;
   
   pair <BookMap::iterator, bool> m_RetPairBookMap;
+  pair <PriceLevelMap::iterator, bool> m_RetPairPriceLevelMap;
   
   double m_dPrice;
   unsigned int m_uiQty;
@@ -123,8 +155,6 @@ private:   // by default
   inline string MakeKey();
   
   void ListBookStats();
-  
-  pair <BookMap::iterator, bool> m_RetPair;
 
 
 public:
@@ -133,21 +163,17 @@ public:
   CBuildBook();
   ~CBuildBook();
   
-  
-  
+  uint32_t	FlushBook(char* szSymbol);
+  uint64_t	FlushAllBooks();
   int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
  
   
   SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);
-  SBOOK_LEVELS	m_pBook;
+  SBOOK_LEVELS	m_pBookLevels;
 
   SBID_ASK*	m_pTopBid;
   SBID_ASK*	m_pTopAsk;
 
   uint16_t	m_iBidLevels;
   uint16_t	m_iAskLevels;
-  
-  NLEVELS  ListBook(char* szSymbol );
-  NLEVELS   FlushBook(char* szSymbol );
-  NLEVELS   FlushAllBooks();
 };
