@@ -28,17 +28,17 @@ int main(int argc, char **argv)
 //    theApp.iStatus = STOPPED;
 
     Logger::instance().log("Starting Server", Logger::Debug);
-/*    GUI();
-    Logger::instance().log("GUI() called", Logger::Debug);
+    /*    GUI();
+        Logger::instance().log("GUI() called", Logger::Debug);
 
-    while (theApp.iStatus == STOPPED) {
-        if (theApp.iStatus == RUNNING) {
-            Logger::instance().log("Received RUNNING Signal", Logger::Debug);
-            break;
+        while (theApp.iStatus == STOPPED) {
+            if (theApp.iStatus == RUNNING) {
+                Logger::instance().log("Received RUNNING Signal", Logger::Debug);
+                break;
+            }
+            sleep(1);
         }
-        sleep(1);
-    }
-*/
+    */
 // open Settings file to fill the Settings structure
 //    cout << "Calling Settings Begin" << endl;
     LoadSettings();
@@ -70,21 +70,21 @@ int main(int argc, char **argv)
     };
     pthread_mutex_unlock(&mtxQueue);
 
-int jj = 0;
+    int jj = 0;
 
     while (theApp.iStatus != STOPPED) {
-      jj++;
-      sleep(3);
-      if (jj > 20)  // 300 seconds
-	theApp.iStatus = STOPPED;
+        jj++;
+        sleep(3);
+        if (jj > 500)  // jj* 3 =  seconds
+            theApp.iStatus = STOPPED;
     };
-    
+
     int iJoined = 0;
 
     string strExitMessage;
     while (iJoined < g_SThreadData.iTotalThreads) {
         // keep on checking for all terminated threads every three seconds
-	  
+
         for (uint ii = 0;  ii < NUMBER_OF_ROLES; ii++ ) {
             if ((arrThreadInfo[ii].eState == TS_INACTIVE)|| (arrThreadInfo[ii].eState == TS_JOINED)|| (arrThreadInfo[ii].eState == TS_ALIVE)|| (arrThreadInfo[ii].eState == TS_STARTED))
                 continue;
@@ -92,11 +92,11 @@ int jj = 0;
                 pthread_join(arrThreadInfo[ii].thread_id, NULL);
                 arrThreadInfo[ii].eState = TS_JOINED;
 
-		strExitMessage.clear();
+                strExitMessage.clear();
                 strExitMessage = ThreadMessage[ii];
                 strExitMessage += " Joined";
                 Logger::instance().log(strExitMessage, Logger::Debug);
-		iJoined++;
+                iJoined++;
             }
         } // for loop
         sleep(3);
@@ -105,7 +105,7 @@ int jj = 0;
     pthread_cond_destroy(&condMap);
     pthread_mutex_destroy(&mtxTick);
     pthread_mutex_destroy(&mtxQueue);
-    
+
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
     Logger::instance().log("Normal Termination", Logger::Debug);
     return 0/*a.exec()*/;
@@ -186,13 +186,13 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 
     pCOrdersMap->iNInstance--;
     Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
-    while (pCOrdersMap->iNInstance > 0) {  
-      sleep(3);    //wait for last instance
+    while (pCOrdersMap->iNInstance > 0) {
+        sleep(3);    //wait for last instance
     }
     Logger::instance().log("Deleting instance of the Orders Map", Logger::Info);
     delete pCOrdersMap;
     pCOrdersMap = NULL;
-    
+
     Logger::instance().log("Orders Map destructed", Logger::Info);
 
     TermThreadLog(idx);
@@ -208,26 +208,26 @@ void* TickDataMap(void* pArg)
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;    
+    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
     InitThreadLog(idx);
 
     pCTickDataMap = new CTickDataMap;
-    
-    if (!pCTickDataMap){
-	arrThreadInfo[idx].eState = TS_TERMINATED;
-	return NULL;
+
+    if (!pCTickDataMap) {
+        arrThreadInfo[idx].eState = TS_TERMINATED;
+        return NULL;
     }
-    
+
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCTickDataMap->InitQueue(pQueue);
-    
+
     while (theApp.iStatus != STOPPED) {
         if (pCTickDataMap->GetError() > 0)
             break;
         pCTickDataMap->FillMemoryMappedFile();
     };
-    
+
     delete pCTickDataMap;
     pCTickDataMap = NULL;
 
@@ -244,7 +244,7 @@ void* BuildBook(void* pArg)
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;    
+    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
     InitThreadLog(idx);
 
@@ -428,24 +428,24 @@ void* SaveToDisk(void* pArg)
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
- /*   pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
+    /*   pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
-    InitThreadLog(idx);
+       InitThreadLog(idx);
 
-    pCSaveToDisk = NULL;
+       pCSaveToDisk = NULL;
 
-    pCSaveToDisk = new  CSaveToDisk();
-    // check for class errors then log and exit
-    // Calls to functions and threads go here
-    while(theApp.iStatus != STOPPED) { // ::TODO  check from UI
-        pCSaveToDisk->WriteFeedToFile();
-    }
+       pCSaveToDisk = new  CSaveToDisk();
+       // check for class errors then log and exit
+       // Calls to functions and threads go here
+       while(theApp.iStatus != STOPPED) { // ::TODO  check from UI
+           pCSaveToDisk->WriteFeedToFile();
+       }
 
-    delete pCSaveToDisk;
-    pCSaveToDisk = NULL;
+       delete pCSaveToDisk;
+       pCSaveToDisk = NULL;
 
-    TermThreadLog(idx);
-*/
+       TermThreadLog(idx);
+    */
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
@@ -462,14 +462,14 @@ void InitThreadLog(int idx)
 ///////////////////////////////////////////////////////////////
 void TermThreadLog(int idx)
 {
-  
+
     pthread_mutex_lock(&mtxTick);
     string  strLogMessage = ThreadMessage[idx];
 
     strLogMessage += " Finished";
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_TERMINATED;
-    pthread_mutex_unlock(&mtxTick);    
+    pthread_mutex_unlock(&mtxTick);
 }
 ///////////////////////////////////////////////////////////////
 int LoadSettings()
@@ -537,7 +537,8 @@ int LoadSettings()
     strcpy(SSettings.szDBUserName, "MySqlUserName");  	//  char		szDBUserName[SIZE_OF_NAME];
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
-    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
+//    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
+    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
     //"/home/gen/itch_data/08022014.NASDAQ_ITCH50";
     SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
 
@@ -611,7 +612,7 @@ static void *NQTVFunction(void* ptr)
 //     //char arg2[] = "another arg";
 //     char* argv[] = { &arg0[0]/*, &arg1[0], &arg2[0]*/, NULL };
 //     int argc = (int)(sizeof(argv) / sizeof(argv[0])) - 1;
-// 
+//
 //     QApplication a(argc, &argv[0]);
 //     QtxGui app;
 //     app.show();

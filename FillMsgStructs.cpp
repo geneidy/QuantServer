@@ -402,9 +402,14 @@ int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
     m_IMUSys.AddOrderMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     strcpy(m_IMUSys.AddOrderMPID.szMPID,  m_pCUtil->GetValueAlpha(uiMsg, 36, 4));
 
-    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "AAPL")){
+    if (!strcmp(m_IMUSys.AddOrderMPID.szStock, "AAPL    ")){
 	int iStopHere = 0;
     }
+    
+    if ((*m_IMUSys.AddOrderMPID.szMPID == '\0x20') || (!m_IMUSys.AddOrderMPID.szMPID)){
+      int iStopHere = 0;
+    }
+      
   
     
     if (m_pQuantQueue)
