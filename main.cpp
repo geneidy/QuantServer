@@ -25,22 +25,10 @@ int main(int argc, char **argv)
 {
     using namespace std;
 
-//    theApp.iStatus = STOPPED;
-
     Logger::instance().log("Starting Server", Logger::Debug);
-    /*    GUI();
-        Logger::instance().log("GUI() called", Logger::Debug);
 
-        while (theApp.iStatus == STOPPED) {
-            if (theApp.iStatus == RUNNING) {
-                Logger::instance().log("Received RUNNING Signal", Logger::Debug);
-                break;
-            }
-            sleep(1);
-        }
-    */
-// open Settings file to fill the Settings structure
-//    cout << "Calling Settings Begin" << endl;
+    // open Settings file to fill the Settings structure
+//  cout << "Calling Settings Begin" << endl;
     LoadSettings();
     theApp.iStatus = RUNNING;  // ::TODO throw away after the GUI
 //    cout << "Calling Settings End" << endl;
@@ -75,7 +63,7 @@ int main(int argc, char **argv)
     while (theApp.iStatus != STOPPED) {
         jj++;
         sleep(3);
-        if (jj > 500)  // jj* 3 =  seconds
+        if (jj > 50)  // jj* 3 =  seconds
             theApp.iStatus = STOPPED;
     };
 
@@ -128,7 +116,9 @@ void*  MainQueue(void* pArg)
         Logger::instance().log("Error Constructing Queue...Aborting", Logger::Error);
         delete pCQuantQueue;
         pCQuantQueue = NULL;
+	pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
+	pthread_mutex_unlock(&mtxTick);
         exit(EXIT_FAILURE);
     }
 
@@ -138,12 +128,14 @@ void*  MainQueue(void* pArg)
     pthread_cond_signal(&condMap);  // so Build book to check on pCOrdersMap and decide to return
 
     while (theApp.iStatus == RUNNING) { //  the last thread to terminate...check with the for loop within the while loop in main
-        sleep(3);
+        sleep(5);
     }
 
     delete pCQuantQueue;
     pCQuantQueue = NULL;
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return  NULL;
 }
@@ -164,7 +156,9 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 
     if (!pCOrdersMap) {
         Logger::instance().log("Error Creating Orders Map Object", Logger::Error);
+	pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
+	pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
@@ -172,7 +166,9 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
         delete pCOrdersMap;
         pCOrdersMap = NULL;
         Logger::instance().log("Error in Constructing Orders Map", Logger::Error);
+	pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
+	pthread_mutex_unlock(&mtxTick);
         return NULL;  //  can't build a book w/o Memory Mappings
     }
 
@@ -194,8 +190,9 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
     pCOrdersMap = NULL;
 
     Logger::instance().log("Orders Map destructed", Logger::Info);
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -230,8 +227,9 @@ void* TickDataMap(void* pArg)
 
     delete pCTickDataMap;
     pCTickDataMap = NULL;
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -270,11 +268,15 @@ void* BuildBook(void* pArg)
     while (theApp.iStatus != STOPPED) {
         pCBuildBook->BuildBookFromMemoryMappedFile();
     }
+    
+    pCBuildBook->ListBook("MSFT    ");
+    
 
     delete pCBuildBook;
     pCBuildBook = NULL;
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -292,8 +294,9 @@ void* ReceiveFeed(void* pArg)
     InitThreadLog(idx);
 
     // Calls to functions and threads go here
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -309,8 +312,9 @@ void* ParseFeed(void* pArg)
 
 
     InitThreadLog(idx);    // Calls to functions and threads go here
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
     return pArg;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -332,7 +336,9 @@ void* SaveToDB(void* pArg)
     // Call the worker thread here and check for !STOPPED
     // The worker thread has to check for the availability of the Memory Mapped Files ....Check here before you continue
     if (pCSaveToDB == NULL) {
+          pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
+	pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
@@ -340,8 +346,9 @@ void* SaveToDB(void* pArg)
 
     delete pCSaveToDB;
     pCSaveToDB = NULL;
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -358,7 +365,9 @@ void* PlayBack(void* pArg)
     InitThreadLog(idx);    //
     // Call Object Methods here
     //
+        pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
@@ -378,14 +387,18 @@ void* NasdTestFile(void* pArg)
 
     if (!pCReceiveITCH) {
         Logger::instance().log("Error Creating ReceiveITCH Object", Logger::Error);
+	pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
+	pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
     if (pCReceiveITCH->GetError() == 100) {
         Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
+	pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
+	pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
@@ -396,8 +409,9 @@ void* NasdTestFile(void* pArg)
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
     }
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -414,8 +428,9 @@ void *Distributor(void* pArg)
 
     InitThreadLog(idx);
     // Calls to functions and threads go here
-
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
@@ -444,7 +459,9 @@ void* SaveToDisk(void* pArg)
        delete pCSaveToDisk;
        pCSaveToDisk = NULL;
 
+       pthread_mutex_lock(&mtxTick);
        TermThreadLog(idx);
+       pthread_mutex_unlock(&mtxTick);
     */
     return pArg;
 }
@@ -463,13 +480,12 @@ void InitThreadLog(int idx)
 void TermThreadLog(int idx)
 {
 
-    pthread_mutex_lock(&mtxTick);
+
     string  strLogMessage = ThreadMessage[idx];
 
     strLogMessage += " Finished";
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_TERMINATED;
-    pthread_mutex_unlock(&mtxTick);
 }
 ///////////////////////////////////////////////////////////////
 int LoadSettings()

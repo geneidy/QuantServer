@@ -263,9 +263,11 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->AddOrderMPID.iOrderRefNumber;
         m_pCommonOrder[m_ui64NumOfOrders].iShares 		= pItchMessageUnion->AddOrderMPID.iShares;
         m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->AddOrderMPID.iTimeStamp;
+	
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, pItchMessageUnion->AddOrderMPID.szMPID);
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, pItchMessageUnion->AddOrderMPID.szStock);
-        //       m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderMPID.TrackingNumber;
+	
+        // m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderMPID.TrackingNumber;
         if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderMPID.szStock)) // check for Range
             return 0;
 	
@@ -289,7 +291,8 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             return 0;
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
-
+	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
+	
         m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
         m_pCommonOrder[m_ui64NumOfOrders].iPrevShares          =   m_pTempCommonOrder->iPrevShares;
         m_pCommonOrder[m_ui64NumOfOrders].dPrevPrice	       =   m_pTempCommonOrder->dPrevPrice;
@@ -373,7 +376,6 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
 //        m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderExecutedWithPrice.TrackingNumber;
         m_ui64NumOfOrders++;
-
         break;
 
     case 'X':  // Cancel Order
@@ -386,8 +388,9 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             return 0;
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
-        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID,  m_pTempCommonOrder->szMPID);
+	
+	m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
         m_pCommonOrder[m_ui64NumOfOrders].dPrice               	=   m_pTempCommonOrder->dPrice;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderCancel.cMessageType;
@@ -397,14 +400,13 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         m_pCommonOrder[m_ui64NumOfOrders].iShares 		= pItchMessageUnion->OrderCancel.iShares;
 
         m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderCancel.iTimeStamp;
-//        m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderCancel.TrackingNumber;
+//	m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderCancel.TrackingNumber;
         m_ui64NumOfOrders++;
 
         break;
 
     case 'D':  // Delete Order
 	m_pTempCommonOrder = NULL;
-	
         m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderDelete.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
@@ -413,9 +415,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             return 0;
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
-        m_pCommonOrder[m_ui64NumOfOrders].iShares 		=   m_pTempCommonOrder->iShares;
-        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID,  m_pTempCommonOrder->szMPID);
+	
+	m_pCommonOrder[m_ui64NumOfOrders].iShares 		=   m_pTempCommonOrder->iShares;
+        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
         m_pCommonOrder[m_ui64NumOfOrders].dPrice               	=   m_pTempCommonOrder->dPrice;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderDelete.cMessageType;

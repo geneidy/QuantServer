@@ -383,7 +383,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'A':
         if (i64Idx_AddOrderNoMPID >= QSIZE_ADD_ORDER_NO_MPID) {
             i64Idx_AddOrderNoMPID = 0;
-            memset(m_AddOrderNoMPID , '\0', sizeof(ADD_ORDER_NO_MPID_MESSAGE )* QSIZE_ADD_ORDER_NO_MPID );
+//            memset(m_AddOrderNoMPID , '\0', sizeof(ADD_ORDER_NO_MPID_MESSAGE )* QSIZE_ADD_ORDER_NO_MPID );
             m_sStat.uiQWrapAddOrderNoMPID++;
         }
         m_AddOrderNoMPID[ i64Idx_AddOrderNoMPID] = pQueueElement->AddOrderNoMPID;
@@ -395,7 +395,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'F':
         if (i64Idx_AddOrderMPID >= QSIZE_ADD_ORDER_MPID) {
             i64Idx_AddOrderMPID = 0;
-            memset(m_AddOrderMPID , '\0', sizeof(ADD_ORDER_MPID_MESSAGE )* QSIZE_ADD_ORDER_MPID );
+//            memset(m_AddOrderMPID , '\0', sizeof(ADD_ORDER_MPID_MESSAGE )* QSIZE_ADD_ORDER_MPID );
             m_sStat.uiQWrapAddOrderMPID++;
         }
         m_AddOrderMPID[ i64Idx_AddOrderMPID] = pQueueElement->AddOrderMPID;

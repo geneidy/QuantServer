@@ -33,7 +33,6 @@ CBuildBook::~CBuildBook()
 
     string  strMsg;
     strMsg.empty();
-    ListBook("MSFT    ");
 
     if (m_pCOrdersMap)
         m_pCOrdersMap->iNInstance--;
@@ -91,10 +90,10 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     case 'c':  	// Order executed  with price
     case 'X':  	// Order Cancel
     case 'D': 	// Order deleted
-        ProcessDelete(m_iMessage);
+//        ProcessDelete(m_iMessage);
         break;
     case 'U':
-        ProcessReplace(m_iMessage);
+//        ProcessReplace(m_iMessage);
         break;
 
     default:
@@ -427,11 +426,31 @@ int CBuildBook::ProcessAdd(int iMessage)
             {
                 if (m_dPrice == lpCurrent->dPrice)     // price match found
                 {
-                    lpCurrent->uiQty += m_uiQty;  // update volume
-                    lpCurrent->uiNumOfOrders++;
-                    bFound = true;
+                    bMMFound = false;
+                    lpMM = lpCurrent;
+                    while ((lpMM) && (lpMM->dPrice == m_dPrice )) {
+                        if (!strcmp(lpMM->szMPID, m_szMPID)) { // MM found
+                            lpMM->uiQty += m_uiQty;  // update volume
+                            lpMM->uiNumOfOrders++;
+                            bMMFound = true;
+                            bFound = true;
+                            break;
+                        }
+                        lpPrevMM = lpMM;
+                        lpMM = lpMM->pNextBidAsk;
+                    }
+                    // MM Not found at this price level...Add a new one
+                    if (!bMMFound) {
+                        lpInsert= AllocateNode(m_dPrice, m_uiQty);
+                        lpPrevMM->pNextBidAsk = lpInsert;
+                        lpInsert->pNextBidAsk = lpMM;
+                        m_pBook.m_iBidLevels++;
+                        bFound = true;
+                        //break;
+                    }
                     break;
-                }
+                } // if price match found
+
                 if (m_dPrice < lpCurrent->dPrice)    // new price level
                 {
                     lpInsert = AllocateNode(m_dPrice, m_uiQty);
