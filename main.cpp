@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     while (theApp.iStatus != STOPPED) {
         jj++;
         sleep(3);
-        if (jj > 50)  // jj* 3 =  seconds
+        if (jj > 250)  // jj* 3 =  seconds
             theApp.iStatus = STOPPED;
     };
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
     Logger::instance().log("Normal Termination", Logger::Debug);
-    return 0/*a.exec()*/;
+    return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
@@ -106,8 +106,10 @@ void*  MainQueue(void* pArg)
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
-
+    pthread_mutex_unlock(&mtxTick);
+    
     pCQuantQueue = NULL;
     pCQuantQueue = CQuantQueue::Instance();
 
@@ -149,7 +151,9 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     pCOrdersMap = NULL;
     pCOrdersMap =  COrdersMap::instance();
@@ -207,8 +211,10 @@ void* TickDataMap(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
-
+    pthread_mutex_unlock(&mtxTick);
+    
     pCTickDataMap = new CTickDataMap;
 
     if (!pCTickDataMap) {
@@ -244,7 +250,9 @@ void* BuildBook(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     pCBuildBook = NULL;
     pCBuildBook = new CBuildBook();
@@ -290,8 +298,9 @@ void* ReceiveFeed(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     // Calls to functions and threads go here
     pthread_mutex_lock(&mtxTick);
@@ -310,8 +319,11 @@ void* ParseFeed(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);    // Calls to functions and threads go here
+    pthread_mutex_unlock(&mtxTick);
+
+    
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -328,7 +340,9 @@ void* SaveToDB(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     pCSaveToDB = NULL;
     pCSaveToDB = new CSaveToDB();
@@ -362,7 +376,10 @@ void* PlayBack(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);    //
+    pthread_mutex_unlock(&mtxTick);
+
     // Call Object Methods here
     //
         pthread_mutex_lock(&mtxTick);
@@ -380,7 +397,9 @@ void* NasdTestFile(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
 
     pCReceiveITCH = NULL;
     pCReceiveITCH = new CReceiveITCH(pQueue);
@@ -426,7 +445,10 @@ void *Distributor(void* pArg)
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
 
+    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+    
     // Calls to functions and threads go here
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
@@ -468,19 +490,16 @@ void* SaveToDisk(void* pArg)
 ///////////////////////////////////////////////////////////////
 void InitThreadLog(int idx)
 {
-    pthread_mutex_lock(&mtxTick);
     string  strLogMessage = ThreadMessage[idx];
     strLogMessage += " Starting";
 
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_STARTED;
-    pthread_mutex_unlock(&mtxTick);
+
 }
 ///////////////////////////////////////////////////////////////
 void TermThreadLog(int idx)
 {
-
-
     string  strLogMessage = ThreadMessage[idx];
 
     strLogMessage += " Finished";

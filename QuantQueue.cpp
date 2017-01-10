@@ -296,7 +296,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'S' :
         if (i64Idx_SystemEvent >= QSIZE_SYSTEM_EVENT) {
             i64Idx_SystemEvent = 0;
-            memset(m_SystemEvent, '\0', sizeof(SYSTEM_EVENT_MESSAGE )*QSIZE_SYSTEM_EVENT  );
+//            memset(m_SystemEvent, '\0', sizeof(SYSTEM_EVENT_MESSAGE )*QSIZE_SYSTEM_EVENT  );
             m_sStat.uiQWrapSystemEvent++;
         }
         m_SystemEvent[ i64Idx_SystemEvent] = pQueueElement->SystemEvent;
@@ -306,7 +306,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'R' :
         if (i64Idx_StockDirectory >= QSIZE_STOCK_DIRECTORY) {
             i64Idx_StockDirectory = 0;
-            memset(m_StockDirectory , '\0', sizeof(STOCK_DIRECTORY_MESSAGE )*QSIZE_STOCK_DIRECTORY  );
+//            memset(m_StockDirectory , '\0', sizeof(STOCK_DIRECTORY_MESSAGE )*QSIZE_STOCK_DIRECTORY  );
             m_sStat.uiQWrapStockDirectory++;
         }
         m_StockDirectory[ i64Idx_StockDirectory] = pQueueElement->StockDirectory;
@@ -317,7 +317,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'H' :
         if (i64Idx_StockTradingAction >= QSIZE_STOCK_TRADING_ACTION ) {
             i64Idx_StockTradingAction = 0;
-            memset(m_StockTradingAction , '\0', sizeof(STOCK_TRADING_ACTION_MESSAGE )* QSIZE_STOCK_TRADING_ACTION );
+//            memset(m_StockTradingAction , '\0', sizeof(STOCK_TRADING_ACTION_MESSAGE )* QSIZE_STOCK_TRADING_ACTION );
             m_sStat.uiQWrapStockTradingAction++;
         }
         m_StockTradingAction[ i64Idx_StockTradingAction] = pQueueElement->StockTradingAction;
@@ -328,7 +328,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'Y':
         if (i64Idx_RegSho >= QSIZE_REG_SHO_RESTRICTION) {
             i64Idx_RegSho = 0;
-            memset(m_RegSho , '\0', sizeof(REG_SHO_RESTRICTION_MESSAGE )* QSIZE_REG_SHO_RESTRICTION );
+//            memset(m_RegSho , '\0', sizeof(REG_SHO_RESTRICTION_MESSAGE )* QSIZE_REG_SHO_RESTRICTION );
             m_sStat.uiQWrapRegSho++;
         }
         m_RegSho[ i64Idx_RegSho] = pQueueElement->RegSho;
@@ -339,7 +339,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'L':
         if (i64Idx_MpPosition >= QSIZE_MP_POSITION) {
             i64Idx_MpPosition = 0;
-            memset(m_MpPosition , '\0', sizeof(MP_POSITION_MESSAGE )* QSIZE_MP_POSITION );
+//            memset(m_MpPosition , '\0', sizeof(MP_POSITION_MESSAGE )* QSIZE_MP_POSITION );
             m_sStat.uiQWrapMpPosition++;
         }
         m_MpPosition[ i64Idx_MpPosition] = pQueueElement->MpPosition;
@@ -350,7 +350,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'V':
         if (i64Idx_MWCBDLM >= QSIZE_MWCBDLM) {
             i64Idx_MWCBDLM = 0;
-            memset(m_MWCBDLM , '\0', sizeof(MWCBDLM_MESSAGE )* QSIZE_MWCBDLM );
+//            memset(m_MWCBDLM , '\0', sizeof(MWCBDLM_MESSAGE )* QSIZE_MWCBDLM );
             m_sStat.uiQWrapMWCBDLM++;
         }
         m_MWCBDLM[ i64Idx_MWCBDLM] = pQueueElement->MWCBDLM;
@@ -361,7 +361,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'W':
         if (i64Idx_MWCBDBM >= QSIZE_MWCBDBM) {
             i64Idx_MWCBDBM = 0;
-            memset(m_MWCBDBM , '\0', sizeof(MWCBDBM_MESSAGE )* QSIZE_MWCBDBM );
+//            memset(m_MWCBDBM , '\0', sizeof(MWCBDBM_MESSAGE )* QSIZE_MWCBDBM );
             m_sStat.uiQWrapMWCBDBM++;
         }
         m_MWCBDBM[ i64Idx_MWCBDBM] = pQueueElement->MWCBDBM;
@@ -372,7 +372,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'K':
         if (i64Idx_IPOQutationUpdate >= QSIZE_IPO_QUOTATION_PERIOD_UPDATE) {
             i64Idx_IPOQutationUpdate = 0;
-            memset(m_IPOQutationUpdate , '\0', sizeof(IPO_QUOTATION_PERIOD_UPDATE_MESSAGE )* QSIZE_IPO_QUOTATION_PERIOD_UPDATE );
+//            memset(m_IPOQutationUpdate , '\0', sizeof(IPO_QUOTATION_PERIOD_UPDATE_MESSAGE )* QSIZE_IPO_QUOTATION_PERIOD_UPDATE );
             m_sStat.uiQWrapIPOQutationUpdate++;
         }
         m_IPOQutationUpdate[ i64Idx_IPOQutationUpdate] = pQueueElement->IPOQutationUpdate;
@@ -407,7 +407,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'E':
         if (i64Idx_OrderExecuted >= QSIZE_ORDER_EXECUTED) {
             i64Idx_OrderExecuted = 0;
-            memset(m_OrderExecuted , '\0', sizeof(ORDER_EXECUTED_MESSAGE )* QSIZE_ORDER_EXECUTED );
+//            memset(m_OrderExecuted , '\0', sizeof(ORDER_EXECUTED_MESSAGE )* QSIZE_ORDER_EXECUTED );
             m_sStat.uiQWrapOrderExecuted++;
         }
         m_OrderExecuted[ i64Idx_OrderExecuted] = pQueueElement->OrderExecuted;
@@ -419,7 +419,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'c':
         if (i64Idx_OrderExecutedWithPrice >= QSIZE_ORDER_EXECUTED_WITH_PRICE) {
             i64Idx_OrderExecutedWithPrice = 0;
-            memset(m_OrderExecutedWithPrice , '\0', sizeof(ORDER_EXECUTED_WITH_PRICE_MESSAGE )* QSIZE_ORDER_EXECUTED_WITH_PRICE );
+//            memset(m_OrderExecutedWithPrice , '\0', sizeof(ORDER_EXECUTED_WITH_PRICE_MESSAGE )* QSIZE_ORDER_EXECUTED_WITH_PRICE );
             m_sStat.uiQWrapOrderExecutedWithPrice++;
         }
         m_OrderExecutedWithPrice[ i64Idx_OrderExecutedWithPrice] = pQueueElement->OrderExecutedWithPrice;
@@ -431,7 +431,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'X':
         if (i64Idx_OrderCancel >= QSIZE_ORDER_CANCEL) {
             i64Idx_OrderCancel = 0;
-            memset(m_OrderCancel , '\0', sizeof(ORDER_CANCEL_MESSAGE )* QSIZE_ORDER_CANCEL );
+//            memset(m_OrderCancel , '\0', sizeof(ORDER_CANCEL_MESSAGE )* QSIZE_ORDER_CANCEL );
             m_sStat.uiQWrapOrderCancel++;
         }
         m_OrderCancel[ i64Idx_OrderCancel] = pQueueElement->OrderCancel;
@@ -443,7 +443,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'D':
         if (i64Idx_OrderDelete >= QSIZE_ORDER_DELETE) {
             i64Idx_OrderDelete = 0;
-            memset(m_OrderDelete , '\0', sizeof(ORDER_DELETE_MESSAGE)* QSIZE_ORDER_DELETE );
+//            memset(m_OrderDelete , '\0', sizeof(ORDER_DELETE_MESSAGE)* QSIZE_ORDER_DELETE );
             m_sStat.uiQWrapOrderDelete++;
         }
         m_OrderDelete[ i64Idx_OrderDelete] = pQueueElement->OrderDelete;
@@ -455,7 +455,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'U':
         if (i64Idx_OrderReplace >= QSIZE_ORDER_REPLACE) {
             i64Idx_OrderReplace = 0;
-            memset(m_OrderReplace , '\0', sizeof(ORDER_REPLACE_MESSAGE )* QSIZE_ORDER_REPLACE );
+//            memset(m_OrderReplace , '\0', sizeof(ORDER_REPLACE_MESSAGE )* QSIZE_ORDER_REPLACE );
             m_sStat.uiQWrapOrderReplace++;
         }
         m_OrderReplace[ i64Idx_OrderReplace] = pQueueElement->OrderReplace;
@@ -467,7 +467,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'P':
         if (i64Idx_TradeNonCross >= QSIZE_TRADE_NON_CROSS) {
             i64Idx_TradeNonCross = 0;
-            memset(m_TradeNonCross , '\0', sizeof(TRADE_NON_CROSS_MESSAGE )* QSIZE_TRADE_NON_CROSS  );
+//            memset(m_TradeNonCross , '\0', sizeof(TRADE_NON_CROSS_MESSAGE )* QSIZE_TRADE_NON_CROSS  );
             m_sStat.uiQWrapTradeNonCross++;
         }
         m_TradeNonCross[ i64Idx_TradeNonCross] = pQueueElement->TradeNonCross;
@@ -478,7 +478,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'I':
         if (i64Idx_NOII >= QSIZE_NOII) {
             i64Idx_NOII = 0;
-            memset(m_NOII , '\0', sizeof(NOII_MESSAGE )*  QSIZE_NOII);
+//            memset(m_NOII , '\0', sizeof(NOII_MESSAGE )*  QSIZE_NOII);
             m_sStat.uiQWrapNOII++;
         }
         m_NOII[ i64Idx_NOII] = pQueueElement->NOII;
@@ -490,7 +490,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     case 'N':
         if (i64Idx_RPPI >= QSIZE_RPII) {
             i64Idx_RPPI = 0;
-            memset(m_RPPI , '\0', sizeof(RPII_MESSAGE )* QSIZE_RPII );
+//            memset(m_RPPI , '\0', sizeof(RPII_MESSAGE )* QSIZE_RPII );
             m_sStat.uiQWrapRPPI++;
         }
         m_RPPI[ i64Idx_RPPI] = pQueueElement->RPPI;
