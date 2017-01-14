@@ -26,6 +26,9 @@ CBuildBook::CBuildBook()
     m_request.tv_nsec = 100000000;   // 1/10 of a second
     m_iSizeOfBook = sizeof( SBOOK_LEVELS);
 
+
+    m_Stats.uiLevelDeleted = 0;
+
 }
 ////////////////////////////////////////////////////
 CBuildBook::~CBuildBook()
@@ -88,9 +91,9 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
 
     case 'E':  	// Order executed
     case 'c':  	// Order executed  with price
-    case 'X':  	// Order Cancel
+//    case 'X':  	// Order Cancel
     case 'D': 	// Order deleted
-//        ProcessDelete(m_iMessage);
+        ProcessDelete(m_iMessage);
         break;
     case 'U':
 //        ProcessReplace(m_iMessage);
@@ -267,8 +270,8 @@ NLEVELS CBuildBook::FlushAllBooks()
 ///////////////////////////////////////////////////
 int CBuildBook::ProcessAdd(int iMessage)
 {
-    bool	bFound = false;
-    bool	bMMFound = false;
+    bool	bFound 		= false;
+    bool	bMMFound 	= false;
 
     m_pBook.pTopBid = NULL;
     m_pBook.pTopAsk = NULL;
@@ -300,7 +303,7 @@ int CBuildBook::ProcessAdd(int iMessage)
         return 0;
     }
 
-    *m_szMPID = NULL;
+    memset(m_szMPID, '\0', 5);
     strncpy(m_szMPID, m_pCommonOrder->szMPID, 4);
 
     if (m_pCommonOrder->cBuySell == 'B')  // bid to buy
@@ -337,10 +340,10 @@ int CBuildBook::ProcessAdd(int iMessage)
                             bMMFound = true;
                             bFound = true;
                             break;
-                        }
+                        } // if (!strcmp(lpMM->szMPID, m_szMPID)) { // MM found
                         lpPrevMM = lpMM;
                         lpMM = lpMM->pNextBidAsk;
-                    }
+                    }  // ((lpMM) && (lpMM->dPrice == m_dPrice ))
                     // MM Not found at this price level...Add a new one
                     if (!bMMFound) {
                         lpInsert= AllocateNode(m_dPrice, m_uiQty);
@@ -352,8 +355,6 @@ int CBuildBook::ProcessAdd(int iMessage)
                     }
                     break;
                 } // if price match found
-
-
                 //////
                 if (m_dPrice > lpCurrent->dPrice)    // new price level
                 {
@@ -514,18 +515,80 @@ int CBuildBook::ProcessAdd(int iMessage)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 int CBuildBook::ProcessDelete(int iIn)
 {
+    lpInsert  = NULL;
+    lpCurrent = NULL;
+    lpPrevious = NULL;
 
+    bool bFound = false;
 
+    m_strMsg.empty();
 
-    return 10;
+    m_dPrice = m_pCommonOrder->dPrice;
+    m_uiQty = m_pCommonOrder->iShares;
+
+    m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
+    if (m_itBookMap != m_BookMap.end()) {  // found
+        m_pBook = m_itBookMap->second;  // Fetch the book for this stock
+    }
+    else { // else Error....should not happen
+        m_strMsg = "Build Book...Error Deleting Order in Book..Symbol: ";
+        m_strMsg += m_pCommonOrder->szStock;
+        m_strMsg += " Market Maker: ";
+        m_strMsg += m_pCommonOrder->szMPID;
+        m_strMsg += " Price = ";
+        m_strMsg += to_string(m_dPrice);
+        m_strMsg += " Qty = ";
+        m_strMsg += to_string(m_uiQty);
+        m_strMsg += " Order Ref. Number";
+        m_strMsg += m_pCommonOrder->iOrderRefNumber;
+        m_strMsg += " Not Found";
+        Logger::instance().log(m_strMsg, Logger::Error);
+        return 0;
+    }
+
+    memset(m_szMPID, '\0', 5);
+    strncpy(m_szMPID, m_pCommonOrder->szMPID, 4);
+
+    if (m_pCommonOrder->cBuySell == 'B')  // bid to buy
+    {
+        lpCurrent	=	m_pBook.pTopBid;
+        lpPrevious	=	lpCurrent;
+        bFound = false;
+        while (lpCurrent != NULL) {
+            if ((m_dPrice == lpCurrent->dPrice) &&  (!strcmp(lpCurrent->szMPID, m_szMPID)))   // price match found
+            {
+                 lpCurrent->uiQty -= m_uiQty;  // update volume
+                  bFound = true;
+		  break;
+            } // if price match found
+            if (m_dPrice > lpCurrent->dPrice) { // should not happen but will !!!
+		break;
+	    }
+            lpPrevious = lpCurrent;
+            lpCurrent = lpCurrent->pNextBidAsk;
+        } // while (lpCurrent != NULL)
+
+        if (lpCurrent == NULL)
+	  return -1; // enum later
+
+        if ((bFound) && (lpCurrent->uiQty <= 0)) { // Remove this node
+	    if (lpCurrent   ==	m_pBook.pTopBid)  { // first node
+		m_pBook.pTopBid = NULL;
+		m_itBookMap->second = m_pBook;
+	    }
+	    else {
+	      lpPrevious->pNextBidAsk = lpCurrent->pNextBidAsk;
+	    }
+	    delete lpCurrent;
+	    lpCurrent = NULL;
+	    m_Stats.uiLevelDeleted++;
+        }
+    } // if (m_pCommonOrder->cBuySell == 'B')  // bid to buy
+    return 0;
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 int CBuildBook::ProcessCancel(int iIn)
 {
-
-
-
     return 10;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -550,7 +613,7 @@ SBID_ASK* CBuildBook::AllocateNode(double dPrice, unsigned int uiQty)
 
     lpNewNode			= new(SBID_ASK);
     if (!lpNewNode) {
-       Logger::instance().log("Build Book...Error Allocating Memory", Logger::Error);
+        Logger::instance().log("Build Book...Error Allocating Memory", Logger::Error);
     }
     lpNewNode->uiQty		= uiQty;
     lpNewNode->dPrice		= dPrice;

@@ -23,6 +23,7 @@ typedef struct
     uint32_t 	uiReplaced;
     uint32_t 	uiDeleted;
     uint32_t 	uiExecuted;
+    uint32_t 	uiLevelDeleted;
 } SLEVELSTAT; // consider adding per Second stats in the future
 
 
@@ -110,10 +111,10 @@ private:   // by default
     SBID_ASK*	lpMM;
     SBID_ASK*	lpPrevMM;
     
-
-
     SBID_ASK	m_SBidAsk;
 
+    SLEVELSTAT  m_Stats;
+    
     int InitMemoryMappedFile();
     int ProcessAdd(int iMessage);
     int ProcessReplace(int iMessage);

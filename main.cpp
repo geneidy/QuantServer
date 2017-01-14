@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     while (theApp.iStatus != STOPPED) {
         jj++;
         sleep(3);
-        if (jj > 250)  // jj* 3 =  seconds
+        if (jj > 60)  // jj* 3 =  seconds
             theApp.iStatus = STOPPED;
     };
 
@@ -501,8 +501,8 @@ void InitThreadLog(int idx)
 void TermThreadLog(int idx)
 {
     string  strLogMessage = ThreadMessage[idx];
-
     strLogMessage += " Finished";
+
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_TERMINATED;
 }
