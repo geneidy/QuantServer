@@ -46,6 +46,7 @@ int main(int argc, char **argv)
 //        g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
         arrThreadInfo[ii].iThread_num = ii ;
         iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &g_SThreadData);
+	sleep(1);
         g_SThreadData.iTotalThreads++;
         arrThreadInfo[ii].eState = TS_ALIVE;
         if(iRet)
@@ -58,12 +59,22 @@ int main(int argc, char **argv)
     };
     pthread_mutex_unlock(&mtxQueue);
 
+/*
+    unsigned int uix = 100;
+    unsigned int uiy = 200;
+    unsigned int uiz = uix - uiy;
+    cout << "Result of " << uix << "-" << uiy << " = " << uiz;
+*/    
     int jj = 0;
 
     while (theApp.iStatus != STOPPED) {
         jj++;
         sleep(3);
-        if (jj > 60)  // jj* 3 =  seconds
+
+	
+//	if (jj > 120)  // jj* 3 =  seconds
+//	if (jj > 50)  // jj* 3 =  seconds
+        if (jj > 200)  // jj* 3 =  seconds	
             theApp.iStatus = STOPPED;
     };
 
@@ -101,12 +112,14 @@ int main(int argc, char **argv)
 //////////////////////////////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
 {
+
+    pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
 
-    pthread_mutex_lock(&mtxTick);
+
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
     
@@ -116,8 +129,8 @@ void*  MainQueue(void* pArg)
 
     if (!pCQuantQueue->bConstructed) {  // No need to continue
         Logger::instance().log("Error Constructing Queue...Aborting", Logger::Error);
-        delete pCQuantQueue;
-        pCQuantQueue = NULL;
+//        delete pCQuantQueue;
+//        pCQuantQueue = NULL;
 	pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
 	pthread_mutex_unlock(&mtxTick);
@@ -133,6 +146,8 @@ void*  MainQueue(void* pArg)
         sleep(5);
     }
 
+    pCQuantQueue->ListQStats();
+    
     delete pCQuantQueue;
     pCQuantQueue = NULL;
     pthread_mutex_lock(&mtxTick);
@@ -144,6 +159,9 @@ void*  MainQueue(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* OrdersMap(void* pArg)  // only if buid book is checked
 {
+
+    pthread_mutex_lock(&mtxTick);
+    
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -151,7 +169,6 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
@@ -204,6 +221,8 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 void* TickDataMap(void* pArg)
 {
 
+    pthread_mutex_lock(&mtxTick);
+
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -211,7 +230,6 @@ void* TickDataMap(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
     
@@ -243,6 +261,8 @@ void* TickDataMap(void* pArg)
 void* BuildBook(void* pArg)
 {
 
+    pthread_mutex_lock(&mtxTick);
+    
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -250,21 +270,17 @@ void* BuildBook(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
     pCBuildBook = NULL;
     pCBuildBook = new CBuildBook();
     if (!pCBuildBook) {
-//        pthread_mutex_unlock(&mtxMap);
         // log error
         arrThreadInfo[idx].eState = TS_TERMINATED;
         return NULL;
     }
     arrThreadInfo[idx].eState = TS_ALIVE;
-
-//  pthread_mutex_unlock(&mtxMap);
 
     if (pCBuildBook->m_iError) {
         delete pCBuildBook;
@@ -278,10 +294,13 @@ void* BuildBook(void* pArg)
     }
     
     pCBuildBook->ListBook("MSFT    ");
+    pCBuildBook->ListBook("INTC    ");
+    pCBuildBook->ListBook("GOOG    ");
     
 
     delete pCBuildBook;
     pCBuildBook = NULL;
+    
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -291,6 +310,7 @@ void* BuildBook(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* ReceiveFeed(void* pArg)
 {
+    pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -298,7 +318,6 @@ void* ReceiveFeed(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
@@ -312,6 +331,9 @@ void* ReceiveFeed(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* ParseFeed(void* pArg)
 {
+
+    pthread_mutex_lock(&mtxTick);  
+    
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -319,7 +341,6 @@ void* ParseFeed(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);    // Calls to functions and threads go here
     pthread_mutex_unlock(&mtxTick);
 
@@ -333,6 +354,7 @@ void* ParseFeed(void* pArg)
 void* SaveToDB(void* pArg)
 {
 
+    pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -340,7 +362,6 @@ void* SaveToDB(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
@@ -369,6 +390,8 @@ void* SaveToDB(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* PlayBack(void* pArg)
 {
+
+    pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -376,7 +399,6 @@ void* PlayBack(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);    //
     pthread_mutex_unlock(&mtxTick);
 
@@ -390,6 +412,9 @@ void* PlayBack(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* NasdTestFile(void* pArg)
 {
+
+    pthread_mutex_lock(&mtxTick);
+    
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -397,7 +422,6 @@ void* NasdTestFile(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
@@ -428,6 +452,7 @@ void* NasdTestFile(void* pArg)
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
     }
+    
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -437,6 +462,8 @@ void* NasdTestFile(void* pArg)
 ///////////////////////////////////////////////////////////////
 void *Distributor(void* pArg)
 {
+
+    pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -444,8 +471,6 @@ void *Distributor(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
-
-    pthread_mutex_lock(&mtxTick);
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
     
@@ -459,15 +484,18 @@ void *Distributor(void* pArg)
 ///////////////////////////////////////////////////////////////
 void* SaveToDisk(void* pArg)
 {
-
+    pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
+    InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+    
     /*   pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
-       InitThreadLog(idx);
+    
 
        pCSaveToDisk = NULL;
 
@@ -523,10 +551,12 @@ int LoadSettings()
 
     // Please figure out the mutual exclusive cases ... i.e
     //  Role; array element
-//	0       		1             2                  3                      4                   5
-//{"Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread", "Save To DB Thread",
-//       6			7			8		9
-// "Play Back Thread", "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
+
+// {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
+//  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
+
+
+//{MainQueue, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk}; 
 
     SSettings.iarrRole[0] = 1;   		//  0= Main Queue
     SSettings.iarrRole[1] = 0;   		//  0= Receive Feed
@@ -573,8 +603,8 @@ int LoadSettings()
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
 //    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
-    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
-    //"/home/gen/itch_data/08022014.NASDAQ_ITCH50";
+      SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"; // The big file!!!!
+
     SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
 
 
@@ -586,7 +616,7 @@ int LoadSettings()
     SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
     SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
-    SSettings.uiQueueSize = 10000000;  // 10 Million elements
+    SSettings.uiQueueSize = 50000000;  // 10 Million elements
 
     theApp.SSettings = SSettings;
     return 0;

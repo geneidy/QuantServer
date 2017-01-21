@@ -187,11 +187,10 @@ COMMON_ORDER_MESSAGE* COrdersMap::GetOrder(uint64_t uiOrderNumber) // called fro
 	uint64_t uiRecordNumber = 0;
 	uiRecordNumber = m_itRefAuxSymbolMap->second;
 	pthread_mutex_unlock(&mtxFindMap); 
-	if (m_ui64NumOfOrders > uiRecordNumber)
+	if (m_ui64NumOfOrders < uiRecordNumber)  // found bug here....switched < >
 	  return &m_pReturnCommonOrder[m_itRefAuxSymbolMap->second];
 	else
 	  return NULL;
-
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
@@ -293,9 +292,9 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
 	
-        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
-        m_pCommonOrder[m_ui64NumOfOrders].iPrevShares          =   m_pTempCommonOrder->iPrevShares;
-        m_pCommonOrder[m_ui64NumOfOrders].dPrevPrice	       =   m_pTempCommonOrder->dPrevPrice;
+        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
+        m_pCommonOrder[m_ui64NumOfOrders].iPrevShares          	=   m_pTempCommonOrder->iShares;
+        m_pCommonOrder[m_ui64NumOfOrders].dPrevPrice	       	=   m_pTempCommonOrder->dPrice;
 
         // Add the new one
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderReplace.cMessageType;
@@ -331,7 +330,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
     case 'E':  // Executed Order  // Tick Data  /// Where do I get the execution price from
       m_pTempCommonOrder = NULL;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderMatchNumber);
+        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
@@ -340,8 +339,8 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
-	
-        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
+	m_pCommonOrder[m_ui64NumOfOrders].dPrice =  m_pTempCommonOrder->dPrice;
+        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecuted.cMessageType;
         m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->OrderExecuted.iOrderRefNumber;
@@ -356,7 +355,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
     case 'c': // Executed with price   // Tick Data
 	m_pTempCommonOrder = NULL;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber);
+        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
@@ -365,14 +364,15 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
-        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             =   m_pTempCommonOrder->cBuySell;
+        m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
+//	m_pCommonOrder[m_ui64NumOfOrders].dPrice =  m_pTempCommonOrder->dPrice;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
         m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber;
         // Hack....put the order match number in Prev Order
         m_pCommonOrder[m_ui64NumOfOrders].iPrevOrderRefNumber  	= pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber;
-        m_pCommonOrder[m_ui64NumOfOrders].iShares = pItchMessageUnion->OrderExecutedWithPrice.iShares;
-        m_pCommonOrder[m_ui64NumOfOrders].dPrice = pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
+        m_pCommonOrder[m_ui64NumOfOrders].iShares 		= pItchMessageUnion->OrderExecutedWithPrice.iShares;
+        m_pCommonOrder[m_ui64NumOfOrders].dPrice 		= pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
         m_pCommonOrder[m_ui64NumOfOrders].iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
 //        m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber 	= pItchMessageUnion->OrderExecutedWithPrice.TrackingNumber;
         m_ui64NumOfOrders++;

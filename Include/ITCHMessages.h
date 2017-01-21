@@ -305,12 +305,12 @@ typedef struct
 	char			cMessageType;						//Message Type	0	1	“U”	Order Replace Message
 	unsigned int		iLocateCode;						//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;						//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t     		iTimeStamp;							//Timestamp	5	6	Integer	Nanoseconds since midnight.
+	uint64_t     		iTimeStamp;						//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOldOrderRefNumber;					//Original Order Reference Number	11	8	Integer	The original reference number of the order being replaced.
 	uint64_t		iNewOrderRefNumber;					//New Order Reference Number	19	8	Integer	The new reference number for this order at time of replacement.
 											//Please note that the NASDAQ system will use this new order reference number for all subsequent updates.
-	unsigned int		iShares;							//Shares	27	4	Integer	The new total displayed quantity.
-	double			dPrice;								//Price	31	4	Price (4)	The new display price for the order. Refer to Data Types for field processing notes.
+	unsigned int		iShares;						//Shares	27	4	Integer	The new total displayed quantity.
+	double			dPrice;							//Price	31	4	Price (4)	The new display price for the order. Refer to Data Types for field processing notes.
 }ORDER_REPLACE_MESSAGE;
 
 typedef struct       //    Common Order Record Struct...Wil handle the order related issues...Add, delete, Modify

@@ -40,8 +40,8 @@ typedef struct SBidAsk
 {
     char		szMPID[5];
     double	dPrice;
-    unsigned 	uiQty;
-    unsigned 	uiNumOfOrders;
+    int 	uiQty;
+    int 	uiNumOfOrders;
     //SLEVELSTAT  	SLevelStat;   // Stats per Level
     SBidAsk* 	pNextBidAsk;		// for the linked list
 } SBID_ASK;
@@ -56,9 +56,7 @@ typedef struct _BookLevels  // Per Symbol
     uint16_t	m_iAskLevels;
 } SBOOK_LEVELS;
 
-
 // typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
-
 
 typedef unordered_map<string , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
 
@@ -67,7 +65,7 @@ class CBuildBook
 private:   // by default
 
     void* 	m_addr;
-    int 		m_fd;
+    int 	m_fd;
     struct stat64 m_sb;
 
 
@@ -110,11 +108,11 @@ private:   // by default
 
     SBID_ASK*	lpMM;
     SBID_ASK*	lpPrevMM;
-    
+
     SBID_ASK	m_SBidAsk;
 
     SLEVELSTAT  m_Stats;
-    
+
     int InitMemoryMappedFile();
     int ProcessAdd(int iMessage);
     int ProcessReplace(int iMessage);
@@ -141,10 +139,7 @@ public:
     CBuildBook();
     ~CBuildBook();
 
-
-
     int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
-
 
     SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);
     SBOOK_LEVELS	m_pBook;

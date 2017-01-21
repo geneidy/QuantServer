@@ -366,11 +366,11 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 
     strcpy(m_IMUSys.AddOrderNoMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
     m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
-    
-    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "MSFT")){
+/*    
+    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "MSFT    ")){
 	int iStop = 0;
     }
-    
+*/    
     if (m_IMUSys.AddOrderNoMPID.iOrderRefNumber == 0){
 	iStopHere++;
     }
@@ -378,8 +378,6 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
        iPassedHere++;
     }
       
-    
-
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'A');
 
@@ -440,6 +438,10 @@ int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
 {
     memset(&m_IMUSys.OrderExecutedWithPrice, '\0', sizeof(ORDER_EXECUTED_WITH_PRICE_MESSAGE ));
 
+    m_IMUSys.OrderExecutedWithPrice.cPrintable = m_pCUtil->GetValueChar(uiMsg, 31, 1);
+    if (m_IMUSys.OrderExecutedWithPrice.cPrintable == 'N')  // non Printable
+      return 0;
+    
     m_IMUSys.OrderExecutedWithPrice.cMessageType = 'c';
     m_IMUSys.OrderExecutedWithPrice.iLocateCode =    m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
     m_IMUSys.OrderExecutedWithPrice.TrackingNumber=  m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
@@ -448,7 +450,8 @@ int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
     m_IMUSys.OrderExecutedWithPrice.iShares = m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
     m_IMUSys.OrderExecutedWithPrice.iOrderMatchNumber = m_pCUtil->GetValueUnsignedLong(uiMsg, 23, 8);
 
-    m_IMUSys.OrderExecutedWithPrice.cPrintable = m_pCUtil->GetValueChar(uiMsg, 31, 1);
+    
+    
     m_IMUSys.OrderExecutedWithPrice.dExecutionPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
 
     if (m_pQuantQueue)

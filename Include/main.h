@@ -73,7 +73,7 @@ void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
 
 const char *ThreadMessage[NUMBER_OF_ROLES ] = \
  {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-  "Save To DB Thread", "Play Back Thread", "NasdTestFile Thread", "Distributor Thread", "SaveToDisk Thread"};
+  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
   
 
 #ifdef __cplusplus
