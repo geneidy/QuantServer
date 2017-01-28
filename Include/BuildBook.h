@@ -48,7 +48,6 @@ typedef struct SBidAsk
 
 typedef struct _BookLevels  // Per Symbol
 {
-//  char 		szSymbol[5];
     SBID_ASK*	pTopBid;
     SBID_ASK*	pTopAsk;
 
@@ -117,12 +116,10 @@ private:   // by default
     int ProcessAdd(int iMessage);
     int ProcessReplace(int iMessage);
     int ProcessDelete(int iMessage);
-    int ProcessCancel(int iMessage);
+
 
     bool AddPriceLevel(int );
     int InitLevelStats();
-
-    bool UpdatePriceLevel(int iSide);
 
     void UpdateBook();
 
@@ -139,7 +136,7 @@ public:
     CBuildBook();
     ~CBuildBook();
 
-    int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
+//    int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
 
     SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);
     SBOOK_LEVELS	m_pBook;

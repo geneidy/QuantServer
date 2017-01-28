@@ -137,6 +137,8 @@ private:
 
     static __thread u_int64_t m_Threadi64LastIndex ;
     static __thread u_int64_t m_Threadi64LastRead;
+    static  u_int64_t m_i64LastRead;
+    
     u_int64_t m_i64LastWrite;
     static __thread int m_ThreadiStatus;
     

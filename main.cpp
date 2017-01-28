@@ -72,9 +72,9 @@ int main(int argc, char **argv)
         sleep(3);
 
 	
-//	if (jj > 120)  // jj* 3 =  seconds
-//	if (jj > 50)  // jj* 3 =  seconds
-        if (jj > 200)  // jj* 3 =  seconds	
+//	if (jj > 200)  // jj* 3 =  seconds
+	if (jj > 50)  // jj* 3 =  seconds
+//        if (jj > 300)  // jj* 3 =  seconds	
             theApp.iStatus = STOPPED;
     };
 
@@ -448,6 +448,7 @@ void* NasdTestFile(void* pArg)
     if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.strTestFileName.c_str())) {
         Logger::instance().log("Error Reading From Test File", Logger::Error);
     }
+    
     if (pCReceiveITCH) {
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
@@ -593,7 +594,7 @@ int LoadSettings()
     SSettings.uiPort 		=  8743 ;		//  uint 		uiPort;
 
     SSettings.ulIPAddress1	=  85236;   	//  unsigned long	ulIPAddress1;
-    SSettings.uiPort1 		= 8521;  		//  uint		uiPort1;
+    SSettings.uiPort1 		=  8521;  		//  uint		uiPort1;
 
     SSettings.dwBufferSize 	= 1000000;  		//  unsigned long	dwBufferSize;
 
@@ -603,7 +604,7 @@ int LoadSettings()
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
 //    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
-      SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"; // The big file!!!!
+    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"; // The big file!!!!
 
     SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
 
@@ -616,7 +617,7 @@ int LoadSettings()
     SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
     SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
-    SSettings.uiQueueSize = 50000000;  // 10 Million elements
+    SSettings.uiQueueSize = 50000000;  // 25 Million elements
 
     theApp.SSettings = SSettings;
     return 0;

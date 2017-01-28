@@ -2,6 +2,7 @@
 #include "QuantQueue.h"
 
 __thread u_int64_t CQuantQueue::m_Threadi64LastRead 	= 0;
+u_int64_t CQuantQueue::m_i64LastRead = 0;
 
 __thread u_int64_t CQuantQueue::m_Threadi64LastIndex 	= 0;
 __thread int CQuantQueue::m_ThreadiStatus 		= 0;
@@ -132,11 +133,6 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
 {   // according to message type.....cast the returned void* to the appropriate message
     // If it returns a NULL ... Get error code and act accordingly
 
-    if (m_Threadi64LastIndex >  m_i64QueueElement) {
-        m_Threadi64LastIndex = 0;
-	m_QStat.uiReadWrap++;
-    }
-
     // Reader catches up with Writer....can't advance any more...
     if (m_Threadi64LastRead >= m_i64LastWrite)
     {
@@ -144,8 +140,19 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
         *iMessgaType = E_READER_EQ_WRITER;
         return NULL; // Get error code and act accordingly
     }
-    m_Threadi64LastRead++;
-    iMessgaType = &m_pReader[m_Threadi64LastIndex].iMessagetype;
+
+  
+   if (m_Threadi64LastIndex >  m_i64QueueSize) {//
+        m_Threadi64LastIndex = 0;
+	m_QStat.uiReadWrap++;
+    }
+
+    m_Threadi64LastRead++;  // never reset
+    
+    m_i64LastRead = m_Threadi64LastRead;
+    
+    *iMessgaType = m_pReader[m_Threadi64LastIndex].iMessagetype;
+ 
     switch (*iMessgaType)    {
     case 'S':
         m_QStat.uiDeqQSystemEvent++;
@@ -210,7 +217,6 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
     }
     return  &m_pReader[m_Threadi64LastIndex++].QMessage;
     
-    
 }
 ////////////////////////////////////////////////////////////////////////////
 int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
@@ -222,7 +228,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     m_pWriter[m_i64QueueElement].i64NodeNumber++; // never reset
     m_pWriter[m_i64QueueElement].iMessagetype = iMessageType;
 
-    m_i64LastWrite++;
+    m_i64LastWrite++;	//never reset
     
     m_i64QueueElement++;	// advance to the next location to write
     m_ulTotalElements++;
@@ -240,7 +246,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     switch (iMessageType)
     {
     case 'S':
-        m_QStat.uiEnqQAddOrderMPID++;
+        m_QStat.uiEnqQSystemEvent++;
         break;  // formality
     case 'R' :
 	m_QStat.uiEnqQStockDirectory++;
@@ -440,12 +446,12 @@ CQuantQueue::~CQuantQueue()
 
     strLog.clear();
     strLog = "Queue Stats....Total Elements Queued: ";
-    strLog += to_string (m_ulTotalElements);
+    strLog += to_string (m_i64LastWrite);  // never
     Logger::instance().log(strLog, Logger::Info);
         
     strLog.clear();
     strLog = "Queue Stats....Total Elements Dequeued: ";
-    strLog += to_string (m_Threadi64LastIndex);
+    strLog += to_string (m_i64LastRead);
     Logger::instance().log(strLog, Logger::Info);
     
     strLog.clear();

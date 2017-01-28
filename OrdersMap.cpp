@@ -167,7 +167,7 @@ SOrdersDataStat COrdersMap::GetOrdersDataStat() // Total Trade records inserted
 COMMON_ORDER_MESSAGE* COrdersMap::GetMemoryMappedOrder(uint64_t ui64OrderIndex)
 {
   
-    if (ui64OrderIndex >= (m_ui64NumOfOrders -1))
+    if ((ui64OrderIndex >= (m_ui64NumOfOrders -1))  || (ui64OrderIndex >= m_uiNumberOfMessagesToHold))
       return NULL;
    
     return &m_pRefCommonOrder[ui64OrderIndex];
@@ -339,7 +339,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
-	m_pCommonOrder[m_ui64NumOfOrders].dPrice =  m_pTempCommonOrder->dPrice;
+	m_pCommonOrder[m_ui64NumOfOrders].dPrice 		=  m_pTempCommonOrder->dPrice;
         m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
 
         m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->OrderExecuted.cMessageType;
@@ -361,6 +361,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
             return 0;
+	
+	if (pItchMessageUnion->OrderExecutedWithPrice.cPrintable == 'N')
+	     return 0;
+	
 
         strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
 	strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);

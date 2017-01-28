@@ -177,14 +177,15 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
 
             i64NumberOfBytes = read(iHandle, m_pszRecvBuf, theApp.SSettings.dwBufferSize);
             memmove(&(m_pszTVBuf[m_iLen]), m_pszRecvBuf, i64NumberOfBytes);		// Accumulate in m_szTVBuf
-	    if (theApp.iStatus == STOPPED)
+	    if (theApp.iStatus == STOPPED) {
+	      Logger::instance().log("Test File Returning Before Completion", Logger::Error);
 	      break;
+	    }
 
             m_iLen += i64NumberOfBytes;
 
             m_iIteration++;
             ulTotalBytes+= i64NumberOfBytes;
-
             ProcessFeed();
 
         }  while (i64NumberOfBytes) ; //while ((i64NumberOfBytes != -1) && (i64NumberOfBytes != 0) && (theApp.g_bReceiving));
