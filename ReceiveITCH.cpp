@@ -24,8 +24,8 @@ CReceiveITCH::CReceiveITCH (CQuantQueue* pQueue) //(socket *Sock): m_Socket(*Soc
 
 
     //m_iOutputBuffLen	= (theApp.m_SOptions.dwBufferSize) * COMP_FACTOR;		// Compression factor for inflating the receive buffer
-    m_iTVBufLen		=   theApp.m_SOptions.dwBufferSize;   // in case we go overboard by stopping at the edge of a new message;
-    m_pszRecvBufLen =   theApp.m_SOptions.dwBufferSize;
+    m_iTVBufLen		=   theApp.SSettings.dwBufferSize;   // in case we go overboard by stopping at the edge of a new message;
+    m_pszRecvBufLen =   theApp.SSettings.dwBufferSize;
 
 
     m_pszTVBuf		= NULL;
@@ -177,7 +177,7 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
 
             i64NumberOfBytes = read(iHandle, m_pszRecvBuf, theApp.SSettings.dwBufferSize);
             memmove(&(m_pszTVBuf[m_iLen]), m_pszRecvBuf, i64NumberOfBytes);		// Accumulate in m_szTVBuf
-	    if (theApp.iStatus == STOPPED) {
+	    if (theApp.SSettings.iStatus == STOPPED) {
 	      Logger::instance().log("Test File Returning Before Completion", Logger::Error);
 	      break;
 	    }

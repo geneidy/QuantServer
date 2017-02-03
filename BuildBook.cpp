@@ -164,8 +164,8 @@ NLEVELS  CBuildBook::ListBook(char* szSymbol )
         pTemp = SBookLevels.pTopAsk;
         SBookLevels.pTopAsk = pTemp->pNextBidAsk;
     }// while (SBookLevels.pTopAsk != NULL) {
-    cout << "======================================================================================"<< endl;
-    cout << "======================================================================================"<< endl;
+    cout << endl;
+    cout << endl;
     cout << endl;
     cout << endl;
 
@@ -596,7 +596,7 @@ SBID_ASK* CBuildBook::AllocateNode(double dPrice, unsigned int uiQty)
     strcpy(lpNewNode->szMPID, m_szMPID);
 
     lpNewNode->uiNumOfOrders	= 1;
-    lpNewNode->pNextBidAsk		= NULL;
+    lpNewNode->pNextBidAsk	= NULL;
     /*	lpNewNode->SLevelStat.uiAttribAdd 	= 0;
     	lpNewNode->SLevelStat.uiCancelled 	= 0;
     	lpNewNode->SLevelStat.uiDeleted   	= 0;

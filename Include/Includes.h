@@ -4,6 +4,11 @@
 #define SIZE_OF_CLT_NAME	31
 #define SIZE_OF_CLT_PASSWORD   31
 
+#define SIZE_OF_NAME    31
+#define SIZE_OF_PASSWORD 31
+#define SIZE_OF_FILENAME   255
+
+
 #define  UINT8  	unsigned char
 #define  UINT		unsigned int
 #define  ULONG		unsigned long

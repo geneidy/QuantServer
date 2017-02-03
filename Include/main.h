@@ -9,6 +9,8 @@
 #include <vector>
 #include "Settings.h"
 
+#include "QSettings.h"
+
 #include "SaveToDisk.h"
 #include "SaveToDB.h"
 #include "BuildBook.h"

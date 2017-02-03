@@ -70,7 +70,8 @@ MYSQL* CNQTVDlg::ConnectMySql(char* host_name, char* user_name, char* password, 
         return(NULL);
       }
     */
-    return(theApp.conn);	// connection is established
+//    return(theApp.conn);	// connection is established
+    return NULL;	// connection is established
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 int CNQTVDlg::InsertRow()
@@ -122,7 +123,7 @@ void CNQTVDlg::FeedStop()  // Feed Stop
 {
 
     theApp.g_iFlag = theApp.g_iFeedStatus = STOPPING;
-    theApp.g_bReceiving = false;
+    theApp.SSettings.g_bReceiving = false;
 
     //theApp.g_bConnected = false;
     //terminate the thread

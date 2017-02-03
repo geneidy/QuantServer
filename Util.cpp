@@ -2,7 +2,7 @@
 // #include <boost/chrono.hpp>
 
 //#include <sys/types.h>
-#include <stdlib.h>>
+#include <stdlib.h>
 #include <arpa/inet.h>
 #include "Util.h"
 
@@ -258,7 +258,7 @@ bool CUtil::CheckInclude(char* szStock)
   
     return true;
 
-    if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included with or w/o range
+    if (!strcmp(szStock, theApp.SSettings.szInclude)) // Included with or w/o range
         return true;
 /*
     if ((theApp.SSettings.cBeginRange == '\0') &&  (theApp.SSettings.cEndRange == '\0')) { //  No Range
@@ -268,7 +268,7 @@ bool CUtil::CheckInclude(char* szStock)
     }
 */
     if ((theApp.SSettings.cBeginRange <= *szStock) &&  (theApp.SSettings.cEndRange >= *szStock)) { // In Range
-        if (strcmp(szStock, theApp.SSettings.strExclude)) { // NOT excluded
+        if (strcmp(szStock, theApp.SSettings.szExclude)) { // NOT excluded
             return true;
         }
         else { // In range but excluded

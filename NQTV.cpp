@@ -12,7 +12,7 @@
 CQuantApp::CQuantApp()
 {
 
-  m_SOptions.dwBufferSize = 100000000; // Get from UI
+//  m_SOptions.dwBufferSize = 100000000; // Get from UI
 
 }
 

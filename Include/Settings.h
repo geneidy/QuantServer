@@ -1,10 +1,7 @@
 #pragma once
 
-#include <string>
-#include "Includes.h"
 
-#define SIZE_OF_NAME    31
-#define SIZE_OF_PASSWORD 31
+#include "Includes.h"
 
 // The UI will have controls to fill the struct below.....in addition to the following controls:
 // Start   
@@ -17,11 +14,12 @@ using namespace std;
 typedef struct 
 {
  // Server properties ... This server 
-  string	strServerName;
-  char		szServerName[31];
+//  string	strServerName;
+  char		szServerName[SIZE_OF_FILENAME];
 
   bool		bMemberOfFarm;	// Y/N
-  string	strFarmName;
+//  string	strFarmName;
+  char		szFarmName[SIZE_OF_FILENAME];
   uint		uiFarmPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
   
   int start_stop_pause;
@@ -37,8 +35,8 @@ typedef struct
 
   char 		cBeginRange;  // e.g 'A'  or 'G'
   char 		cEndRange;	
-  char  	strInclude[5];  // include from another range that was excluded from another partition
-  char  	strExclude[5]; 	// Exclude to be included in another partition...eg AAPL
+  char  	szInclude[9];  // include from another range that was excluded from another partition
+  char  	szExclude[9]; 	// Exclude to be included in another partition...eg AAPL
   
   
 // Feed connection parameters case option 0
@@ -54,19 +52,22 @@ typedef struct
   unsigned long	dwBufferSize;
   
 // ODBC connection parameters in case option 3 
-  string  	strConnName;  // from ODBC
+  char  	szConnName[SIZE_OF_FILENAME];  // from ODBC
   char		szDBUserName[SIZE_OF_NAME];
   char		szDBPassword[SIZE_OF_PASSWORD];
  
 // For Test Feed or Replay
-  string	strTestFileName;  // Test file name ...pick from UI dialog
-  string	strPlayBackFileName;  // Test file name ...pick from UI dialog
+//  string	strTestFileName;  // Test file name ...pick from UI dialog
+  char		szTestFileName[SIZE_OF_FILENAME];  // Test file name ...pick from UI dialog  
+//  string	strPlayBackFileName;  // Test file name ...pick from UI dialog
+  char		szPlayBackFileName[SIZE_OF_FILENAME];  // Test file name ...pick from UI dialog  
   uint	  	uiDelay;   // range...percent = 0..99       --  0 = full speed  50 = 1/2 speed  75 = 1/4 speed    // or suggest
   
 // Logging 
   bool 		bLog;  // Y/N
   ushort 	usLoggingLevel;  // 0: Info   1: Errors  2: Warnings  3:All
-  string  	strLogFileName;  // Entry field
+//  string  	strLogFileName;  // Entry field
+  char  	szLogFileName[SIZE_OF_FILENAME];  // Entry field  
   
 // System capacity
   uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
@@ -74,7 +75,11 @@ typedef struct
   uint64_t 	ui64SizeOfTickDataMappedFile; // Will set Default later...
   
   uint64_t	uiQueueSize;
- 
+  
+  bool		g_bConnected;
+  bool		g_bReceiving;
+  int		iStatus;
+
 }SETTINGS;
 
 

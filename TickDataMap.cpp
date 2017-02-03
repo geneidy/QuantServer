@@ -63,13 +63,13 @@ CTickDataMap::CTickDataMap()
             }
             m_pCOrdersMap = NULL;
             m_pCOrdersMap = COrdersMap::instance();
-	    if (m_pCOrdersMap){
-	      Logger::instance().log("Order Map File instance in Tick Data", Logger::Info);
-	    }
-	    else{
-	       m_iError = 200;  // enum later
-	       Logger::instance().log("Error Getting Order Map File instance in Tick Data", Logger::Error);
-	    }
+            if (m_pCOrdersMap) {
+                Logger::instance().log("Order Map File instance in Tick Data", Logger::Info);
+            }
+            else {
+                m_iError = 200;  // enum later
+                Logger::instance().log("Error Getting Order Map File instance in Tick Data", Logger::Error);
+            }
             m_request.tv_sec = 0;
             m_request.tv_nsec = 100000000;   // 1/10 of a second
         }
@@ -87,10 +87,11 @@ void CTickDataMap::InitQueue(CQuantQueue* pQueue)
 CTickDataMap::~CTickDataMap()
 {
     if (m_pCOrdersMap)
-      m_pCOrdersMap->iNInstance--;
-  
-  
+        m_pCOrdersMap->iNInstance--;
+
+
     Logger::instance().log("Start...UnMapping TickDataMap file", Logger::Info);
+    msync(m_addr, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);
     Logger::instance().log("End...UnMapping TickDataMap file", Logger::Info);
 
@@ -165,198 +166,199 @@ uint64_t CTickDataMap::FillMemoryMappedFile()
 // Get Messages from Queue....Save the order Messages and disregard others
 
 // ::TODO Check for the size limitation of the Memory Mapped File
+    while (theApp.SSettings.iStatus != STOPPED) {
+        pItchMessageUnion = (ITCH_MESSAGES_UNION*) m_pQuantQueue->Dequeue(&m_iMessage);
+        if (pItchMessageUnion == NULL) {
+            nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
+//            return m_ui64NumOfTickData;
+        }
 
-    pItchMessageUnion = (ITCH_MESSAGES_UNION*) m_pQuantQueue->Dequeue(&m_iMessage);
-    if (pItchMessageUnion == NULL) {
-        nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
-        return m_ui64NumOfTickData;
-    }
+        // Get Symbol from Orders Map...
 
-    // Get Symbol from Orders Map...
+        memset(&m_pCommonTrade[m_ui64NumOfTickData], '\0', m_iSizeOfCommonOrderRecord);
+        switch (m_iMessage) {
+        case 'E':  // Executed Order  // Tick Data
+            m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            if (!m_pCommonOrder)
+                break;
+/*
+            if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
+                return 0;
+*/
+            m_pCommonTrade[m_ui64NumOfTickData].cMessageType 	= pItchMessageUnion->OrderExecuted.cMessageType;
+            strcpy(m_pCommonTrade[m_ui64NumOfTickData].szStock, m_pCommonOrder->szStock);
+            m_pCommonTrade[m_ui64NumOfTickData].iOrderRefNumber  	= pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
+            m_pCommonTrade[m_ui64NumOfTickData].iShares 		= pItchMessageUnion->OrderExecuted.iShares;
+            m_pCommonTrade[m_ui64NumOfTickData].iTimeStamp 		= pItchMessageUnion->OrderExecuted.iTimeStamp;
+            m_pCommonTrade[m_ui64NumOfTickData].dPrice		= m_pCommonOrder->dPrice;  // ::TODO Revise
 
-    memset(&m_pCommonTrade[m_ui64NumOfTickData], '\0', m_iSizeOfCommonOrderRecord);
-    switch (m_iMessage) {
-    case 'E':  // Executed Order  // Tick Data
-        m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
-        if (!m_pCommonOrder)
+            m_ui64NumOfTickData++;
+
+            m_itTickMap =  m_TickMap.insert(pair< char* , uint64_t>(m_pCommonOrder->szStock, m_ui64NumOfTickData));
+
+            InitFundamentalRecord();
+            clock_gettime(CLOCK_REALTIME, &m_SFundamentalRecord.tLastUpdate);
+            if (m_itFundamentalMap == m_FundamentalMap.end()) { // No Entry Yet
+                // Add a new entry to the Map
+                strcpy(m_SFundamentalRecord.szSymbol, m_pCommonTrade->szStock);
+                m_SFundamentalRecord.dLast 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dOpen 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dHigh 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dLow 	= m_pCommonTrade->dPrice;
+
+                m_SFundamentalRecord.uiTotalNumOfTrades++;
+                m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
+                m_SFundamentalRecord.uiTotalVolume 	+= m_pCommonTrade->iShares;
+
+                RetPairF = m_FundamentalMap.insert(pair<char*, SFUNDAMENTAL_RECORD>(m_pCommonOrder->szStock, m_SFundamentalRecord));
+            }
+            else { //Found it...  Update the map
+
+                if (m_itFundamentalMap->second.dHigh < m_SFundamentalRecord.dLast)  // set dHigh
+                    m_itFundamentalMap->second.dHigh = m_SFundamentalRecord.dLast;
+                if (m_itFundamentalMap->second.dLow > m_SFundamentalRecord.dLast)    // set dLow
+                    m_itFundamentalMap->second.dLow = m_SFundamentalRecord.dLast;
+
+                m_itFundamentalMap->second.uiTotalNumOfTrades++;
+                m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
+                m_itFundamentalMap->second.uiTotalVolume += m_pCommonTrade->iShares;
+                // Update ticks
+                if (m_itFundamentalMap->second.dLast < m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '+';
+                if (m_itFundamentalMap->second.dLast > m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '-';
+                if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '=';
+
+            }
+
             break;
 
-        if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
-            return 0;
+        case 'c': // Executed with price   // Tick Data
+            m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            if (!m_pCommonOrder)
+                break;
+/*
+            if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
+                return 0;
+*/
 
-        m_pCommonTrade[m_ui64NumOfTickData].cMessageType 	= pItchMessageUnion->OrderExecuted.cMessageType;
-        strcpy(m_pCommonTrade[m_ui64NumOfTickData].szStock, m_pCommonOrder->szStock);
-        m_pCommonTrade[m_ui64NumOfTickData].iOrderRefNumber  	= pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
-        m_pCommonTrade[m_ui64NumOfTickData].iShares 		= pItchMessageUnion->OrderExecuted.iShares;
-        m_pCommonTrade[m_ui64NumOfTickData].iTimeStamp 		= pItchMessageUnion->OrderExecuted.iTimeStamp;
-        m_pCommonTrade[m_ui64NumOfTickData].dPrice		= m_pCommonOrder->dPrice;  // ::TODO Revise
+            m_pCommonTrade[m_ui64NumOfTickData].cMessageType 	= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
+            strcpy(m_pCommonTrade[m_ui64NumOfTickData].szStock, m_pCommonOrder->szStock);
 
-        m_ui64NumOfTickData++;
+            m_pCommonTrade[m_ui64NumOfTickData].iOrderRefNumber  	= pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber;
+            m_pCommonTrade[m_ui64NumOfTickData].iShares 		= pItchMessageUnion->OrderExecutedWithPrice.iShares;
+            m_pCommonTrade[m_ui64NumOfTickData].iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
+            m_pCommonTrade[m_ui64NumOfTickData].dPrice		= pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
+            m_ui64NumOfTickData++;
 
-        m_itTickMap =  m_TickMap.insert(pair< char* , uint64_t>(m_pCommonOrder->szStock, m_ui64NumOfTickData));
+            m_itTickMap =  m_TickMap.insert(pair< char* const, uint64_t> (m_pCommonOrder->szStock, m_ui64NumOfTickData));
 
-        InitFundamentalRecord();
-        clock_gettime(CLOCK_REALTIME, &m_SFundamentalRecord.tLastUpdate);
-        if (m_itFundamentalMap == m_FundamentalMap.end()) { // No Entry Yet
-            // Add a new entry to the Map
-            strcpy(m_SFundamentalRecord.szSymbol, m_pCommonTrade->szStock);
-            m_SFundamentalRecord.dLast 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dOpen 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dHigh 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dLow 	= m_pCommonTrade->dPrice;
+            InitFundamentalRecord();
+            clock_gettime(CLOCK_REALTIME, &m_SFundamentalRecord.tLastUpdate);
+            if (m_itFundamentalMap == m_FundamentalMap.end()) { // No Entry Yet
+                // Add a new entry to the Map
+                strcpy(m_SFundamentalRecord.szSymbol, m_pCommonTrade->szStock);
+                m_SFundamentalRecord.dLast 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dOpen 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dHigh 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dLow 	= m_pCommonTrade->dPrice;
 
-            m_SFundamentalRecord.uiTotalNumOfTrades++;
-            m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
-            m_SFundamentalRecord.uiTotalVolume 	+= m_pCommonTrade->iShares;
+                m_SFundamentalRecord.uiTotalNumOfTrades++;
+                m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
+                m_SFundamentalRecord.uiTotalVolume 	+= m_pCommonTrade->iShares;
 
-            RetPairF = m_FundamentalMap.insert(pair<char*, SFUNDAMENTAL_RECORD>(m_pCommonOrder->szStock, m_SFundamentalRecord));
-        }
-        else { //Found it...  Update the map
+                RetPairF =   m_FundamentalMap.insert(pair<char*, SFUNDAMENTAL_RECORD>(m_pCommonOrder->szStock, m_SFundamentalRecord));
+            }
+            else { //Found it...  Update the map
 
-            if (m_itFundamentalMap->second.dHigh < m_SFundamentalRecord.dLast)  // set dHigh
-                m_itFundamentalMap->second.dHigh = m_SFundamentalRecord.dLast;
-            if (m_itFundamentalMap->second.dLow > m_SFundamentalRecord.dLast)    // set dLow
-                m_itFundamentalMap->second.dLow = m_SFundamentalRecord.dLast;
+                if (m_itFundamentalMap->second.dHigh < m_SFundamentalRecord.dLast)  // set dHigh
+                    m_itFundamentalMap->second.dHigh = m_SFundamentalRecord.dLast;
+                if (m_itFundamentalMap->second.dLow > m_SFundamentalRecord.dLast)    // set dLow
+                    m_itFundamentalMap->second.dLow = m_SFundamentalRecord.dLast;
 
-            m_itFundamentalMap->second.uiTotalNumOfTrades++;
-            m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
-            m_itFundamentalMap->second.uiTotalVolume += m_pCommonTrade->iShares;
-            // Update ticks
-            if (m_itFundamentalMap->second.dLast < m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '+';
-            if (m_itFundamentalMap->second.dLast > m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '-';
-            if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '=';
+                m_itFundamentalMap->second.uiTotalNumOfTrades++;
+                m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
+                m_itFundamentalMap->second.uiTotalVolume += m_pCommonTrade->iShares;
 
-        }
-
-        break;
-
-    case 'c': // Executed with price   // Tick Data
-        m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
-        if (!m_pCommonOrder)
+                if (m_itFundamentalMap->second.dLast < m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '+';
+                if (m_itFundamentalMap->second.dLast > m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '-';
+                if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '=';
+            }
             break;
 
-        if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
-            return 0;
+        case 'P' :  // TRADE_NON_CROSS_MESSAGE
+            m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            if (!m_pCommonOrder)
+                break;
+/*
+            if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
+                return 0;
+*/
 
+            m_pCommonTrade[m_ui64NumOfTickData].cMessageType 	= pItchMessageUnion->TradeNonCross.cMessageType;
+            strcpy(m_pCommonTrade[m_ui64NumOfTickData].szStock, m_pCommonOrder->szStock);
 
-        m_pCommonTrade[m_ui64NumOfTickData].cMessageType 	= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
-        strcpy(m_pCommonTrade[m_ui64NumOfTickData].szStock, m_pCommonOrder->szStock);
+            m_pCommonTrade[m_ui64NumOfTickData].iOrderRefNumber  	= pItchMessageUnion->TradeNonCross.iOrderRefNumber;
+            m_pCommonTrade[m_ui64NumOfTickData].iShares 		= pItchMessageUnion->TradeNonCross.iShares;
+            m_pCommonTrade[m_ui64NumOfTickData].iTimeStamp 		= pItchMessageUnion->TradeNonCross.iTimeStamp;
+            m_pCommonTrade[m_ui64NumOfTickData].dPrice		= pItchMessageUnion->TradeNonCross.dPrice;
 
-        m_pCommonTrade[m_ui64NumOfTickData].iOrderRefNumber  	= pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber;
-        m_pCommonTrade[m_ui64NumOfTickData].iShares 		= pItchMessageUnion->OrderExecutedWithPrice.iShares;
-        m_pCommonTrade[m_ui64NumOfTickData].iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
-        m_pCommonTrade[m_ui64NumOfTickData].dPrice		= pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
-        m_ui64NumOfTickData++;
+            m_ui64NumOfTickData++;
+            m_itTickMap =  m_TickMap.insert(pair<char* , uint64_t>(m_pCommonOrder->szStock, m_ui64NumOfTickData));
 
-        m_itTickMap =  m_TickMap.insert(pair< char* const, uint64_t> (m_pCommonOrder->szStock, m_ui64NumOfTickData));
+            InitFundamentalRecord();
+            clock_gettime(CLOCK_REALTIME, &m_SFundamentalRecord.tLastUpdate);
+            if (m_itFundamentalMap == m_FundamentalMap.end()) { // No Entry Yet
+                // Add a new entry to the Map
+                strcpy(m_SFundamentalRecord.szSymbol, m_pCommonTrade->szStock);
+                m_SFundamentalRecord.dLast 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dOpen 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dHigh 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.dLow 	= m_pCommonTrade->dPrice;
 
-        InitFundamentalRecord();
-        clock_gettime(CLOCK_REALTIME, &m_SFundamentalRecord.tLastUpdate);
-        if (m_itFundamentalMap == m_FundamentalMap.end()) { // No Entry Yet
-            // Add a new entry to the Map
-            strcpy(m_SFundamentalRecord.szSymbol, m_pCommonTrade->szStock);
-            m_SFundamentalRecord.dLast 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dOpen 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dHigh 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dLow 	= m_pCommonTrade->dPrice;
+                m_SFundamentalRecord.uiTotalNumOfTrades++;
+                m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
+                m_SFundamentalRecord.uiTotalVolume 	+= m_pCommonTrade->iShares;
 
-            m_SFundamentalRecord.uiTotalNumOfTrades++;
-            m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
-            m_SFundamentalRecord.uiTotalVolume 	+= m_pCommonTrade->iShares;
+                RetPairF =  m_FundamentalMap.insert(pair<char*, SFUNDAMENTAL_RECORD>(m_pCommonOrder->szStock, m_SFundamentalRecord));
+            }
+            else { //Found it...  Update the map
 
-            RetPairF =   m_FundamentalMap.insert(pair<char*, SFUNDAMENTAL_RECORD>(m_pCommonOrder->szStock, m_SFundamentalRecord));
-        }
-        else { //Found it...  Update the map
+                if (m_itFundamentalMap->second.dHigh < m_SFundamentalRecord.dLast)  // set dHigh
+                    m_itFundamentalMap->second.dHigh = m_SFundamentalRecord.dLast;
+                if (m_itFundamentalMap->second.dLow > m_SFundamentalRecord.dLast)    // set dLow
+                    m_itFundamentalMap->second.dLow = m_SFundamentalRecord.dLast;
 
-            if (m_itFundamentalMap->second.dHigh < m_SFundamentalRecord.dLast)  // set dHigh
-                m_itFundamentalMap->second.dHigh = m_SFundamentalRecord.dLast;
-            if (m_itFundamentalMap->second.dLow > m_SFundamentalRecord.dLast)    // set dLow
-                m_itFundamentalMap->second.dLow = m_SFundamentalRecord.dLast;
+                m_itFundamentalMap->second.uiTotalNumOfTrades++;
+                m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
+                m_itFundamentalMap->second.uiTotalVolume += m_pCommonTrade->iShares;
 
-            m_itFundamentalMap->second.uiTotalNumOfTrades++;
-            m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
-            m_itFundamentalMap->second.uiTotalVolume += m_pCommonTrade->iShares;
+                if (m_itFundamentalMap->second.dLast < m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '+';
+                if (m_itFundamentalMap->second.dLast > m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '-';
+                if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
+                    m_itFundamentalMap->second.cTick = '=';
+            }
 
-            if (m_itFundamentalMap->second.dLast < m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '+';
-            if (m_itFundamentalMap->second.dLast > m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '-';
-            if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '=';
-        }
-        break;
-
-    case 'P' :  // TRADE_NON_CROSS_MESSAGE
-        m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
-        if (!m_pCommonOrder)
+            break;
+            //System Event Messages
+            //.....copy the lastest price to the close
+        case 'S': //'E': End of System hours   //'M':  End of Market hours.  //'C':   End of Messages
+            m_pSystemEvent = pItchMessageUnion->SystemEvent;
+            if ((m_pSystemEvent.cEventCode == 'E')|| (m_pSystemEvent.cEventCode == 'M')|| (m_pSystemEvent.cEventCode == 'C')) {
+                for (m_itFundamentalMap= m_FundamentalMap.begin(); m_itFundamentalMap!= m_FundamentalMap.end(); ++m_itFundamentalMap)
+                    m_itFundamentalMap->second.dClose = m_itFundamentalMap->second.dLast;
+            };
             break;
 
-        if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
-            return 0;
-
-
-        m_pCommonTrade[m_ui64NumOfTickData].cMessageType 	= pItchMessageUnion->TradeNonCross.cMessageType;
-        strcpy(m_pCommonTrade[m_ui64NumOfTickData].szStock, m_pCommonOrder->szStock);
-
-        m_pCommonTrade[m_ui64NumOfTickData].iOrderRefNumber  	= pItchMessageUnion->TradeNonCross.iOrderRefNumber;
-        m_pCommonTrade[m_ui64NumOfTickData].iShares 		= pItchMessageUnion->TradeNonCross.iShares;
-        m_pCommonTrade[m_ui64NumOfTickData].iTimeStamp 		= pItchMessageUnion->TradeNonCross.iTimeStamp;
-        m_pCommonTrade[m_ui64NumOfTickData].dPrice		= pItchMessageUnion->TradeNonCross.dPrice;
-
-        m_ui64NumOfTickData++;
-        m_itTickMap =  m_TickMap.insert(pair<char* , uint64_t>(m_pCommonOrder->szStock, m_ui64NumOfTickData));
-
-        InitFundamentalRecord();
-        clock_gettime(CLOCK_REALTIME, &m_SFundamentalRecord.tLastUpdate);
-        if (m_itFundamentalMap == m_FundamentalMap.end()) { // No Entry Yet
-            // Add a new entry to the Map
-            strcpy(m_SFundamentalRecord.szSymbol, m_pCommonTrade->szStock);
-            m_SFundamentalRecord.dLast 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dOpen 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dHigh 	= m_pCommonTrade->dPrice;
-            m_SFundamentalRecord.dLow 	= m_pCommonTrade->dPrice;
-
-            m_SFundamentalRecord.uiTotalNumOfTrades++;
-            m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
-            m_SFundamentalRecord.uiTotalVolume 	+= m_pCommonTrade->iShares;
-
-            RetPairF =  m_FundamentalMap.insert(pair<char*, SFUNDAMENTAL_RECORD>(m_pCommonOrder->szStock, m_SFundamentalRecord));
-        }
-        else { //Found it...  Update the map
-
-            if (m_itFundamentalMap->second.dHigh < m_SFundamentalRecord.dLast)  // set dHigh
-                m_itFundamentalMap->second.dHigh = m_SFundamentalRecord.dLast;
-            if (m_itFundamentalMap->second.dLow > m_SFundamentalRecord.dLast)    // set dLow
-                m_itFundamentalMap->second.dLow = m_SFundamentalRecord.dLast;
-
-            m_itFundamentalMap->second.uiTotalNumOfTrades++;
-            m_SFundamentalRecord.uiVolume       = m_pCommonTrade->iShares;
-            m_itFundamentalMap->second.uiTotalVolume += m_pCommonTrade->iShares;
-
-            if (m_itFundamentalMap->second.dLast < m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '+';
-            if (m_itFundamentalMap->second.dLast > m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '-';
-            if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
-                m_itFundamentalMap->second.cTick = '=';
-        }
-
-        break;
-        //System Event Messages
-        //.....copy the lastest price to the close
-    case 'S': //'E': End of System hours   //'M':  End of Market hours.  //'C':   End of Messages
-        m_pSystemEvent = pItchMessageUnion->SystemEvent;
-        if ((m_pSystemEvent.cEventCode == 'E')|| (m_pSystemEvent.cEventCode == 'M')|| (m_pSystemEvent.cEventCode == 'C')) {
-            for (m_itFundamentalMap= m_FundamentalMap.begin(); m_itFundamentalMap!= m_FundamentalMap.end(); ++m_itFundamentalMap)
-                m_itFundamentalMap->second.dClose = m_itFundamentalMap->second.dLast;
+        default:
+            break;
         };
-        break;
-
-    default:
-        break;
     };
     return m_ui64NumOfTickData;
 }

@@ -40,20 +40,20 @@ public:
 	int		g_iFlag;
 	int		g_iFeedStatus;
 	int		g_iProcessMessageStatus;
-
+/* Moved to settings struct
 	bool		g_bConnected;
 	bool		g_bReceiving;
 	int		iStatus;
-	
-	MYSQL* conn; // pointer to connection handler
+*/	
+//	MYSQL* conn; // pointer to connection handler
 
 	FEED_MESSAGE_STATS	g_Stats;
-	LOCALFILEDATA  		SMemoryMappedFileSSize;
+//	LOCALFILEDATA  		SMemoryMappedFileSSize;
 	
 	std::string	strFeedFileName;
 //	DWORD		dwBufferSize;
 
-	LOB_VIEW_CLT_OPTIONS	m_SOptions;
+//	LOB_VIEW_CLT_OPTIONS	m_SOptions;
 	unsigned long 	g_arrTotalMessages [MAX_MESSAGE_TYPES];
 	unsigned long 	g_arrMessagesPerSec [MAX_MESSAGE_TYPES];
 	unsigned long 	g_arrMaxMessagesPerSec [MAX_MESSAGE_TYPES];

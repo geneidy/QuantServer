@@ -29,8 +29,29 @@ int main(int argc, char **argv)
 
     // open Settings file to fill the Settings structure
 //  cout << "Calling Settings Begin" << endl;
-    LoadSettings();
-    theApp.iStatus = RUNNING;  // ::TODO throw away after the GUI
+    CQSettings* pQSettings = NULL;
+    
+    pQSettings = new CQSettings();
+    if (!pQSettings) {
+       Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
+    }
+    if (pQSettings->GetError() > 0){
+        Logger::instance().log("Error Initializing Settings Object", Logger::Error);
+	exit(EXIT_FAILURE);  //  for the calling process if any
+    }
+    
+    
+    // Do NOT call after starting the client....comment out or delete
+    pQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+    // Do NOT call after starting the client....comment out or delete
+    
+    
+    theApp.SSettings = pQSettings->GetSettings();
+      
+//    LoadSettings();
+    
+    theApp.SSettings.iStatus = RUNNING;  // ::TODO throw away after the GUI
+    
 //    cout << "Calling Settings End" << endl;
     int iRet = 0;
     g_SThreadData.iTotalThreads = 0;
@@ -67,15 +88,15 @@ int main(int argc, char **argv)
 */    
     int jj = 0;
 
-    while (theApp.iStatus != STOPPED) {
+    while (theApp.SSettings.iStatus != STOPPED) {
         jj++;
         sleep(3);
 
 	
-//	if (jj > 200)  // jj* 3 =  seconds
-	if (jj > 50)  // jj* 3 =  seconds
+	if (jj > 200)  // jj* 3 =  seconds
+//	if (jj > 50)  // jj* 3 =  seconds
 //        if (jj > 300)  // jj* 3 =  seconds	
-            theApp.iStatus = STOPPED;
+            theApp.SSettings.iStatus = STOPPED;
     };
 
     int iJoined = 0;
@@ -142,7 +163,7 @@ void*  MainQueue(void* pArg)
     bReady = true;
     pthread_cond_signal(&condMap);  // so Build book to check on pCOrdersMap and decide to return
 
-    while (theApp.iStatus == RUNNING) { //  the last thread to terminate...check with the for loop within the while loop in main
+    while (theApp.SSettings.iStatus == RUNNING) { //  the last thread to terminate...check with the for loop within the while loop in main
         sleep(5);
     }
 
@@ -195,12 +216,14 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCOrdersMap->InitQueue(pQueue);
-    while (theApp.iStatus != STOPPED) {
+/*/    while (theApp.iStatus != STOPPED) {
         if (pCOrdersMap->GetError() > 0)
             break;
         pCOrdersMap->FillMemoryMappedFile();
     };
-
+*/  // The above loop has been moved to the funtion below...with the same condition (theApp.iStatus != STOPPED)
+   uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMappedFile();
+    
     pCOrdersMap->iNInstance--;
     Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
     while (pCOrdersMap->iNInstance > 0) {
@@ -243,12 +266,14 @@ void* TickDataMap(void* pArg)
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCTickDataMap->InitQueue(pQueue);
 
-    while (theApp.iStatus != STOPPED) {
+/*    while (theApp.iStatus != STOPPED) {
         if (pCTickDataMap->GetError() > 0)
             break;
         pCTickDataMap->FillMemoryMappedFile();
     };
-
+*/
+    uint64_t ui64NumberOfTicks =  pCTickDataMap->FillMemoryMappedFile();
+    
     delete pCTickDataMap;
     pCTickDataMap = NULL;
     pthread_mutex_lock(&mtxTick);
@@ -289,7 +314,7 @@ void* BuildBook(void* pArg)
         return NULL;
     }
 
-    while (theApp.iStatus != STOPPED) {
+    while (theApp.SSettings.iStatus != STOPPED) {
         pCBuildBook->BuildBookFromMemoryMappedFile();
     }
     
@@ -445,7 +470,7 @@ void* NasdTestFile(void* pArg)
         return NULL;
     }
 
-    if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.strTestFileName.c_str())) {
+    if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.szTestFileName)) {
         Logger::instance().log("Error Reading From Test File", Logger::Error);
     }
     
@@ -541,21 +566,24 @@ int LoadSettings()
     SETTINGS  SSettings;
 
     Logger::instance().log("Loading Settings", Logger::Info);
+    memset(&SSettings, '\0', sizeof(SETTINGS));
 
     //SSettings.start_stop_pause = 1;
-    SSettings.strServerName = "Main Server";
-    // strcpy(SSettings.szServerName, "Main Server");
+
+    strcpy(SSettings.szServerName, "Main Server");
 
     SSettings.bMemberOfFarm = true;  		//  bool		bMemberOfFarm;	// Y/N
-    SSettings.strFarmName = "Quanticks Ticker Farm 01"; 	//  std::string	strFarmName;
+    strcpy(SSettings.szFarmName,  "Quanticks Ticker Farm 01"); 	//  std::string	strFarmName;
+    
+    
     SSettings.uiFarmPort =  8796; 		//  uint		uiListenOnPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
 
     // Please figure out the mutual exclusive cases ... i.e
     //  Role; array element
 
-// {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-//  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
-
+/* {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
+  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
+*/
 
 //{MainQueue, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk}; 
 
@@ -584,8 +612,8 @@ int LoadSettings()
 // Range for Apple only
     SSettings.cBeginRange = '\0';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
     SSettings.cEndRange = '\0';  		//   int 	iEndRange;
-    strcpy(SSettings.strInclude, "AAPL");		//	char  strInclude[5];  // include from another range that was excluded from another partition
-    strcpy(SSettings.strExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
+    strcpy(SSettings.szInclude, "AAPL    ");		//	char  strInclude[5];  // include from another range that was excluded from another partition
+    strcpy(SSettings.szExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
 
     strcpy(SSettings.szUserName, "UserName");   		//  char		szUserName[SIZE_OF_NAME];
     strcpy(SSettings.szPassword, "Password");	// char		szPassword[SIZE_OF_PASSWORD];
@@ -596,23 +624,23 @@ int LoadSettings()
     SSettings.ulIPAddress1	=  85236;   	//  unsigned long	ulIPAddress1;
     SSettings.uiPort1 		=  8521;  		//  uint		uiPort1;
 
-    SSettings.dwBufferSize 	= 1000000;  		//  unsigned long	dwBufferSize;
+    SSettings.dwBufferSize 	= 10000000;  		//  unsigned long	dwBufferSize;
 
 // ODBC connection parameters in case option 3
-    SSettings.strConnName = "MySqlConnection";    	//  std::string  	strConnName;  // from ODBC
+    strcpy(SSettings.szConnName, "MySqlConnection");    	//  std::string  	strConnName;  // from ODBC
     strcpy(SSettings.szDBUserName, "MySqlUserName");  	//  char		szDBUserName[SIZE_OF_NAME];
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
 //    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
-    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"; // The big file!!!!
+    strcpy(SSettings.szTestFileName , "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"); // The big file!!!!
 
-    SSettings.strPlayBackFileName = "Play Back File Name";  // Test file name ...pick from UI dialog
+    strcpy(SSettings.szPlayBackFileName, "Play Back File Name");  // Test file name ...pick from UI dialog
 
 
     SSettings.uiDelay = 50;    		//  uint	  uiDelay;   // range...percent = 0..99       --  0 = full speed  50 = 1/2 speed  75 = 1/4 speed    // or suggest
 
     SSettings.bLog = true; 		//  ushort 	usLoggingLevel;  // 0: Info   1: Errors  2: Warnings  3:All
-    SSettings.strLogFileName = "Log File Name";  	// std::string  	strLogFileName;  // Entry field
+    strcpy(SSettings.szLogFileName,  "Log File Name");  	// std::string  	strLogFileName;  // Entry field
 
     SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
