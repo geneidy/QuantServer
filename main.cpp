@@ -26,34 +26,10 @@ int main(int argc, char **argv)
     using namespace std;
 
     Logger::instance().log("Starting Server", Logger::Debug);
-
-    // open Settings file to fill the Settings structure
-//  cout << "Calling Settings Begin" << endl;
-    CQSettings* pQSettings = NULL;
+    g_bSettingsLoaded = false;
     
-    pQSettings = new CQSettings();
-    if (!pQSettings) {
-       Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
-    }
-    if (pQSettings->GetError() > 0){
-        Logger::instance().log("Error Initializing Settings Object", Logger::Error);
-	exit(EXIT_FAILURE);  //  for the calling process if any
-    }
-    
-    
-    // Do NOT call after starting the client....comment out or delete
-    pQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
-    // Do NOT call after starting the client....comment out or delete
-    
-    
-    theApp.SSettings = pQSettings->GetSettings();
-      
-//    LoadSettings();
-    
-    theApp.SSettings.iStatus = RUNNING;  // ::TODO throw away after the GUI
-    
-//    cout << "Calling Settings End" << endl;
     int iRet = 0;
+    
     g_SThreadData.iTotalThreads = 0;
     pthread_mutex_lock(&mtxQueue);
 
@@ -80,19 +56,12 @@ int main(int argc, char **argv)
     };
     pthread_mutex_unlock(&mtxQueue);
 
-/*
-    unsigned int uix = 100;
-    unsigned int uiy = 200;
-    unsigned int uiz = uix - uiy;
-    cout << "Result of " << uix << "-" << uiy << " = " << uiz;
-*/    
     int jj = 0;
 
     while (theApp.SSettings.iStatus != STOPPED) {
         jj++;
         sleep(3);
 
-	
 	if (jj > 200)  // jj* 3 =  seconds
 //	if (jj > 50)  // jj* 3 =  seconds
 //        if (jj > 300)  // jj* 3 =  seconds	
@@ -100,8 +69,8 @@ int main(int argc, char **argv)
     };
 
     int iJoined = 0;
-
     string strExitMessage;
+
     while (iJoined < g_SThreadData.iTotalThreads) {
         // keep on checking for all terminated threads every three seconds
 
@@ -129,6 +98,55 @@ int main(int argc, char **argv)
     Logger::instance().log("Destroyed conditional variable", Logger::Debug);
     Logger::instance().log("Normal Termination", Logger::Debug);
     return 0;
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+void* Settings(void* pArg)
+{
+  
+    // 	open Settings file to fill the Settings structure
+    //  cout << "Calling Settings Begin" << endl;
+  
+    pthread_mutex_lock(&mtxTick);
+    THREAD_DATA SThreadData;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+
+    InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+    
+  
+    pCQSettings = NULL;
+    pCQSettings= new CQSettings();
+    
+    if (!pCQSettings) {
+       Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
+    }
+    if (pCQSettings->GetError() > 0){
+        Logger::instance().log("Error Initializing Settings Object", Logger::Error);
+	exit(EXIT_FAILURE);  //  for the calling process if any
+    }
+
+    // Do NOT call after starting the client....comment out or delete
+    pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+    // Do NOT call after starting the client....comment out or delete
+    g_bSettingsLoaded = true;
+    
+    while (pCQSettings->GetSettings().iStatus == RUNNING){
+      sleep(1);
+    }
+    
+    theApp.SSettings.iStatus = STOPPED;
+    
+    delete pCQSettings;
+    pCQSettings = NULL;
+    
+    pthread_mutex_lock(&mtxTick);
+    TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    return  NULL;
+  
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
@@ -171,6 +189,7 @@ void*  MainQueue(void* pArg)
     
     delete pCQuantQueue;
     pCQuantQueue = NULL;
+    
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -559,108 +578,6 @@ void TermThreadLog(int idx)
 
     Logger::instance().log(strLogMessage, Logger::Info);
     arrThreadInfo[idx].eState = TS_TERMINATED;
-}
-///////////////////////////////////////////////////////////////
-int LoadSettings()
-{
-    SETTINGS  SSettings;
-
-    Logger::instance().log("Loading Settings", Logger::Info);
-    memset(&SSettings, '\0', sizeof(SETTINGS));
-
-    //SSettings.start_stop_pause = 1;
-
-    strcpy(SSettings.szServerName, "Main Server");
-
-    SSettings.bMemberOfFarm = true;  		//  bool		bMemberOfFarm;	// Y/N
-    strcpy(SSettings.szFarmName,  "Quanticks Ticker Farm 01"); 	//  std::string	strFarmName;
-    
-    
-    SSettings.uiFarmPort =  8796; 		//  uint		uiListenOnPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
-
-    // Please figure out the mutual exclusive cases ... i.e
-    //  Role; array element
-
-/* {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
-*/
-
-//{MainQueue, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk}; 
-
-    SSettings.iarrRole[0] = 1;   		//  0= Main Queue
-    SSettings.iarrRole[1] = 0;   		//  0= Receive Feed
-    SSettings.iarrRole[2] = 0;   		//  1= Parse
-    SSettings.iarrRole[3] = 1;   		//  2= Orders Map
-    SSettings.iarrRole[4] = 1;   		//  3= Build Book
-    SSettings.iarrRole[5] = 0;   		//  4= Tick Data
-    SSettings.iarrRole[6] = 0;   		//  5= Save to DB
-    SSettings.iarrRole[7] = 0;   		//  6= Play back
-
-    SSettings.iarrRole[8] = 1;   		//  7= Test File
-    SSettings.iarrRole[9] = 0;   		//  8= Distributor
-    SSettings.iarrRole[10]= 0;   		//  9= Save to Disk
-
-    SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
-
-    SSettings.bPartitionActive = true;  		//  bool  bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
-    /* Range for all Ex AAPL
-        SSettings.iBeginRange = 'A';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
-        SSettings.iEndRange = 'Z';  		//   int 	iEndRange;
-        *SSettings.strInclude = '\0';		//	char  strInclude[5];  // include from another range that was excluded from another partition
-        strcpy(SSettings.strExclude, "AAPL");  		// char  strExclude[5]; 	// Exclude to be included in another partition
-    */
-// Range for Apple only
-    SSettings.cBeginRange = '\0';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
-    SSettings.cEndRange = '\0';  		//   int 	iEndRange;
-    strcpy(SSettings.szInclude, "AAPL    ");		//	char  strInclude[5];  // include from another range that was excluded from another partition
-    strcpy(SSettings.szExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
-
-    strcpy(SSettings.szUserName, "UserName");   		//  char		szUserName[SIZE_OF_NAME];
-    strcpy(SSettings.szPassword, "Password");	// char		szPassword[SIZE_OF_PASSWORD];
-
-    SSettings.ulIPAddress 	=  1234567;  	//  unsigned long	ulIPAddress;
-    SSettings.uiPort 		=  8743 ;		//  uint 		uiPort;
-
-    SSettings.ulIPAddress1	=  85236;   	//  unsigned long	ulIPAddress1;
-    SSettings.uiPort1 		=  8521;  		//  uint		uiPort1;
-
-    SSettings.dwBufferSize 	= 10000000;  		//  unsigned long	dwBufferSize;
-
-// ODBC connection parameters in case option 3
-    strcpy(SSettings.szConnName, "MySqlConnection");    	//  std::string  	strConnName;  // from ODBC
-    strcpy(SSettings.szDBUserName, "MySqlUserName");  	//  char		szDBUserName[SIZE_OF_NAME];
-    strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
-
-//    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
-    strcpy(SSettings.szTestFileName , "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"); // The big file!!!!
-
-    strcpy(SSettings.szPlayBackFileName, "Play Back File Name");  // Test file name ...pick from UI dialog
-
-
-    SSettings.uiDelay = 50;    		//  uint	  uiDelay;   // range...percent = 0..99       --  0 = full speed  50 = 1/2 speed  75 = 1/4 speed    // or suggest
-
-    SSettings.bLog = true; 		//  ushort 	usLoggingLevel;  // 0: Info   1: Errors  2: Warnings  3:All
-    strcpy(SSettings.szLogFileName,  "Log File Name");  	// std::string  	strLogFileName;  // Entry field
-
-    SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
-    SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
-    SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
-    SSettings.uiQueueSize = 50000000;  // 25 Million elements
-
-    theApp.SSettings = SSettings;
-    return 0;
-}
-///////////////////////////////////////////////////////////////
-int SaveSettings()
-{
-    int	iNumberOfBytes = 0;
-    int iHandle = open("QTSrvSettings.ini", O_RDWR );
-    if (iHandle)
-    {
-        iNumberOfBytes = write( iHandle, &theApp.SSettings, sizeof(SETTINGS));
-        close(iHandle);
-    }
-    return 0;
 }
 ///////////////////////////////////////////////////////////////
 static void *NQTVFunction(void* ptr)

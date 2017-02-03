@@ -14,7 +14,7 @@
 
 typedef struct _IndexRecord {
   
-  char		szSymbol[5];
+  char		szSymbol[SIZE_OF_SYMBOL];
   double	dLast;  
   double	dOpen;  
   double	dClose;  

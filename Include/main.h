@@ -19,38 +19,37 @@
 #include  "ReceiveITCH.h"
 #include  "QuantQueue.h"
 
-int SaveSettings();
-int LoadSettings();
-// int GUI();
-
 enum tstate {
-  TS_INACTIVE,
-  TS_STARTING,
-  TS_STARTED,
-  TS_ALIVE,
-  TS_TERMINATED,
-  TS_JOINED
+    TS_INACTIVE,
+    TS_STARTING,
+    TS_STARTED,
+    TS_ALIVE,
+    TS_TERMINATED,
+    TS_JOINED
 };
 
 typedef struct ThreadData {
-  int idx;
-  void* pVoid;
-  int  iTotalThreads;
-  CQuantQueue *g_pCQuantQueue;
-}THREAD_DATA;
+    int 	idx;
+    void* 	pVoid;
+    int  	iTotalThreads;
+    CQuantQueue *g_pCQuantQueue;
+} THREAD_DATA;
 
 THREAD_DATA g_SThreadData;
 
+bool	g_bSettingsLoaded;
+
 typedef struct thread_info
-{    /* Used as argument to thread_start() */
-  pthread_t thread_id;        /* ID returned by pthread_create() */
-  enum tstate eState;
-  int       iThread_num;       /* Application-defined thread # */
-  char     *thread_message;      /* Saying Hello */
-}THREAD_INFO;
+{   /* Used as argument to thread_start() */
+    pthread_t 	thread_id;        /* ID returned by pthread_create() */
+    enum 	tstate eState;
+    int       	iThread_num;       /* Application-defined thread # */
+    char     	*thread_message;      /* Saying Hello */
+} THREAD_INFO;
 
 THREAD_INFO arrThreadInfo[NUMBER_OF_ROLES];
 //////////////////////////////////////
+void  *Settings(void* );
 void *MainQueue(void* );
 //////////////////////////////////////
 
@@ -61,9 +60,9 @@ void *SaveToDB(void*);
 void *PlayBack(void*);
 
 void *NasdTestFile(void*);
-void *Distributor(void* pArg);
+void *Distributor(void* );
 void *SaveToDisk(void*);
-void *OrdersMap(void* pArg);
+void *OrdersMap(void* );
 void *TickDataMap(void*);
 
 void InitThreadLog(int);
@@ -71,26 +70,29 @@ void TermThreadLog(int);
 
 
 void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
-{MainQueue, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
+{MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
 
 const char *ThreadMessage[NUMBER_OF_ROLES ] = \
- {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
-  
+{   "Settings Thread", "Main Queue Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
+    "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"
+};
+
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-  CSaveToDisk* 	pCSaveToDisk;
-  CSaveToDB* 	pCSaveToDB;  
-  CBuildBook* 	pCBuildBook;
-  COrdersMap* 	pCOrdersMap;
-  CTickDataMap* pCTickDataMap;
-  CReceiveITCH* pCReceiveITCH;
-  CQuantQueue * pCQuantQueue;
-  
+CSaveToDisk* 	pCSaveToDisk;
+CSaveToDB* 	pCSaveToDB;
+CBuildBook* 	pCBuildBook;
+COrdersMap* 	pCOrdersMap;
+CTickDataMap* pCTickDataMap;
+CReceiveITCH* pCReceiveITCH;
+CQuantQueue * pCQuantQueue;
+
+CQSettings*   pCQSettings;
+
 #ifdef __cplusplus
 } // extern "C"
-#endif 
- 
+#endif
+
