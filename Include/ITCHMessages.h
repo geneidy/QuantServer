@@ -46,15 +46,7 @@ extern char *SYSTEM_EVENT_CODES [SYSTEM_EVENT_CODES_SIZE][SYSTEM_EVENT_CODES_SIZ
 
 #define NAME_LENGTH	256
 #define	SIZE_OF_KEY				39
-/*
-typedef struct
-{
-	struct _timeb tRecv;
-	struct _timeb tInBookServer;
-	struct _timeb tRecvClient;
-	struct _timeb tRecvInBookClient;
-}MSG_TIME;
-*/
+
 typedef struct  //uint64_t u64_t
 {								//Name	Offset	Length	Value	Notes
 	char			cMessageType;			//Message  Type	0	1	“S”	System Event Message.

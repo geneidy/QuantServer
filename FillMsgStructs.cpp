@@ -196,7 +196,8 @@ int  CFillMsgStructs::SystemEvent(UINT8* uiMsg)
     m_IMUSys.SystemEvent.iTrackingNumber = m_pCUtil->GetValueUnsignedLong(uiMsg, 3, 2);
     m_IMUSys.SystemEvent.iTimeStamp = m_pCUtil->GetValueUnsignedInt64(uiMsg, 5, 6);
     m_IMUSys.SystemEvent.cEventCode = m_pCUtil->GetValueChar(uiMsg, 11 ,1);
-
+    
+    theApp.SSettings.iSystemEventCode = m_IMUSys.SystemEvent.cEventCode; // Available System Wide
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'S');

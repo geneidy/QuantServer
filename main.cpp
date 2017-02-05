@@ -27,9 +27,9 @@ int main(int argc, char **argv)
 
     Logger::instance().log("Starting Server", Logger::Debug);
     g_bSettingsLoaded = false;
-    
+
     int iRet = 0;
-    
+
     g_SThreadData.iTotalThreads = 0;
     pthread_mutex_lock(&mtxQueue);
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 //        g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
         arrThreadInfo[ii].iThread_num = ii ;
         iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &g_SThreadData);
-	sleep(1);
+        sleep(1);
         g_SThreadData.iTotalThreads++;
         arrThreadInfo[ii].eState = TS_ALIVE;
         if(iRet)
@@ -62,9 +62,9 @@ int main(int argc, char **argv)
         jj++;
         sleep(3);
 
-	if (jj > 200)  // jj* 3 =  seconds
+        if (jj > 200)  // jj* 3 =  seconds
 //	if (jj > 50)  // jj* 3 =  seconds
-//        if (jj > 300)  // jj* 3 =  seconds	
+//        if (jj > 300)  // jj* 3 =  seconds
             theApp.SSettings.iStatus = STOPPED;
     };
 
@@ -102,10 +102,10 @@ int main(int argc, char **argv)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* Settings(void* pArg)
 {
-  
+
     // 	open Settings file to fill the Settings structure
     //  cout << "Calling Settings Begin" << endl;
-  
+
     pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
 
@@ -114,39 +114,39 @@ void* Settings(void* pArg)
 
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
-    
-  
+
+
     pCQSettings = NULL;
     pCQSettings= new CQSettings();
-    
+
     if (!pCQSettings) {
-       Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
+        Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
     }
-    if (pCQSettings->GetError() > 0){
+    if (pCQSettings->GetError() > 0) {
         Logger::instance().log("Error Initializing Settings Object", Logger::Error);
-	exit(EXIT_FAILURE);  //  for the calling process if any
+        exit(EXIT_FAILURE);  //  for the calling process if any
     }
 
     // Do NOT call after starting the client....comment out or delete
     pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
     // Do NOT call after starting the client....comment out or delete
     g_bSettingsLoaded = true;
-    
-    while (pCQSettings->GetSettings().iStatus == RUNNING){
-      sleep(1);
+
+    while (pCQSettings->GetSettings().iStatus == RUNNING) {
+        sleep(1);
     }
-    
+
     theApp.SSettings.iStatus = STOPPED;
-    
+
     delete pCQSettings;
     pCQSettings = NULL;
-    
+
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
     return  NULL;
-  
+
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
@@ -161,7 +161,7 @@ void*  MainQueue(void* pArg)
 
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
-    
+
     pCQuantQueue = NULL;
     pCQuantQueue = CQuantQueue::Instance();
 
@@ -170,9 +170,9 @@ void*  MainQueue(void* pArg)
         Logger::instance().log("Error Constructing Queue...Aborting", Logger::Error);
 //        delete pCQuantQueue;
 //        pCQuantQueue = NULL;
-	pthread_mutex_lock(&mtxTick);
+        pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
-	pthread_mutex_unlock(&mtxTick);
+        pthread_mutex_unlock(&mtxTick);
         exit(EXIT_FAILURE);
     }
 
@@ -186,10 +186,10 @@ void*  MainQueue(void* pArg)
     }
 
     pCQuantQueue->ListQStats();
-    
+
     delete pCQuantQueue;
     pCQuantQueue = NULL;
-    
+
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -201,7 +201,7 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 {
 
     pthread_mutex_lock(&mtxTick);
-    
+
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -217,9 +217,9 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 
     if (!pCOrdersMap) {
         Logger::instance().log("Error Creating Orders Map Object", Logger::Error);
-	pthread_mutex_lock(&mtxTick);
+        pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
-	pthread_mutex_unlock(&mtxTick);
+        pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
@@ -227,22 +227,22 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
         delete pCOrdersMap;
         pCOrdersMap = NULL;
         Logger::instance().log("Error in Constructing Orders Map", Logger::Error);
-	pthread_mutex_lock(&mtxTick);
+        pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
-	pthread_mutex_unlock(&mtxTick);
+        pthread_mutex_unlock(&mtxTick);
         return NULL;  //  can't build a book w/o Memory Mappings
     }
 
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCOrdersMap->InitQueue(pQueue);
-/*/    while (theApp.iStatus != STOPPED) {
-        if (pCOrdersMap->GetError() > 0)
-            break;
-        pCOrdersMap->FillMemoryMappedFile();
-    };
-*/  // The above loop has been moved to the funtion below...with the same condition (theApp.iStatus != STOPPED)
-   uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMappedFile();
-    
+    /*/    while (theApp.iStatus != STOPPED) {
+            if (pCOrdersMap->GetError() > 0)
+                break;
+            pCOrdersMap->FillMemoryMappedFile();
+        };
+    */  // The above loop has been moved to the funtion below...with the same condition (theApp.iStatus != STOPPED)
+    uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMappedFile();
+
     pCOrdersMap->iNInstance--;
     Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
     while (pCOrdersMap->iNInstance > 0) {
@@ -274,7 +274,7 @@ void* TickDataMap(void* pArg)
 
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
-    
+
     pCTickDataMap = new CTickDataMap;
 
     if (!pCTickDataMap) {
@@ -285,14 +285,14 @@ void* TickDataMap(void* pArg)
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCTickDataMap->InitQueue(pQueue);
 
-/*    while (theApp.iStatus != STOPPED) {
-        if (pCTickDataMap->GetError() > 0)
-            break;
-        pCTickDataMap->FillMemoryMappedFile();
-    };
-*/
+    /*    while (theApp.iStatus != STOPPED) {
+            if (pCTickDataMap->GetError() > 0)
+                break;
+            pCTickDataMap->FillMemoryMappedFile();
+        };
+    */
     uint64_t ui64NumberOfTicks =  pCTickDataMap->FillMemoryMappedFile();
-    
+
     delete pCTickDataMap;
     pCTickDataMap = NULL;
     pthread_mutex_lock(&mtxTick);
@@ -306,7 +306,7 @@ void* BuildBook(void* pArg)
 {
 
     pthread_mutex_lock(&mtxTick);
-    
+
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -336,15 +336,15 @@ void* BuildBook(void* pArg)
     while (theApp.SSettings.iStatus != STOPPED) {
         pCBuildBook->BuildBookFromMemoryMappedFile();
     }
-    
+
     pCBuildBook->ListBook("MSFT    ");
     pCBuildBook->ListBook("INTC    ");
     pCBuildBook->ListBook("GOOG    ");
-    
+
 
     delete pCBuildBook;
     pCBuildBook = NULL;
-    
+
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -376,8 +376,8 @@ void* ReceiveFeed(void* pArg)
 void* ParseFeed(void* pArg)
 {
 
-    pthread_mutex_lock(&mtxTick);  
-    
+    pthread_mutex_lock(&mtxTick);
+
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -388,7 +388,7 @@ void* ParseFeed(void* pArg)
     InitThreadLog(idx);    // Calls to functions and threads go here
     pthread_mutex_unlock(&mtxTick);
 
-    
+
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -415,9 +415,9 @@ void* SaveToDB(void* pArg)
     // Call the worker thread here and check for !STOPPED
     // The worker thread has to check for the availability of the Memory Mapped Files ....Check here before you continue
     if (pCSaveToDB == NULL) {
-          pthread_mutex_lock(&mtxTick);
+        pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
-	pthread_mutex_unlock(&mtxTick);
+        pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
@@ -448,7 +448,7 @@ void* PlayBack(void* pArg)
 
     // Call Object Methods here
     //
-        pthread_mutex_lock(&mtxTick);
+    pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
     return pArg;
@@ -458,7 +458,7 @@ void* NasdTestFile(void* pArg)
 {
 
     pthread_mutex_lock(&mtxTick);
-    
+
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -474,30 +474,30 @@ void* NasdTestFile(void* pArg)
 
     if (!pCReceiveITCH) {
         Logger::instance().log("Error Creating ReceiveITCH Object", Logger::Error);
-	pthread_mutex_lock(&mtxTick);
+        pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
-	pthread_mutex_unlock(&mtxTick);
+        pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
     if (pCReceiveITCH->GetError() == 100) {
         Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
-	pthread_mutex_lock(&mtxTick);
+        pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
-	pthread_mutex_unlock(&mtxTick);
+        pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
     if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.szTestFileName)) {
         Logger::instance().log("Error Reading From Test File", Logger::Error);
     }
-    
+
     if (pCReceiveITCH) {
         delete pCReceiveITCH;
         pCReceiveITCH = NULL;
     }
-    
+
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -518,7 +518,7 @@ void *Distributor(void* pArg)
 
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
-    
+
     // Calls to functions and threads go here
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
@@ -537,10 +537,10 @@ void* SaveToDisk(void* pArg)
     int idx = SThreadData.idx;
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
-    
+
     /*   pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
 
-    
+
 
        pCSaveToDisk = NULL;
 

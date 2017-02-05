@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <map>
 
+#include "time.h"
+
 #include "ITCHMessages.h"
 #include "OrdersMap.h"
 #include "QuantQueue.h"
@@ -46,6 +48,28 @@ typedef struct SBidAsk
     SBidAsk* 	pNextBidAsk;		// for the linked list
 } SBID_ASK;
 
+typedef struct _OHLC {
+  
+  double	dLast;  
+  double	dOpen;  
+  double	dClose;  
+  double	dHigh;
+  double	dLow;
+  uint32_t	uiVolume;
+  int		cTick;  // '+'  '-'  '='
+
+  double	dVWAP;
+  uint64_t	uiNumOfTradesWithPrice;
+  uint64_t	uiNumOfTradesNoPrice; 
+  uint64_t	uiTotalVolume;
+  uint64_t	uiTotalNumOfTrades; 
+  
+  struct timeval	tOpen;
+  struct timeval	tLastUpdate;
+  
+}OHLC;
+
+
 typedef struct _BookLevels  // Per Symbol
 {
     SBID_ASK*	pTopBid;
@@ -53,6 +77,9 @@ typedef struct _BookLevels  // Per Symbol
 
     uint16_t	m_iBidLevels;
     uint16_t	m_iAskLevels;
+
+    OHLC        m_OHLC;
+    
 } SBOOK_LEVELS;
 
 // typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
@@ -139,6 +166,7 @@ public:
 //    int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
 
     SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);
+    void  InitOHLC();
     SBOOK_LEVELS	m_pBook;
 
     SBID_ASK*	m_pTopBid;

@@ -289,6 +289,7 @@ int CBuildBook::ProcessAdd(int iMessage)
         m_pBook.m_iBidLevels 	= 0;
         m_pBook.pTopAsk     	= NULL;
         m_pBook.pTopBid     	= NULL;
+        InitOHLC();
     }
 
     if ((m_dPrice == 0) || (m_uiQty == 0)) {
@@ -307,7 +308,7 @@ int CBuildBook::ProcessAdd(int iMessage)
     strcpy(m_szMPID, m_pCommonOrder->szMPID);
 
     if (m_pCommonOrder->cBuySell == 'B')  { // bid to buy
-    
+
         // Case 1: A fresh bucket with nothing in
         if (m_pBook.pTopBid == NULL) {  // Empty list
             lpInsert = AllocateNode(m_dPrice, m_uiQty);  // check for NULL
@@ -353,7 +354,7 @@ int CBuildBook::ProcessAdd(int iMessage)
                 if (m_dPrice > lpCurrent->dPrice) {   // new price level
                     lpInsert = AllocateNode(m_dPrice, m_uiQty);
                     bBidInserted = true;
-                    bFound = true;		    
+                    bFound = true;
                     m_pBook.m_iBidLevels++;
 
                     if (lpPrevious == lpCurrent) { // insert at the top of the list 	(1)
@@ -369,9 +370,9 @@ int CBuildBook::ProcessAdd(int iMessage)
                 lpPrevious = lpCurrent;
                 lpCurrent = lpCurrent->pNextBidAsk;
             }//while (lpCurrent != NULL)
-            
+
             // Case 3: New price level at the bottom of the list
-            if ((lpCurrent == NULL) && (!bFound)){    					// (4)
+            if ((lpCurrent == NULL) && (!bFound)) {    					// (4)
                 lpInsert = AllocateNode(m_dPrice, m_uiQty);
                 bBidInserted = true;
                 m_pBook.m_iBidLevels++;
@@ -428,7 +429,7 @@ int CBuildBook::ProcessAdd(int iMessage)
                 if (m_dPrice < lpCurrent->dPrice) {   // new price level
                     lpInsert = AllocateNode(m_dPrice, m_uiQty);
                     bAskInserted = true;
-                    bFound = true;		    
+                    bFound = true;
                     m_pBook.m_iAskLevels++;
 
                     if (lpPrevious == lpCurrent) { // insert at the top of the list 	(1)
@@ -444,9 +445,9 @@ int CBuildBook::ProcessAdd(int iMessage)
                 lpPrevious = lpCurrent;
                 lpCurrent = lpCurrent->pNextBidAsk;
             }//while (lpCurrent != NULL)
-            
+
             // Case 3: New price level at the bottom of the list
-            if ((lpCurrent == NULL) && (!bFound)){    					// (4)
+            if ((lpCurrent == NULL) && (!bFound)) {    					// (4)
                 lpInsert = AllocateNode(m_dPrice, m_uiQty);
                 bAskInserted = true;
                 m_pBook.m_iAskLevels++;
@@ -481,6 +482,27 @@ int CBuildBook::ProcessDelete(int iIn)
     m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
     if (m_itBookMap != m_BookMap.end()) {  // found
         m_pBook = m_itBookMap->second;  // Fetch the book for this stock
+
+        if ((m_iMessage == 'E' ) || (m_iMessage == 'c' )) {  	// Order executed
+            m_pBook.m_OHLC.dLast 	= m_dPrice;
+            if ((theApp.SSettings.iSystemEventCode == 'Q') && (m_pBook.m_OHLC.dOpen == 0))  {
+                m_pBook.m_OHLC.dOpen 	= m_dPrice;
+		gettimeofday(&m_pBook.m_OHLC.tOpen, NULL);
+            }
+
+            if ((theApp.SSettings.iSystemEventCode == 'M') && (m_pBook.m_OHLC.dClose == 0))  {
+                m_pBook.m_OHLC.dClose 	= m_dPrice;
+            }
+            if (m_pBook.m_OHLC.dHigh < m_pBook.m_OHLC.dLast)  // set dHigh
+                m_pBook.m_OHLC.dHigh = m_pBook.m_OHLC.dLast;
+            if (m_pBook.m_OHLC.dLow > m_pBook.m_OHLC.dLast)    // set dLow
+                m_pBook.m_OHLC.dLow = m_pBook.m_OHLC.dLast;
+
+            m_pBook.m_OHLC.uiTotalNumOfTrades++;
+            m_pBook.m_OHLC.uiVolume       	= m_uiQty;
+            m_pBook.m_OHLC.uiTotalVolume 	+= m_uiQty;
+	    gettimeofday(&m_pBook.m_OHLC.tLastUpdate, NULL);
+        }
     }
     else { // else Error....should not happen
         m_strMsg = "Build Book...Error Deleting Order in Book..Symbol: ";
@@ -497,6 +519,9 @@ int CBuildBook::ProcessDelete(int iIn)
         Logger::instance().log(m_strMsg, Logger::Error);
         return 0;
     }
+
+
+
     memset(m_szMPID, '\0', 5);
     strcpy(m_szMPID, m_pCommonOrder->szMPID);
 
@@ -605,6 +630,27 @@ SBID_ASK* CBuildBook::AllocateNode(double dPrice, unsigned int uiQty)
     	lpNewNode->SLevelStat.uiReplaced 	= 0;
     */
     return lpNewNode;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+void CBuildBook::InitOHLC()
+{
+    m_pBook.m_OHLC.dLast 	= 0;
+    m_pBook.m_OHLC.dOpen 	= 0;
+    m_pBook.m_OHLC.dHigh 	= 0;
+    m_pBook.m_OHLC.dLow 	= 0;
+
+    m_pBook.m_OHLC.uiTotalNumOfTrades 	= 0;
+    m_pBook.m_OHLC.uiVolume       	= 0;
+    m_pBook.m_OHLC.uiTotalVolume 	= 0;
+
+    m_pBook.m_OHLC.cTick = '=';  // '+'  '-'  '='
+    m_pBook.m_OHLC.dVWAP = 0;
+
+
+    gettimeofday(&m_pBook.m_OHLC.tOpen, NULL);
+    gettimeofday(&m_pBook.m_OHLC.tLastUpdate, NULL);
+
 }
 ///////////////////////////////////////////////////////////////////////////////////////
 string CBuildBook::MakeKey() // NOT needed in this version

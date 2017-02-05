@@ -9,22 +9,18 @@
 // Pause
 // Resume
 
-using namespace std;
 
 typedef struct 
 {
  // Server properties ... This server 
-//  string	strServerName;
+
   char		szServerName[SIZE_OF_FILENAME];
 
   bool		bMemberOfFarm;	// Y/N
-//  string	strFarmName;
   char		szFarmName[SIZE_OF_FILENAME];
   uint		uiFarmPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
   
   int start_stop_pause;
-
-// Server Role ... Check Boxes
   int 		iarrRole[NUMBER_OF_ROLES];  // Get it from enum   0= Receive Feed  1= Parse  2= Build Book  3= Save to DB    4= Play Back  5= Distributor
 
   uint 		uiDistListenOnPort;  // Case Y above....listen on which Port? (range  5000...65000)
@@ -57,16 +53,14 @@ typedef struct
   char		szDBPassword[SIZE_OF_PASSWORD];
  
 // For Test Feed or Replay
-//  string	strTestFileName;  // Test file name ...pick from UI dialog
+
   char		szTestFileName[SIZE_OF_FILENAME];  // Test file name ...pick from UI dialog  
-//  string	strPlayBackFileName;  // Test file name ...pick from UI dialog
   char		szPlayBackFileName[SIZE_OF_FILENAME];  // Test file name ...pick from UI dialog  
   uint	  	uiDelay;   // range...percent = 0..99       --  0 = full speed  50 = 1/2 speed  75 = 1/4 speed    // or suggest
   
 // Logging 
   bool 		bLog;  // Y/N
   ushort 	usLoggingLevel;  // 0: Info   1: Errors  2: Warnings  3:All
-//  string  	strLogFileName;  // Entry field
   char  	szLogFileName[SIZE_OF_FILENAME];  // Entry field  
   
 // System capacity
@@ -79,7 +73,16 @@ typedef struct
   bool		g_bConnected;
   bool		g_bReceiving;
   int		iStatus;
-
+  int 		iSystemEventCode;  /*/ Get it from System Event Message from the parser....Make it global to know when the system
+		Started or closed to set the Open and Close Price.....
+	{"O", "Start of Messages. Outside of time stamp messages, the start of day message is the first message sent in any trading day"},
+	{"S",  "Start of System hours. This message indicates that NASDAQ is open and ready to start accepting orders"},
+	{"Q",  "Start of Market hours. This message is intended to indicate that Market Hours orders are available for execution"},
+	{"M",  "End of Market hours. This message is intended to indicate that Market Hours orders are no longer available for execution"},
+	{"E",   "End of System hours. It indicates that NASDAQ is now closed and will not accept any new orders today. It is still possible to receive Broken Trade messages and Order Delete messages after the End of Day"},
+	{"C",	"End of Messages. This is always the last message sent in any trading day"}
+		
+*/
 }SETTINGS;
 
 
