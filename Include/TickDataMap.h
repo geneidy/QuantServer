@@ -43,8 +43,8 @@ typedef struct _IndexRecord {
   uint64_t      uiTickMapMaxSize;
   }STickDataStat;
 
-typedef unordered_map<string , SFUNDAMENTAL_RECORD> FundamentalMap;  // <Stock Symbol  SFUNDAMENTAL_RECORD>>
-typedef multimap< string , uint64_t> TickMap;  // <Stock Symbol  COMMON_TRADE_MESSAGE>>
+//typedef unordered_map<string , SFUNDAMENTAL_RECORD> FundamentalMap;  // <Stock Symbol  SFUNDAMENTAL_RECORD>>
+//typedef multimap< string , uint64_t> TickMap;  // <Stock Symbol  COMMON_TRADE_MESSAGE>>
 
 class CTickDataMap 
 {
@@ -53,11 +53,11 @@ private:
   int m_fd;
   struct stat64 m_sb;
   
-  FundamentalMap 	 	m_FundamentalMap;
-  FundamentalMap::iterator   	m_itFundamentalMap;
+//  FundamentalMap 	 	m_FundamentalMap;
+//  FundamentalMap::iterator   	m_itFundamentalMap;
   
-  TickMap 	 		m_TickMap;
-  TickMap::iterator   		m_itTickMap;
+//  TickMap 	 		m_TickMap;
+//  TickMap::iterator   		m_itTickMap;
   
   CQuantQueue*			m_pQuantQueue;
   
@@ -96,9 +96,8 @@ private:
 
     timespec m_request, m_remain;
 
-  std::pair<TickMap::iterator, bool>  RetPairT;
-  
-  std::pair<FundamentalMap::iterator, bool>  RetPairF;
+//  std::pair<TickMap::iterator, bool>  RetPairT;
+//  std::pair<FundamentalMap::iterator, bool>  RetPairF;
   STickDataStat m_STickDataStat;
   
   CUtil*	m_pcUtil;

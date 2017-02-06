@@ -155,6 +155,8 @@ private:   // by default
     void ListBookStats();
 
     pair <BookMap::iterator, bool> m_RetPair;
+    
+    void CloseBook();
 
 
 public:

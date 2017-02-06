@@ -56,9 +56,14 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
 {
 
     m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_uiNextOrder++); // start with Order Zero
+
+    if ((theApp.SSettings.iSystemEventCode == 'M') || (theApp.SSettings.iSystemEventCode == 'E') || (theApp.SSettings.iSystemEventCode == 'C'))   { // set close
+      CloseBook();
+    }
+
     if (m_pCommonOrder == NULL) {
-        m_uiNextOrder--;
-        nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
+    m_uiNextOrder--;
+    nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
         // Log the issue here....reading is faster than writing
         return m_uiNextOrder; // ::TODO think of  a return value
     }
@@ -67,7 +72,7 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     m_uiQty = m_pCommonOrder->iShares;
 
     if (m_dPrice == 0)
-        return 0;
+    return 0;
 
     m_iMessage = m_pCommonOrder->cMessageType;
 
@@ -75,21 +80,21 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     case 'A': 	// Add orders No MPID
     case 'F': 	// Add orders
         ProcessAdd(m_iMessage); // just to put a break point
-        break;
+            break;
 
-    case 'E':  	// Order executed
-    case 'c':  	// Order executed  with price
-    case 'X':  	// Order Cancel
-    case 'D': 	// Order deleted
-        ProcessDelete(m_iMessage);
-        break;
-    case 'U':
-        ProcessReplace(m_iMessage);
-        break;
+        case 'E':  	// Order executed
+        case 'c':  	// Order executed  with price
+        case 'X':  	// Order Cancel
+        case 'D': 	// Order deleted
+            ProcessDelete(m_iMessage);
+            break;
+        case 'U':
+            ProcessReplace(m_iMessage);
+            break;
 
-    default:
-        return 0;
-    }
+        default:
+            return 0;
+        }
 
     return 0;
 }
@@ -487,21 +492,32 @@ int CBuildBook::ProcessDelete(int iIn)
             m_pBook.m_OHLC.dLast 	= m_dPrice;
             if ((theApp.SSettings.iSystemEventCode == 'Q') && (m_pBook.m_OHLC.dOpen == 0))  {
                 m_pBook.m_OHLC.dOpen 	= m_dPrice;
-		gettimeofday(&m_pBook.m_OHLC.tOpen, NULL);
+                gettimeofday(&m_pBook.m_OHLC.tOpen, NULL);
             }
 
-            if ((theApp.SSettings.iSystemEventCode == 'M') && (m_pBook.m_OHLC.dClose == 0))  {
-                m_pBook.m_OHLC.dClose 	= m_dPrice;
-            }
-            if (m_pBook.m_OHLC.dHigh < m_pBook.m_OHLC.dLast)  // set dHigh
+            if (m_pBook.m_OHLC.dHigh < m_pBook.m_OHLC.dLast) { // set dHigh
                 m_pBook.m_OHLC.dHigh = m_pBook.m_OHLC.dLast;
-            if (m_pBook.m_OHLC.dLow > m_pBook.m_OHLC.dLast)    // set dLow
+            }
+            if (m_pBook.m_OHLC.dLow > m_pBook.m_OHLC.dLast) {   // set dLow
                 m_pBook.m_OHLC.dLow = m_pBook.m_OHLC.dLast;
+            }
+
+            if (m_pBook.m_OHLC.dLast < m_dPrice) { // Set the ticks
+                m_pBook.m_OHLC.cTick = '+';
+            }
+            if (m_pBook.m_OHLC.dLast > m_dPrice) {
+                m_pBook.m_OHLC.cTick = '-';
+            }
+            if (m_pBook.m_OHLC.dLast == m_dPrice) {
+                m_pBook.m_OHLC.cTick = '=';
+            }
 
             m_pBook.m_OHLC.uiTotalNumOfTrades++;
             m_pBook.m_OHLC.uiVolume       	= m_uiQty;
             m_pBook.m_OHLC.uiTotalVolume 	+= m_uiQty;
-	    gettimeofday(&m_pBook.m_OHLC.tLastUpdate, NULL);
+            m_pBook.m_OHLC.dVWAP += (m_dPrice * m_uiQty)/m_pBook.m_OHLC.uiTotalVolume;
+
+            gettimeofday(&m_pBook.m_OHLC.tLastUpdate, NULL);
         }
     }
     else { // else Error....should not happen
@@ -519,8 +535,6 @@ int CBuildBook::ProcessDelete(int iIn)
         Logger::instance().log(m_strMsg, Logger::Error);
         return 0;
     }
-
-
 
     memset(m_szMPID, '\0', 5);
     strcpy(m_szMPID, m_pCommonOrder->szMPID);
@@ -651,6 +665,13 @@ void CBuildBook::InitOHLC()
     gettimeofday(&m_pBook.m_OHLC.tOpen, NULL);
     gettimeofday(&m_pBook.m_OHLC.tLastUpdate, NULL);
 
+}
+///////////////////////////////////////////////////////////////////////////////////////
+void CBuildBook::CloseBook()
+{
+    for (m_itBookMap = m_BookMap.begin(); m_itBookMap != m_BookMap.end(); ++m_itBookMap) {
+        m_itBookMap->second.m_OHLC.dClose 	= m_itBookMap->second.m_OHLC.dLast;
+    }
 }
 ///////////////////////////////////////////////////////////////////////////////////////
 string CBuildBook::MakeKey() // NOT needed in this version
