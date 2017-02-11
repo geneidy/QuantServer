@@ -77,7 +77,8 @@ const char *ThreadMessage[NUMBER_OF_ROLES ] = \
     "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"
 };
 
-
+  struct timespec m_request, m_remain;
+  
 #ifdef __cplusplus
 extern "C"
 {

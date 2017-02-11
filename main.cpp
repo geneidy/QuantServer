@@ -29,6 +29,9 @@ int main(int argc, char **argv)
     g_bSettingsLoaded = false;
 
     int iRet = 0;
+     m_request.tv_sec = 0;
+     m_request.tv_nsec = 100000000;   // 1/10 of a second
+
 
     g_SThreadData.iTotalThreads = 0;
     pthread_mutex_lock(&mtxQueue);
@@ -43,7 +46,8 @@ int main(int argc, char **argv)
 //        g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
         arrThreadInfo[ii].iThread_num = ii ;
         iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &g_SThreadData);
-        sleep(1);
+//        sleep(1);
+        nanosleep (&m_request, NULL);  // sleep a 1/10 of a second	
         g_SThreadData.iTotalThreads++;
         arrThreadInfo[ii].eState = TS_ALIVE;
         if(iRet)
