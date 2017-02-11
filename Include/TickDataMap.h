@@ -61,7 +61,7 @@ private:
   
   CQuantQueue*			m_pQuantQueue;
   
-  COMMON_TRADE_MESSAGE* 	m_pCommonTrade;
+  COMMON_TRADE_MESSAGE 	        m_CommonTrade;
   
 
   COMMON_ORDER_MESSAGE* 	m_pCommonOrder;
@@ -110,7 +110,7 @@ public:
 
   COrdersMap*	m_pCOrdersMap;  
   void InitQueue(CQuantQueue* pQueue);
-  uint64_t FillMemoryMappedFile();
+  uint64_t FillTickFile();
   STickDataStat GetTickDataStat();
   
   COMMON_TRADE_MESSAGE GetMappedRecord(uint64_t uiPosition);

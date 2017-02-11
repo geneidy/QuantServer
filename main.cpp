@@ -291,7 +291,7 @@ void* TickDataMap(void* pArg)
             pCTickDataMap->FillMemoryMappedFile();
         };
     */
-    uint64_t ui64NumberOfTicks =  pCTickDataMap->FillMemoryMappedFile();
+    uint64_t ui64NumberOfTicks =  pCTickDataMap->FillTickFile();
 
     delete pCTickDataMap;
     pCTickDataMap = NULL;

@@ -34,7 +34,7 @@ CBuildBook::~CBuildBook()
     strMsg.empty();
 
 
-    Logger::instance().log("Build Book... Destructing....Started Flushing All Books", Logger::Info);
+    Logger::instance().log("Build Book... Destructing....Started Flushing All Books...Please Wait", Logger::Info);
     FlushAllBooks();
     Logger::instance().log("Build Book...Destructing....Ended Flushing All Books", Logger::Info);
 
@@ -58,12 +58,12 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_uiNextOrder++); // start with Order Zero
 
     if ((theApp.SSettings.iSystemEventCode == 'M') || (theApp.SSettings.iSystemEventCode == 'E') || (theApp.SSettings.iSystemEventCode == 'C'))   { // set close
-      CloseBook();
+        CloseBook();
     }
 
     if (m_pCommonOrder == NULL) {
-    m_uiNextOrder--;
-    nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
+        m_uiNextOrder--;
+        nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
         // Log the issue here....reading is faster than writing
         return m_uiNextOrder; // ::TODO think of  a return value
     }
@@ -72,7 +72,7 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     m_uiQty = m_pCommonOrder->iShares;
 
     if (m_dPrice == 0)
-    return 0;
+        return 0;
 
     m_iMessage = m_pCommonOrder->cMessageType;
 
@@ -80,21 +80,21 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     case 'A': 	// Add orders No MPID
     case 'F': 	// Add orders
         ProcessAdd(m_iMessage); // just to put a break point
-            break;
+        break;
 
-        case 'E':  	// Order executed
-        case 'c':  	// Order executed  with price
-        case 'X':  	// Order Cancel
-        case 'D': 	// Order deleted
-            ProcessDelete(m_iMessage);
-            break;
-        case 'U':
-            ProcessReplace(m_iMessage);
-            break;
+    case 'E':  	// Order executed
+    case 'c':  	// Order executed  with price
+    case 'X':  	// Order Cancel
+    case 'D': 	// Order deleted
+        ProcessDelete(m_iMessage);
+        break;
+    case 'U':
+        ProcessReplace(m_iMessage);
+        break;
 
-        default:
-            return 0;
-        }
+    default:
+        return 0;
+    }
 
     return 0;
 }
@@ -149,6 +149,19 @@ NLEVELS  CBuildBook::ListBook(char* szSymbol )
         return  Del;
 
     SBookLevels = m_itBookMap->second;
+
+    cout << "Open: " 		<< SBookLevels.m_OHLC.dOpen 	<< endl;
+    cout << "Close: " 		<< SBookLevels.m_OHLC.dClose 	<< endl;
+    cout << "High: " 		<< SBookLevels.m_OHLC.dHigh 	<< endl;
+    cout << "Low: " 		<< SBookLevels.m_OHLC.dLow 	<< endl;
+    cout << "Last: " 		<< SBookLevels.m_OHLC.dLast 	<< endl;
+    cout << "Last Volume: " 	<< SBookLevels.m_OHLC.uiVolume 	<< endl;
+    
+    cout << "VWAP: " 		<< SBookLevels.m_OHLC.dVWAP 		<< endl;
+    cout << "Total Volume " 	<< SBookLevels.m_OHLC.uiTotalVolume	<< endl;
+    cout << "Total Trades " 	<< SBookLevels.m_OHLC.uiTotalNumOfTrades<< endl;
+    cout << "Last Tick " 	<< SBookLevels.m_OHLC.cTick 		<< endl;
+    
 
     cout << "======================================================================================"<< endl;
     cout << "Bid Levels for: " << strToFind << endl;

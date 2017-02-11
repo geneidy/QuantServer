@@ -49,25 +49,25 @@ typedef struct SBidAsk
 } SBID_ASK;
 
 typedef struct _OHLC {
-  
-  double	dLast;  
-  double	dOpen;  
-  double	dClose;  
-  double	dHigh;
-  double	dLow;
-  uint32_t	uiVolume;
-  int		cTick;  // '+'  '-'  '='
 
-  double	dVWAP;
-  uint64_t	uiNumOfTradesWithPrice;
-  uint64_t	uiNumOfTradesNoPrice; 
-  uint64_t	uiTotalVolume;
-  uint64_t	uiTotalNumOfTrades; 
-  
-  struct timeval	tOpen;
-  struct timeval	tLastUpdate;
-  
-}OHLC;
+    double	dLast;
+    double	dOpen;
+    double	dClose;
+    double	dHigh;
+    double	dLow;
+    uint32_t	uiVolume;
+    int		cTick;  // '+'  '-'  '='
+
+    double	dVWAP;
+    uint64_t	uiNumOfTradesWithPrice;
+    uint64_t	uiNumOfTradesNoPrice;
+    uint64_t	uiTotalVolume;
+    uint64_t	uiTotalNumOfTrades;
+
+    struct timeval	tOpen;
+    struct timeval	tLastUpdate;
+
+} OHLC;
 
 
 typedef struct _BookLevels  // Per Symbol
@@ -78,8 +78,9 @@ typedef struct _BookLevels  // Per Symbol
     uint16_t	m_iBidLevels;
     uint16_t	m_iAskLevels;
 
+
     OHLC        m_OHLC;
-    
+
 } SBOOK_LEVELS;
 
 // typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
@@ -155,7 +156,7 @@ private:   // by default
     void ListBookStats();
 
     pair <BookMap::iterator, bool> m_RetPair;
-    
+
     void CloseBook();
 
 
