@@ -132,17 +132,17 @@ int CQSettings::LoadSettings()
 
     // Please figure out the mutual exclusive cases ... i.e
     //  Role; array element
-
-/* {"Main Queue", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-  "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"};
+/*
+{MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap, BuildBook,
+TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
 */
 
-/*  "Settings Thread", "Main Queue Thread", "Receive Feed Thread", "Parse Thread",
+/*  "Main Queue Thread", "Settings Thread",  "Receive Feed Thread", "Parse Thread",
     "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
     "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"
 */    
     SSettings.iarrRole[0] = 0;   		//  0= Main Queue
-    SSettings.iarrRole[1] = 0;   		//  1= Receive Feed
+    SSettings.iarrRole[1] = 0;   		//  1= QSettings
     
     SSettings.iarrRole[2] = 0;   		//  2= Receive Feed
     SSettings.iarrRole[3] = 0;   		//  3= Parse
