@@ -26,6 +26,8 @@ int main(int argc, char **argv)
     using namespace std;
 
     Logger::instance().log("Starting Server", Logger::Debug);
+    PrimeSettings();
+    
     g_bSettingsLoaded = false;
 
     int iRet = 0;
@@ -66,8 +68,8 @@ int main(int argc, char **argv)
         jj++;
         sleep(3);
 
-        if (jj > 200)  // jj* 3 =  seconds
-//	if (jj > 50)  // jj* 3 =  seconds
+//       if (jj > 200)  // jj* 3 =  seconds
+	if (jj > 20)  // jj* 3 =  seconds
 //        if (jj > 300)  // jj* 3 =  seconds
             theApp.SSettings.iStatus = STOPPED;
     };
@@ -138,9 +140,11 @@ void* Settings(void* pArg)
 
     while (pCQSettings->GetSettings().iStatus == RUNNING) {
         sleep(1);
+	if (theApp.SSettings.iStatus == STOPPED)  //  Remove After the client is up
+	  break;
     }
 
-    theApp.SSettings.iStatus = STOPPED;
+    theApp.SSettings.iStatus = STOPPED;   // Will have to keep it here even after the client is up
 
     delete pCQSettings;
     pCQSettings = NULL;
@@ -150,6 +154,32 @@ void* Settings(void* pArg)
     pthread_mutex_unlock(&mtxTick);
 
     return  NULL;
+
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+void  PrimeSettings()
+{
+
+    pCQSettings = NULL;
+    pCQSettings= new CQSettings();
+
+    if (!pCQSettings) {
+        Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
+    }
+    if (pCQSettings->GetError() > 0) {
+        Logger::instance().log("Error Initializing Settings Object", Logger::Error);
+        exit(EXIT_FAILURE);  //  for the calling process if any
+    }
+
+    // Do NOT call after starting the client....comment out or delete
+    theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+    // Do NOT call after starting the client....comment out or delete
+
+
+    theApp.SSettings.iStatus = RUNNING;
+
+    delete pCQSettings;
+    pCQSettings = NULL;
 
 }
 //////////////////////////////////////////////////////////////////////////////////////////

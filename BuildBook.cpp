@@ -280,23 +280,21 @@ NLEVELS CBuildBook::FlushAllBooks()
 ///////////////////////////////////////////////////
 int CBuildBook::ProcessAdd(int iMessage)
 {
-    bool	bFound 		= false;
-    bool	bMMFound 	= false;
+    bool   bFound 	= false;
+    bool   bMMFound 	= false;
 
-
-    bool  bBidInserted = false;
+    bool  bBidInserted 	= false;
     bool  bBidAddedQty 	= false;
 
-    bool  bAskInserted = false;
+    bool  bAskInserted 	= false;
     bool  bAskAddedQty 	= false;
-
 
     m_pBook.pTopBid = NULL;
     m_pBook.pTopAsk = NULL;
 
-    lpInsert  = NULL;
-    lpCurrent = NULL;
-    lpPrevious = NULL;
+    lpInsert  	= NULL;
+    lpCurrent 	= NULL;
+    lpPrevious 	= NULL;
 
     m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
     if (m_itBookMap != m_BookMap.end()) {  // found
@@ -324,6 +322,8 @@ int CBuildBook::ProcessAdd(int iMessage)
 
     memset(m_szMPID, '\0', 5);
     strcpy(m_szMPID, m_pCommonOrder->szMPID);
+    
+   m_pBook.bUpdating = true;   // Home made Mutex
 
     if (m_pCommonOrder->cBuySell == 'B')  { // bid to buy
 
@@ -474,17 +474,19 @@ int CBuildBook::ProcessAdd(int iMessage)
             }//		if ((lpCurrent == NULL) && (!bFound))
         } // else ....not an empty list
     }// else
+    m_pBook.bUpdating = false;  
     if (m_itBookMap == m_BookMap.end()) {  // A Fresh Stock just in
-        m_RetPair = m_BookMap.insert(pair<string, SBOOK_LEVELS> (m_pCommonOrder->szStock, m_pBook));
+	m_RetPair = m_BookMap.insert(pair<string, SBOOK_LEVELS> (m_pCommonOrder->szStock, m_pBook));
         // :: TODO check on error
     }
     else { // Update an existing one in the Map
         m_itBookMap->second = m_pBook;
     }
-    if ((!bBidAddedQty) && (!bBidInserted) && (!bAskAddedQty) && (!bAskInserted)) {
+/*   
+   if ((!bBidAddedQty) && (!bBidInserted) && (!bAskAddedQty) && (!bAskInserted)) {
         int iError = true;
     }
-
+*/    
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -500,6 +502,7 @@ int CBuildBook::ProcessDelete(int iIn)
     m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
     if (m_itBookMap != m_BookMap.end()) {  // found
         m_pBook = m_itBookMap->second;  // Fetch the book for this stock
+        m_pBook.bUpdating = true;
 
         if ((m_iMessage == 'E' ) || (m_iMessage == 'c' )) {  	// Order executed
             m_pBook.m_OHLC.dLast 	= m_dPrice;
@@ -573,7 +576,8 @@ int CBuildBook::ProcessDelete(int iIn)
         if ((bFound) && (lpCurrent->uiQty <= 0)) { // Remove this node
             if (lpCurrent   ==	m_pBook.pTopBid)  { // first node
                 m_pBook.pTopBid = NULL;
-                m_itBookMap->second = m_pBook;
+//		m_pBook.bUpdating = false;
+//                m_itBookMap->second = m_pBook;
             }
             else {
                 lpPrevious->pNextBidAsk = lpCurrent->pNextBidAsk;
@@ -582,6 +586,8 @@ int CBuildBook::ProcessDelete(int iIn)
             lpCurrent = NULL;
             m_Stats.uiLevelDeleted++;
         }
+	m_pBook.bUpdating = false;
+       m_itBookMap->second = m_pBook;
     } // if (m_pCommonOrder->cBuySell == 'B')  // bid to buy
 /////////////////////////////////////////////////////////////////////////////////
     if (m_pCommonOrder->cBuySell == 'S') {  // Ask to sell
@@ -605,7 +611,8 @@ int CBuildBook::ProcessDelete(int iIn)
         if ((bFound) && (lpCurrent->uiQty <= 0)) { // Remove this node
             if (lpCurrent   ==	m_pBook.pTopAsk)  { // first node
                 m_pBook.pTopAsk = NULL;
-                m_itBookMap->second = m_pBook;
+//		m_pBook.bUpdating = false;
+//                m_itBookMap->second = m_pBook;
             }
             else {
                 lpPrevious->pNextBidAsk = lpCurrent->pNextBidAsk;
@@ -614,6 +621,9 @@ int CBuildBook::ProcessDelete(int iIn)
             lpCurrent = NULL;
             m_Stats.uiLevelDeleted++;
         }
+	m_pBook.bUpdating = false;
+        m_itBookMap->second = m_pBook;
+
     } // if (m_pCommonOrder->cBuySell == 'S')  // ask to sell
     return 0;
 }
@@ -673,6 +683,9 @@ void CBuildBook::InitOHLC()
 
     m_pBook.m_OHLC.cTick = '=';  // '+'  '-'  '='
     m_pBook.m_OHLC.dVWAP = 0;
+    
+    m_pBook.bUpdating = false;
+    
 
 
     gettimeofday(&m_pBook.m_OHLC.tOpen, NULL);

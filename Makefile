@@ -22,7 +22,8 @@ SRCS = 	main.cpp \
 	QuantQueue.cpp \
 	OrdersMap.cpp \
 	TickDataMap.cpp\
-	QSettings.cpp
+	QSettings.cpp\
+	DisplayBook.cpp
 
 ############### List all the includes paths here....############
 #INCLUDES = -I/home/amro/projects/QuantServer  -I../Include   -I../Common 
@@ -43,8 +44,8 @@ LIBS = -lpthread
 #################################################################################################################
 
 OBJS      = $(SRCS:.cpp=.o)
-#CXXFLAGS  = -Wall -ansi -pedantic -ggdb  -std=c++11
 CXXFLAGS  = -Wall -ansi -pedantic -g -std=c++11
+#CXXFLAGS  = -Wall -ansi -pedantic -std=c++11
 DEP_FILE  = .depend
 
 .PHONY = all clean distclean

@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include  <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
@@ -44,5 +43,5 @@ public:
   ~CQSettings();
   int GetError();
   SETTINGS GetSettings();
-  int LoadSettings();
+  SETTINGS LoadSettings();
 };

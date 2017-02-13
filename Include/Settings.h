@@ -31,8 +31,8 @@ typedef struct
 
   char 		cBeginRange;  // e.g 'A'  or 'G'
   char 		cEndRange;	
-  char  	szInclude[9];  // include from another range that was excluded from another partition
-  char  	szExclude[9]; 	// Exclude to be included in another partition...eg AAPL
+  char  	szInclude[SIZE_OF_SYMBOL];  // include from another range that was excluded from another partition
+  char  	szExclude[SIZE_OF_SYMBOL]; 	// Exclude to be included in another partition...eg AAPL
   
   
 // Feed connection parameters case option 0

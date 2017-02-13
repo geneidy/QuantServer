@@ -16,8 +16,8 @@ CQSettings::CQSettings()
 
     if (stat("../QSettings", &st) == -1) {
         int iRet = mkdir("../QSettings/", 0700);
-    if (iRet == -1)
-        m_iError = 10;
+        if (iRet == -1)
+            m_iError = 10;
     }
     else {
 
@@ -74,7 +74,7 @@ int CQSettings::InitMemoryMappedFile()
         Logger::instance().log("Finished Initializing Settings Mapped File", Logger::Debug);
     }
     fstat64(m_fd, &m_sb);
-    if (m_sb.st_size <  sizeof(SETTINGS)) { 
+    if (m_sb.st_size <  sizeof(SETTINGS)) {
         Logger::instance().log("Error Initializing Mapped File", Logger::Debug);
         m_iError = 200; // enum later
         return false;
@@ -85,37 +85,37 @@ int CQSettings::InitMemoryMappedFile()
 /////////////////////////////////////////////////////////////////////////////////
 int CQSettings::GetError()
 {
-  return m_iError;
+    return m_iError;
 }
 /////////////////////////////////////////////////////////////////////////////////
 CQSettings::~CQSettings()
 {
-  msync(m_addr, m_sb.st_size, MS_ASYNC);
-  munmap(m_addr, m_sb.st_size);
-    
-  m_pSettings = NULL;
-  if (m_fd)
-    close(m_fd);
+    msync(m_addr, m_sb.st_size, MS_ASYNC);
+    munmap(m_addr, m_sb.st_size);
+
+    m_pSettings = NULL;
+    if (m_fd)
+        close(m_fd);
 }
 ////////////////////////////////////////////////////////////////////////////////
 SETTINGS CQSettings::GetSettings()
 {
-  if (m_pSettings)
-    return *m_pSettings;
-  
-  return m_ssettings;  // for the sack of it
-  
+    if (m_pSettings)
+        return *m_pSettings;
+
+    return m_ssettings;  // for lack of anything else
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  CQSettings::LoadSettings to be used for testing only until mapping is shared with the client
 //
 /////////////////////////////////////////////////////////////////////////////////
-int CQSettings::LoadSettings()  
-{// the usual old way....do NOT call after activation with the client...Call ::GetSettings() instead
-  // For testing puposes ...Call this method (LoadSettings) and verify that it asserts with the return pointer from ::GetSettings
-    
-  SETTINGS  SSettings;
+SETTINGS CQSettings::LoadSettings()
+{   // the usual old way....do NOT call after activation with the client...Call ::GetSettings() instead
+    // For testing puposes ...Call this method (LoadSettings) and verify that it asserts with the return pointer from ::GetSettings
+
+    SETTINGS  SSettings;
 
     Logger::instance().log("Loading Settings From CQSettings Object", Logger::Info);
     memset(&SSettings, '\0', sizeof(SETTINGS));
@@ -126,24 +126,24 @@ int CQSettings::LoadSettings()
 
     SSettings.bMemberOfFarm = true;  		//  bool		bMemberOfFarm;	// Y/N
     strcpy(SSettings.szFarmName,  "Quanticks Ticker Farm 01"); 	//  std::string	strFarmName;
-    
-    
+
+
     SSettings.uiFarmPort =  8796; 		//  uint		uiListenOnPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
 
     // Please figure out the mutual exclusive cases ... i.e
     //  Role; array element
-/*
-{MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap, BuildBook,
-TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
-*/
+    /*
+    {MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap, BuildBook,
+    TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
+    */
 
-/*  "Main Queue Thread", "Settings Thread",  "Receive Feed Thread", "Parse Thread",
-    "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-    "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"
-*/    
-    SSettings.iarrRole[0] = 0;   		//  0= Main Queue
-    SSettings.iarrRole[1] = 0;   		//  1= QSettings
-    
+    /*  "Main Queue Thread", "Settings Thread",  "Receive Feed Thread", "Parse Thread",
+        "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
+        "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"
+    */
+    SSettings.iarrRole[0] = 1;   		//  0= Main Queue
+    SSettings.iarrRole[1] = 1;   		//  1= QSettings
+
     SSettings.iarrRole[2] = 0;   		//  2= Receive Feed
     SSettings.iarrRole[3] = 0;   		//  3= Parse
     SSettings.iarrRole[4] = 0;   		//  4= Orders Map
@@ -160,11 +160,11 @@ TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All
 
     SSettings.bPartitionActive = true;  		//  bool  bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
     // Range for all Ex AAPL
-        SSettings.cBeginRange = 'A';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
-        SSettings.cEndRange = 'Z';  		//   int 	iEndRange;
-        *SSettings.szInclude = '\0';		//	char  strInclude[5];  // include from another range that was excluded from another partition
-        strcpy(SSettings.szExclude, "AAPL    ");  		// char  strExclude[5]; 	// Exclude to be included in another partition
-    
+    SSettings.cBeginRange = 'A';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
+    SSettings.cEndRange = 'Z';  		//   int 	iEndRange;
+    *SSettings.szInclude = '\0';		//	char  strInclude[5];  // include from another range that was excluded from another partition
+    strcpy(SSettings.szExclude, "AAPL    ");  		// char  strExclude[5]; 	// Exclude to be included in another partition
+
 // Range for Apple only
     SSettings.cBeginRange = '\0';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
     SSettings.cEndRange = '\0';  		//   int 	iEndRange;
@@ -202,15 +202,15 @@ TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
     SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
     SSettings.uiQueueSize = 50000000;  // 25 Million elements
-  
-  // ::TODO throw away after the GUI
+
+    // ::TODO throw away after the GUI
     SSettings.iStatus = RUNNING;  // ::TODO throw away after the GUI
-  // ::TODO throw away after the GUI
-  
+    // ::TODO throw away after the GUI
+
 //    theApp.SSettings = SSettings;
-    
+
     m_pSettings = &SSettings;  // Just to verify for testing....that the Mapping is working
-  
-  return 1;
+
+    return SSettings;
 }
 /////////////////////////////////////////////////////////////////////////////////

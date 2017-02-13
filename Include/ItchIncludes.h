@@ -5,7 +5,7 @@
 
 #define	SOUP_MESSAGE_SIZE	1024
 
-#define SIZE_OF_SYMBOL   8+1
+//#define SIZE_OF_SYMBOL   8+1
 #define SIZE_OF_MM       4+1
 
  
