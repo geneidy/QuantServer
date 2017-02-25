@@ -1,5 +1,7 @@
 #pragma once
-
+#include <sys/types.h> 
+#include <sys/stat.h> 
+#include <unistd.h> 
 #include "BuildBook.h"
 #include "Util.h"
 
@@ -29,21 +31,28 @@ typedef struct _ThreadData {
 
 typedef struct _SDisplayBook {
 
-    OHLC 		TopOfBook;
-    SBID_ASK*	pSBid;
-    SBID_ASK*	pSAsk;
+    OHLC 	TopOfBook;
+    SBID_ASK*	pSBid;  // Number of levels apply here
+    SBID_ASK*	pSAsk; 	// Number of levels apply here
 
 } DISPLAYBOOK;
-
+ 
 
 class CDisplayBook {
 
-    int 		m_iError;
+static    int 		m_iError;
     CUtil*  	m_pcUtil;
 
-static    CBuildBook* 		m_pcBuildBook;
-    DISPLAYBOOK 		m_SDisplayBook;
-    
+static    CBuildBook* 		m_pcBuildBook[NUMBER_OF_BOOKS_TO_DISPALY];
+static    DISPLAYBOOK* 		m_SDisplayBook[NUMBER_OF_BOOKS_TO_DISPALY];
+static    int			m_iFD[NUMBER_OF_BOOKS_TO_DISPALY];
+static    int  CreatLOBFileMapping(int );
+static    int  InitMemoryMappedFile(int );
+
+static 	  unsigned m_uiSizeOfLob[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+static struct stat  m_sb[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+static struct stat  m_st[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+static void*  m_addr[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
 
 public:
     CDisplayBook(CBuildBook*  pCBuildBook);

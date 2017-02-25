@@ -38,9 +38,9 @@ COrdersMap::COrdersMap()
     m_Util = new CUtil(theApp.SSettings.szActiveSymbols);
 
    
-    struct stat st = {0};
+    struct stat64 st = {0};
 
-    if (stat("../Orders/", &st) == -1) {
+    if (stat64("../Orders/", &st) == -1) {
         mkdir("../Orders/", 0700);
     }
     

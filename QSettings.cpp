@@ -55,7 +55,7 @@ CQSettings::CQSettings()
                         m_iError = 130;
                         // Set error code and exit
                     }
-                    m_pSettings = (SETTINGS*) m_addr;  //  cast in COMMON_ORDER_MESSAGE...now you have an array in memory of common orders
+                    m_pSettings = (SETTINGS*) m_addr;  //  cast in Settings...now you have a Strut in memeory and on Disk
                 }
             }
         } //   if (!m_iError) {
@@ -225,7 +225,9 @@ SETTINGS CQSettings::LoadSettings()
 //    theApp.SSettings = SSettings;
 
     m_pSettings = &SSettings;  // Just to verify for testing....that the Mapping is working
-
+    
+    msync(m_addr, m_sb.st_size, MS_ASYNC);
+    
     return SSettings;
 }
 /////////////////////////////////////////////////////////////////////////////////
