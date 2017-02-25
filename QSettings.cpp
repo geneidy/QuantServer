@@ -17,7 +17,7 @@ CQSettings::CQSettings()
     if (stat("../QSettings", &st) == -1) {
         int iRet = mkdir("../QSettings/", 0700);
         if (iRet == -1)
-            m_iError = 10;
+            m_iError = 1000;
     }
     else {
 
@@ -75,7 +75,7 @@ int CQSettings::InitMemoryMappedFile()
     }
     fstat64(m_fd, &m_sb);
     if (m_sb.st_size <  sizeof(SETTINGS)) {
-        Logger::instance().log("Error Initializing Mapped File", Logger::Debug);
+        Logger::instance().log("Error Initializing Settings Mapped File", Logger::Debug);
         m_iError = 200; // enum later
         return false;
     }
@@ -153,8 +153,10 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.iarrRole[8] = 0;   		//  8= Play back
 
     SSettings.iarrRole[9] = 0;   		//  9= Test File
-    SSettings.iarrRole[10]= 0;   		//  10= Distributor
-    SSettings.iarrRole[11]= 0;   		//  11= Save to Disk
+    SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
+    SSettings.iarrRole[11]= 0;   		//  11= Display Book
+    SSettings.iarrRole[12]= 0;   		//  12= Distributor
+    SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 
     SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
 
@@ -171,6 +173,19 @@ SETTINGS CQSettings::LoadSettings()
     strcpy(SSettings.szInclude, "AAPL    ");		//	char  strInclude[5];  // include from another range that was excluded from another partition
     strcpy(SSettings.szExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
 
+    
+// For the first release only for 5 stocks...All values to be set by the client....
+    // Values for testing the server only
+    SSettings.iBookLevels = 20; 
+    strcpy(SSettings.szActiveSymbols[0], "AAPL    "); 	SSettings.arrbActive[0] = true;
+    strcpy(SSettings.szActiveSymbols[1], "MSFT    ");	SSettings.arrbActive[1] = true;
+    strcpy(SSettings.szActiveSymbols[2], "GOOG    ");	SSettings.arrbActive[2] = true;
+    strcpy(SSettings.szActiveSymbols[3], "INTC    ");	SSettings.arrbActive[3] = true;
+    strcpy(SSettings.szActiveSymbols[4], "AMD     ");	SSettings.arrbActive[4] = true;
+    // Values for testing the server only
+// For the first release only for 5 stocks    
+    
+    
     strcpy(SSettings.szUserName, "UserName");   		//  char		szUserName[SIZE_OF_NAME];
     strcpy(SSettings.szPassword, "Password");	// char		szPassword[SIZE_OF_PASSWORD];
 

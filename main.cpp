@@ -27,12 +27,12 @@ int main(int argc, char **argv)
 
     Logger::instance().log("Starting Server", Logger::Debug);
     PrimeSettings();
-    
+
     g_bSettingsLoaded = false;
 
     int iRet = 0;
-     m_request.tv_sec = 0;
-     m_request.tv_nsec = 100000000;   // 1/10 of a second
+    m_request.tv_sec = 0;
+    m_request.tv_nsec = 100000000;   // 1/10 of a second
 
 
     g_SThreadData.iTotalThreads = 0;
@@ -45,11 +45,11 @@ int main(int argc, char **argv)
             continue;
         }
         g_SThreadData.idx = ii;
-//        g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
+//      g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
         arrThreadInfo[ii].iThread_num = ii ;
         iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &g_SThreadData);
 //        sleep(1);
-        nanosleep (&m_request, NULL);  // sleep a 1/10 of a second	
+        nanosleep (&m_request, NULL);  // sleep a 1/10 of a second
         g_SThreadData.iTotalThreads++;
         arrThreadInfo[ii].eState = TS_ALIVE;
         if(iRet)
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
         sleep(3);
 
 //       if (jj > 200)  // jj* 3 =  seconds
-	if (jj > 20)  // jj* 3 =  seconds
+        if (jj > 10)  // jj* 3 =  seconds
 //        if (jj > 300)  // jj* 3 =  seconds
             theApp.SSettings.iStatus = STOPPED;
     };
@@ -108,10 +108,8 @@ int main(int argc, char **argv)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* Settings(void* pArg)
 {
-
     // 	open Settings file to fill the Settings structure
     //  cout << "Calling Settings Begin" << endl;
-
     pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
 
@@ -121,18 +119,17 @@ void* Settings(void* pArg)
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
-
     pCQSettings = NULL;
     pCQSettings= new CQSettings();
 
     if (!pCQSettings) {
         Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
     }
+
     if (pCQSettings->GetError() > 0) {
         Logger::instance().log("Error Initializing Settings Object", Logger::Error);
         exit(EXIT_FAILURE);  //  for the calling process if any
     }
-
     // Do NOT call after starting the client....comment out or delete
     pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
     // Do NOT call after starting the client....comment out or delete
@@ -140,8 +137,8 @@ void* Settings(void* pArg)
 
     while (pCQSettings->GetSettings().iStatus == RUNNING) {
         sleep(1);
-	if (theApp.SSettings.iStatus == STOPPED)  //  Remove After the client is up
-	  break;
+        if (theApp.SSettings.iStatus == STOPPED)  //  Remove After the client is up
+            break;
     }
 
     theApp.SSettings.iStatus = STOPPED;   // Will have to keep it here even after the client is up
@@ -174,7 +171,6 @@ void  PrimeSettings()
     // Do NOT call after starting the client....comment out or delete
     theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
     // Do NOT call after starting the client....comment out or delete
-
 
     theApp.SSettings.iStatus = RUNNING;
 
@@ -385,7 +381,186 @@ void* BuildBook(void* pArg)
 
     return pArg;
 }
-//////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+void* NasdTestFile(void* pArg)
+{
+
+    pthread_mutex_lock(&mtxTick);
+
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
+
+    InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    pCReceiveITCH = NULL;
+    pCReceiveITCH = new CReceiveITCH(pQueue);
+
+    if (!pCReceiveITCH) {
+        Logger::instance().log("Error Creating ReceiveITCH Object", Logger::Error);
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+        return NULL;
+    }
+    if (pCReceiveITCH->GetError() >= 100) {
+        Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
+        delete pCReceiveITCH;
+        pCReceiveITCH = NULL;
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+        return NULL;
+    }
+
+    if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.szTestFileName)) {
+        Logger::instance().log("Error Reading From Test File", Logger::Error);
+    }
+
+    if (pCReceiveITCH) {
+        delete pCReceiveITCH;
+        pCReceiveITCH = NULL;
+    }
+
+    pthread_mutex_lock(&mtxTick);
+    TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    return pArg;
+}
+///////////////////////////////////////////////////////////////
+void *DisplayBook(void* pArg)
+{
+
+    pthread_mutex_lock(&mtxTick);
+
+    THREAD_DATA SThreadData;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+
+
+    InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+//    pCBuildBook
+    pCDisplayBook = NULL;
+    pCDisplayBook = new CDisplayBook(pCBuildBook);
+
+    if (!pCDisplayBook) {
+        Logger::instance().log("Error Creating DisplayBook Object", Logger::Error);
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+        return NULL;
+    }
+    if (pCDisplayBook->GetError() >= 100) {
+        Logger::instance().log("Error Constructing DisplayBook Object", Logger::Error);
+        delete pCDisplayBook;
+        pCDisplayBook = NULL;
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+        return NULL;
+    }
+
+    theApp.SSettings.iSaveApply = OK;
+    while (theApp.SSettings.iStatus != STOPPED) {
+        if ((theApp.SSettings.iSaveApply == OK) || (theApp.SSettings.iSaveApply == APPLY)) { // Check for change in status
+            pCDisplayBook->DisplaySelected(); // Display the selected by clicking the bool in arrbActive[NUMBER_OF_SYMBOLS ];
+            theApp.SSettings.iSaveApply = CANCEL;
+        }
+        sleep(1);
+    }
+
+    if (pCDisplayBook) {
+        delete pCDisplayBook;
+        pCDisplayBook = NULL;
+    }
+
+    pthread_mutex_lock(&mtxTick);
+    TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    return pArg;
+}
+///////////////////////////////////////////////////////////////
+void* StatsPerSec(void* pArg)
+{
+
+    pthread_mutex_lock(&mtxTick);
+
+    THREAD_DATA SThreadData;
+
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+
+    InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    pCStatsPerSec = NULL;
+    pCStatsPerSec = new CStatsPerSec();
+
+    if (!pCStatsPerSec) {
+        Logger::instance().log("Error Creating StatsPerSec Object", Logger::Error);
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+        return NULL;
+    }
+    if (pCStatsPerSec->GetError() >= 100) {
+        Logger::instance().log("Error Constructing StatsPerSec Object", Logger::Error);
+        delete pCStatsPerSec;
+        pCStatsPerSec = NULL;
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+        return NULL;
+    }
+
+    while (theApp.SSettings.iStatus != STOPPED) {
+        sleep(1);
+    }
+
+    if (pCStatsPerSec) {
+        delete pCStatsPerSec;
+        pCStatsPerSec = NULL;
+    }
+
+    pthread_mutex_lock(&mtxTick);
+    TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    return pArg;
+}
+///////////////////////////////////////////////////////////////
+void *Distributor(void* pArg)
+{
+
+    pthread_mutex_lock(&mtxTick);
+    THREAD_DATA SThreadData;
+    CQuantQueue* pQueue = NULL;
+
+    SThreadData =  *((THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
+
+    InitThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    // Calls to functions and threads go here
+    pthread_mutex_lock(&mtxTick);
+    TermThreadLog(idx);
+    pthread_mutex_unlock(&mtxTick);
+
+    return pArg;
+}
+///////////////////////////////////////////////////////////////
 void* ReceiveFeed(void* pArg)
 {
     pthread_mutex_lock(&mtxTick);
@@ -409,7 +584,6 @@ void* ReceiveFeed(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* ParseFeed(void* pArg)
 {
-
     pthread_mutex_lock(&mtxTick);
 
     THREAD_DATA SThreadData;
@@ -431,7 +605,6 @@ void* ParseFeed(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* SaveToDB(void* pArg)
 {
-
     pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
@@ -485,79 +658,6 @@ void* PlayBack(void* pArg)
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
-    return pArg;
-}
-///////////////////////////////////////////////////////////////
-void* NasdTestFile(void* pArg)
-{
-
-    pthread_mutex_lock(&mtxTick);
-
-    THREAD_DATA SThreadData;
-    CQuantQueue* pQueue = NULL;
-
-    SThreadData =  *((THREAD_DATA*)pArg) ;
-    int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
-
-    InitThreadLog(idx);
-    pthread_mutex_unlock(&mtxTick);
-
-    pCReceiveITCH = NULL;
-    pCReceiveITCH = new CReceiveITCH(pQueue);
-
-    if (!pCReceiveITCH) {
-        Logger::instance().log("Error Creating ReceiveITCH Object", Logger::Error);
-        pthread_mutex_lock(&mtxTick);
-        TermThreadLog(idx);
-        pthread_mutex_unlock(&mtxTick);
-        return NULL;
-    }
-    if (pCReceiveITCH->GetError() == 100) {
-        Logger::instance().log("Error Constructing ReceiveITCH Object", Logger::Error);
-        delete pCReceiveITCH;
-        pCReceiveITCH = NULL;
-        pthread_mutex_lock(&mtxTick);
-        TermThreadLog(idx);
-        pthread_mutex_unlock(&mtxTick);
-        return NULL;
-    }
-
-    if (!pCReceiveITCH->ReadFromTestFile(theApp.SSettings.szTestFileName)) {
-        Logger::instance().log("Error Reading From Test File", Logger::Error);
-    }
-
-    if (pCReceiveITCH) {
-        delete pCReceiveITCH;
-        pCReceiveITCH = NULL;
-    }
-
-    pthread_mutex_lock(&mtxTick);
-    TermThreadLog(idx);
-    pthread_mutex_unlock(&mtxTick);
-
-    return pArg;
-}
-///////////////////////////////////////////////////////////////
-void *Distributor(void* pArg)
-{
-
-    pthread_mutex_lock(&mtxTick);
-    THREAD_DATA SThreadData;
-    CQuantQueue* pQueue = NULL;
-
-    SThreadData =  *((THREAD_DATA*)pArg) ;
-    int idx = SThreadData.idx;
-    pQueue = ((CQuantQueue*)(SThreadData.g_pCQuantQueue));
-
-    InitThreadLog(idx);
-    pthread_mutex_unlock(&mtxTick);
-
-    // Calls to functions and threads go here
-    pthread_mutex_lock(&mtxTick);
-    TermThreadLog(idx);
-    pthread_mutex_unlock(&mtxTick);
-
     return pArg;
 }
 ///////////////////////////////////////////////////////////////

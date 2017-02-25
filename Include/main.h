@@ -1,3 +1,5 @@
+#pragma once
+
 #include "stdio.h"
 #include "stdlib.h"
 #include <pthread.h>
@@ -18,6 +20,8 @@
 #include "TickDataMap.h"
 #include  "ReceiveITCH.h"
 #include  "QuantQueue.h"
+#include  "StatsPerSec.h"
+#include "DisplayBook.h"
 
 enum tstate {
     TS_INACTIVE,
@@ -50,7 +54,7 @@ typedef struct thread_info
 THREAD_INFO arrThreadInfo[NUMBER_OF_ROLES];
 void  PrimeSettings();
 //////////////////////////////////////
-void  *Settings(void* );
+void *Settings(void* );
 void *MainQueue(void* );
 //////////////////////////////////////
 
@@ -61,21 +65,27 @@ void *SaveToDB(void*);
 void *PlayBack(void*);
 
 void *NasdTestFile(void*);
+void *StatsPerSec(void*);
+
 void *Distributor(void* );
 void *SaveToDisk(void*);
 void *OrdersMap(void* );
 void *TickDataMap(void*);
-
+void *DisplayBook (void*);
 void InitThreadLog(int);
 void TermThreadLog(int);
 
 
+
 void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
-{MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap, BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile, Distributor, SaveToDisk};  // All Roles for the server functions are here
+{MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap,\
+ BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile,\
+ StatsPerSec, DisplayBook, Distributor, SaveToDisk};  // All Roles for the server functions are here
 
 const char *ThreadMessage[NUMBER_OF_ROLES ] = \
-{   "Main Queue Thread", "Settings Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", "Build Book Thread", "Tick Data Thread",\
-    "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread", "Distributor Thread", "SaveToDisk Thread"
+{   "Main Queue Thread", "Settings Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", \
+    "Build Book Thread", "Tick Data Thread", "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread",\
+    "Stats Per Second Thread", "Display Book Thread", "Distributor Thread", "Save To Disk Thread"
 };
 
   struct timespec m_request, m_remain;
@@ -93,6 +103,8 @@ CReceiveITCH* pCReceiveITCH;
 CQuantQueue * pCQuantQueue;
 
 CQSettings*   pCQSettings;
+CStatsPerSec* pCStatsPerSec;
+CDisplayBook* pCDisplayBook;
 
 #ifdef __cplusplus
 } // extern "C"

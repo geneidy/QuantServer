@@ -49,6 +49,8 @@ private:
 	
 	uint64_t	i64Counter;
 	
+	int 	m_fd;  // File discriptor
+	
 	timespec m_request, m_remain;
 
 /*

@@ -23,7 +23,8 @@ SRCS = 	main.cpp \
 	OrdersMap.cpp \
 	TickDataMap.cpp\
 	QSettings.cpp\
-	DisplayBook.cpp
+	DisplayBook.cpp\
+	StatsPerSec.cpp
 
 ############### List all the includes paths here....############
 #INCLUDES = -I/home/amro/projects/QuantServer  -I../Include   -I../Common 

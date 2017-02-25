@@ -35,16 +35,15 @@ COrdersMap::COrdersMap()
     m_uiSizeOfCommonOrderRecord = sizeof(COMMON_ORDER_MESSAGE);
 
     m_Util = NULL;
-    m_Util = new CUtil();
+    m_Util = new CUtil(theApp.SSettings.szActiveSymbols);
 
-    /*
-     *struct stat st = {0};
+   
+    struct stat st = {0};
 
-    if (stat("/some/directory", &st) == -1) {
+    if (stat("../Orders/", &st) == -1) {
         mkdir("../Orders/", 0700);
     }
-     *
-     */
+    
     m_SymbolMap.clear();
 
     string strOrdersFile;
@@ -233,7 +232,11 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         memset(&m_pCommonOrder[m_ui64NumOfOrders], '\0', m_uiSizeOfCommonOrderRecord);
         switch (m_iMessage) {
         case 'A':  // Add Order NO MPID
-            m_pCommonOrder[m_ui64NumOfOrders].cBuySell 		= pItchMessageUnion->AddOrderNoMPID.cBuySell;
+
+	  if (!m_Util->IsSymbolIn(pItchMessageUnion->AddOrderNoMPID.szStock))
+                return 0;
+
+	    m_pCommonOrder[m_ui64NumOfOrders].cBuySell 		= pItchMessageUnion->AddOrderNoMPID.cBuySell;
             m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->AddOrderNoMPID.cMessageType;
             m_pCommonOrder[m_ui64NumOfOrders].dPrice 		= pItchMessageUnion->AddOrderNoMPID.dPrice;
             m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->AddOrderNoMPID.iOrderRefNumber;
@@ -246,7 +249,9 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderNoMPID.szStock)) // check for Range
                 return 0;
 */            //     m_pCommonOrder[m_ui64NumOfOrders].TrackingNumber= pItchMessageUnion->AddOrderNoMPID.TrackingNumber;
-            pthread_mutex_lock(&mtxFindMap);
+
+
+	    pthread_mutex_lock(&mtxFindMap);
             RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
             pthread_mutex_unlock(&mtxFindMap);
             if (!RetPair.second) {
@@ -258,6 +263,9 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             break;
 
         case 'F':  // Add Order with MPID
+ 	    if (!m_Util->IsSymbolIn(pItchMessageUnion->AddOrderMPID.szStock))
+	      return 0;
+
             m_pCommonOrder[m_ui64NumOfOrders].cBuySell 		= pItchMessageUnion->AddOrderMPID.cBuySell;
             m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->AddOrderMPID.cMessageType;
             m_pCommonOrder[m_ui64NumOfOrders].dPrice 		= pItchMessageUnion->AddOrderMPID.dPrice;
@@ -273,6 +281,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             if (!m_Util->CheckInclude(pItchMessageUnion->AddOrderMPID.szStock)) // check for Range
                 return 0;
 */
+	      
             pthread_mutex_lock(&mtxFindMap);
             RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
             pthread_mutex_unlock(&mtxFindMap);
@@ -292,7 +301,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
                 return 0;
 */
-            strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
+            if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
+                return 0;
+
+	    strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
             strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
 
             m_pCommonOrder[m_ui64NumOfOrders].cBuySell             	=   m_pTempCommonOrder->cBuySell;
@@ -336,6 +348,9 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pTempCommonOrder)
                 break;
+	    
+            if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
+                return 0;
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
                 return 0;
@@ -361,6 +376,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber);
             if (!m_pTempCommonOrder)
                 break;
+
+	    if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
+                return 0;
+
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
                 return 0;
@@ -391,6 +410,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderCancel.iOrderRefNumber);
             if (!m_pTempCommonOrder)
                 break;
+
+	    if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
+                return 0;
+	    
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
                 return 0;
@@ -418,6 +441,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderDelete.iOrderRefNumber);
             if (!m_pTempCommonOrder)
                 break;
+	    
+            if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
+                return 0;
+	    
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
                 return 0;

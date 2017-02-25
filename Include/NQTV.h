@@ -13,6 +13,8 @@
 enum feedStatus
 {
 	OK = 0,
+	APPLY,
+	CANCEL,
 	STARTING,
 	RUNNING,
 	PAUSSING,

@@ -20,7 +20,7 @@ typedef struct
   char		szFarmName[SIZE_OF_FILENAME];
   uint		uiFarmPort;  // for incoming commands in case Member of bMemberOfFarm = Y  (range  5000...65000)
   
-  int start_stop_pause;
+//  int start_stop_pause;
   int 		iarrRole[NUMBER_OF_ROLES];  // Get it from enum   0= Receive Feed  1= Parse  2= Build Book  3= Save to DB    4= Play Back  5= Distributor
 
   uint 		uiDistListenOnPort;  // Case Y above....listen on which Port? (range  5000...65000)
@@ -34,6 +34,11 @@ typedef struct
   char  	szInclude[SIZE_OF_SYMBOL];  // include from another range that was excluded from another partition
   char  	szExclude[SIZE_OF_SYMBOL]; 	// Exclude to be included in another partition...eg AAPL
   
+// For the Firs release only....the 5 stocks to process and display
+//  char*	szActiveSymbols[5+1];  // Char*  ...Check how to process in Python...or will change it accordingly
+  char		szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL];  // Char*  ...Check how to process in Python...or will change it accordingly
+  bool		arrbActive[NUMBER_OF_SYMBOLS ];  //  Active Stocl symbols to display per the above array
+  int		iBookLevels;  			//  NUmber of Book levels to list
   
 // Feed connection parameters case option 0
   char		szUserName[SIZE_OF_NAME];
@@ -73,6 +78,7 @@ typedef struct
   bool		g_bConnected;
   bool		g_bReceiving;
   int		iStatus;
+  int		iSaveApply;
   int 		iSystemEventCode;  /*/ Get it from System Event Message from the parser....Make it global to know when the system
 		Started or closed to set the Open and Close Price.....
 	{"O", "Start of Messages. Outside of time stamp messages, the start of day message is the first message sent in any trading day"},

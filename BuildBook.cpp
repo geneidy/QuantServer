@@ -6,6 +6,12 @@
 #include "NQTV.h"
 #include "Logger.h"
 
+BookMap  CBuildBook::m_BookMap;
+
+
+BookMap::iterator	CBuildBook::m_itBookMap;    
+
+
 CBuildBook::CBuildBook()
 {
     m_iError = 0;
@@ -22,7 +28,6 @@ CBuildBook::CBuildBook()
     m_request.tv_nsec = 100000000;   // 1/10 of a micro second
     m_iSizeOfBook = sizeof( SBOOK_LEVELS);
 
-
     m_Stats.uiLevelDeleted = 0;
 
 }
@@ -33,16 +38,13 @@ CBuildBook::~CBuildBook()
     string  strMsg;
     strMsg.empty();
 
-
     Logger::instance().log("Build Book... Destructing....Started Flushing All Books...Please Wait", Logger::Info);
     FlushAllBooks();
     Logger::instance().log("Build Book...Destructing....Ended Flushing All Books", Logger::Info);
 
-
     strMsg = "Build Book...Size of Book Map: ";
     strMsg += to_string(m_BookMap.size());
     Logger::instance().log(strMsg, Logger::Info);
-
 
     Logger::instance().log("Build Book...Destructing...Started Clearing Book", Logger::Info);
     m_BookMap.clear();
@@ -107,9 +109,6 @@ int CBuildBook::InitLevelStats()
 int CBuildBook::ListBook(const char *szSymbol , uint32_t uiMaxLevels)
 {
 
-
-
-
     return true;
 }
 *//////////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +125,6 @@ void CBuildBook::ListBookStats()
     strMsg += to_string(uiCount);
 
     Logger::instance().log(strMsg, Logger::Debug);
-
 
 }
 //////////////////////////////////////////////////////////////////////////////////////

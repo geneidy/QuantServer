@@ -40,7 +40,7 @@ typedef struct // Moving averages
 
 typedef struct SBidAsk
 {
-    char		szMPID[5];
+    char	szMPID[5];
     double	dPrice;
     int 	uiQty;
     int 	uiNumOfOrders;
@@ -82,7 +82,6 @@ typedef struct _BookLevels  // Per Symbol
 
 } SBOOK_LEVELS;
 
-// typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
 
 typedef unordered_map<string , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
 
@@ -98,9 +97,6 @@ private:   // by default
     CQuantQueue*		m_pQuantQueue;
     ITCH_MESSAGES_UNION* 	m_pItchMessageUnion;
     COrdersMap*		m_pCOrdersMap;
-
-    BookMap  		m_BookMap;
-    BookMap::iterator	m_itBookMap;
 
 
     pair <BookMap::iterator, bool> m_RetPairBookMap;
@@ -165,6 +161,8 @@ public:
     CBuildBook();
     ~CBuildBook();
 
+    static BookMap  	m_BookMap;
+    static BookMap::iterator	m_itBookMap;    
 //    int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
 
     SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);

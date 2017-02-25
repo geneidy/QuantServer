@@ -6,8 +6,12 @@
 #include <time.h>
 #include "memory.h"
 
-#include "DBLayer.h"
+#include <sys/fcntl.h>
+#include <sys/stat.h>
+
 #include "Logger.h"
+#include "Includes.h"
+
 
 char strBuff[39];
 //struct _timeb timebuffer;
@@ -22,7 +26,6 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
     time_t ltime = 0;
     struct tm stToday;
 
-
     time( &ltime );
     localtime_r( &ltime ,  &stToday);
 
@@ -31,30 +34,56 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
     strftime(theApp.g_Stats.strStartTime, sizeof(theApp.g_Stats.strStartTime), "%Y-%m-%d- %H:%M:%S" , &stToday);
 //	strcpy(theApp.g_Stats.strStartTime, m_pCUtil->GetFormatedTime());
 
+    memset(theApp.g_arrTotalMessages, 0, sizeof(theApp.g_arrTotalMessages));
+//    memset(theApp.g_arrMessagesPerSec, 0, sizeof(theApp.g_arrMessagesPerSec));
+//    memset(theApp.g_arrMaxMessagesPerSec, 0, sizeof(theApp.g_arrMaxMessagesPerSec));
     m_pCUtil	= NULL;
     m_pCUtil	= new CUtil();
 
     m_bConnected = false;
 
     m_iError = 0;
-    
+
     i64Counter = 0;
-    
+
 //    m_pQuantQueue = NULL;
 //    m_pQuantQueue = CQuantQueue::Instance();   // Only one instance is allowed of this singelton class
 
-	if (!m_pQuantQueue){
-	    Logger::instance().log("Error initializing the Queue", Logger::Error);
-	    m_iError = 100;  // ::TODO enum the Error
-	}
-	else {
-	   Logger::instance().log("Queue initialized", Logger::Info);
-	}
-	m_remain.tv_sec = 0;
-	m_remain.tv_nsec = 0;
-	
-	m_request.tv_sec = 0;
-	m_request.tv_nsec = 10000000;   // 1/100 of a second
+    if (!m_pQuantQueue) {
+        Logger::instance().log("Error initializing the Queue", Logger::Error);
+        m_iError = 100;  // ::TODO enum the Error
+    }
+    else {
+        Logger::instance().log("Queue initialized", Logger::Info);
+    }
+    m_remain.tv_sec = 0;
+    m_remain.tv_nsec = 0;
+
+    m_request.tv_sec = 0;
+    m_request.tv_nsec = 10000000;   // 1/100 of a second
+    
+// Get the file ready to store the stock directory    
+    struct stat st = {0};
+
+    if (stat("../StockDirectory/", &st) == -1) {
+        mkdir("../StockDirectory/", 0700);
+    }
+
+    string strTickFile;
+    strTickFile.empty();
+
+    strTickFile = "../StockDirectory/";
+    strTickFile += m_pCUtil->GetFormatedDate();
+    strTickFile += "StockDirectory.Qtx";
+
+//    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
+    m_fd = open(strTickFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+    
+    if (m_fd == -1){
+         Logger::instance().log("Error opening Stock Direcotry File", Logger::Error);
+    }
+
+   
 }
 ////////////////////////////////////////////////////////////////////////////
 int CFillMsgStructs::GetError()
@@ -75,20 +104,18 @@ CFillMsgStructs::~CFillMsgStructs(void)
     memset(theApp.g_Stats.strEndTime, '\0', sizeof(theApp.g_Stats.strEndTime));
     strftime(theApp.g_Stats.strEndTime, sizeof(theApp.g_Stats.strEndTime), "%Y-%m-%d- %H:%M:%S" , &stToday);
 
-//	strcpy(theApp.g_Stats.strEndTime, m_pCUtil->GetFormatedTime());
+    //	strcpy(theApp.g_Stats.strEndTime, m_pCUtil->GetFormatedTime());
 
     if (m_pCUtil)
     {
         delete	m_pCUtil;
         m_pCUtil = NULL;
     }
-    // For test purposes only ...remove from here ...will find the right place for it
-/*    
-    if (m_pQuantQueue){
-      delete m_pQuantQueue;
-      m_pQuantQueue = NULL;
+    
+    if (m_fd){
+      close(m_fd);
     }
-*/
+    
     m_bConnected = false;
 }
 ////////////////////////////////////////////////////////////////////////////
@@ -99,91 +126,86 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
     {
     case 'S':
         SystemEvent(uiMsg);
-        theApp.g_arrTotalMessages[0 ]++;
+        theApp.g_arrTotalMessages[SYSTEM_EVENT ]++;
         break;
     case 'R':
         StockDirectory(uiMsg);
-        theApp.g_arrTotalMessages[1]++;
+        theApp.g_arrTotalMessages[STOCK_DIRECTORY]++;
         break;
     case 'H':
         StockTradingAction(uiMsg);
-        theApp.g_arrTotalMessages[2]++;
+        theApp.g_arrTotalMessages[STOCK_TRADING_ACTION]++;
         break;
     case 'Y':
         RegShoRestriction(uiMsg);
-        theApp.g_arrTotalMessages[3]++;
+        theApp.g_arrTotalMessages[REG_SHO]++;
         break;
     case 'L':
         Market_Participant_Position(uiMsg);
-        theApp.g_arrTotalMessages[14]++;
+        theApp.g_arrTotalMessages[MARKET_PART_POSITION]++;
         break;
     case 'V':
         MWCBDeclineLevelMessage(uiMsg);
-        theApp.g_arrTotalMessages[15]++;
+        theApp.g_arrTotalMessages[MWCB_DECLINE_LEVEL]++;
         break;
     case 'W':
         MWCBBreachMessage(uiMsg);
-        theApp.g_arrTotalMessages[16]++;
+        theApp.g_arrTotalMessages[MWCB_BREACH]++;
         break;
     case 'K':
         IPOQuotingPeriodUpdate(uiMsg);
-        theApp.g_arrTotalMessages[17]++;
+        theApp.g_arrTotalMessages[IPO_QUOTING_PERIOD_UPDATE]++;
         break;
     case 'A':
         AddOrderNoMPIDMessage(uiMsg);
-        theApp.g_arrTotalMessages[4]++;
+        theApp.g_arrTotalMessages[ADD_ORDER_NO_MPID]++;
         break;
     case 'F':
         AddOrderWithMPID(uiMsg);
-        theApp.g_arrTotalMessages[5]++;
+        theApp.g_arrTotalMessages[ADD_ORDER_WTIH_MPID]++;
         break;
     case 'E':
         OrderExecutionMessage(uiMsg);
-        theApp.g_arrTotalMessages[7]++;
-        theApp.g_arrTotalMessages[6]++;
+        theApp.g_arrTotalMessages[ORDER_EXECUTION]++;
         break;
     case 'c':
         OrderExecutionWithPriceMessage(uiMsg);
-        theApp.g_arrTotalMessages[8]++;
-        theApp.g_arrTotalMessages[6]++;
+        theApp.g_arrTotalMessages[ORDER_EXECUTION_WITH_PRICE]++;
         break;
     case 'X':
         OrderCancelMessage(uiMsg);
-        theApp.g_arrTotalMessages[9]++;
-        theApp.g_arrTotalMessages[6]++;
+        theApp.g_arrTotalMessages[ORDER_CANCEL]++;
         break;
     case 'D':
         OrderDelete(uiMsg);
-        theApp.g_arrTotalMessages[10]++;
-        theApp.g_arrTotalMessages[6]++;
+        theApp.g_arrTotalMessages[ORDER_DELETE]++;
         break;
     case 'U':
         OrderReplace(uiMsg);
-        theApp.g_arrTotalMessages[11]++;
-        theApp.g_arrTotalMessages[6]++;
+        theApp.g_arrTotalMessages[ORDER_REPLACE]++;
         break;
     case 'P':
         TradeMessageNonCross(uiMsg);
-        theApp.g_arrTotalMessages[12]++;
+        theApp.g_arrTotalMessages[TRADE_MESSAGE_NON_CROSS]++;
         break;
     case 'I':
         NOII(uiMsg);
-        theApp.g_arrTotalMessages[19]++;
+        theApp.g_arrTotalMessages[NETWORK_ORDER_INBALANCE]++;
         break;
     case 'N':
         RetailPriceImprovementIndicator(uiMsg);
-        theApp.g_arrTotalMessages[20]++;
+        theApp.g_arrTotalMessages[RETAIL_PRICE_IMPROVEMENT]++;
         break;
     default:  // we do not process this type of messages
         break;
     };
-    theApp.g_arrTotalMessages[22]++;
-    
-/*    // :: TODO Throw away code
-    if (i64Counter++ > 217000) { //  Addd messages start at 217090
-	nanosleep(&m_request, NULL);  // sleep a 1/10 of a second
-    }
-*/
+    theApp.g_arrTotalMessages[TOTAL_MESSAGES]++;
+
+    /*    // :: TODO Throw away code
+        if (i64Counter++ > 217000) { //  Addd messages start at 217090
+    	nanosleep(&m_request, NULL);  // sleep a 1/10 of a second
+        }
+    */
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -196,7 +218,7 @@ int  CFillMsgStructs::SystemEvent(UINT8* uiMsg)
     m_IMUSys.SystemEvent.iTrackingNumber = m_pCUtil->GetValueUnsignedLong(uiMsg, 3, 2);
     m_IMUSys.SystemEvent.iTimeStamp = m_pCUtil->GetValueUnsignedInt64(uiMsg, 5, 6);
     m_IMUSys.SystemEvent.cEventCode = m_pCUtil->GetValueChar(uiMsg, 11 ,1);
-    
+
     theApp.SSettings.iSystemEventCode = m_IMUSys.SystemEvent.cEventCode; // Available System Wide
 
     if (m_pQuantQueue)
@@ -233,6 +255,9 @@ int  CFillMsgStructs::StockDirectory(UINT8* uiMsg)
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'R');
 
+    if (m_fd != -1)
+	write(m_fd, &m_IMUSys.StockDirectory , sizeof(STOCK_DIRECTORY_MESSAGE ));
+   
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////*/
@@ -367,18 +392,18 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
 
     strcpy(m_IMUSys.AddOrderNoMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
     m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
-/*    
-    if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "MSFT    ")){
-	int iStop = 0;
+    /*
+        if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "MSFT    ")){
+    	int iStop = 0;
+        }
+    */
+    if (m_IMUSys.AddOrderNoMPID.iOrderRefNumber == 0) {
+        iStopHere++;
     }
-*/    
-    if (m_IMUSys.AddOrderNoMPID.iOrderRefNumber == 0){
-	iStopHere++;
+    else {
+        iPassedHere++;
     }
-    else{
-       iPassedHere++;
-    }
-      
+
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'A');
 
@@ -400,17 +425,7 @@ int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
     strcpy(m_IMUSys.AddOrderMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
     m_IMUSys.AddOrderMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     strcpy(m_IMUSys.AddOrderMPID.szMPID,  m_pCUtil->GetValueAlpha(uiMsg, 36, 4));
-/*
-    if (!strcmp(m_IMUSys.AddOrderMPID.szStock, "AAPL    ")){
-	int iStopHere = 0;
-    }
-    
-    if ((*m_IMUSys.AddOrderMPID.szMPID == '\0x20') || (!m_IMUSys.AddOrderMPID.szMPID)){
-      int iStopHere = 0;
-    }
-*/      
-  
-    
+
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'F');
 
@@ -446,9 +461,9 @@ int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
     m_IMUSys.OrderExecutedWithPrice.iOrderRefNumber = m_pCUtil->GetValueUnsignedLong(uiMsg, 11, 8);
     m_IMUSys.OrderExecutedWithPrice.iShares = m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
     m_IMUSys.OrderExecutedWithPrice.iOrderMatchNumber = m_pCUtil->GetValueUnsignedLong(uiMsg, 23, 8);
-    
+
     m_IMUSys.OrderExecutedWithPrice.dExecutionPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
-    m_IMUSys.OrderExecutedWithPrice.cPrintable = m_pCUtil->GetValueChar(uiMsg, 31, 1);   
+    m_IMUSys.OrderExecutedWithPrice.cPrintable = m_pCUtil->GetValueChar(uiMsg, 31, 1);
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'c');

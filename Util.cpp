@@ -30,8 +30,26 @@ CUtil::CUtil(void)
     m_iMicroSeconds = 1 * 1E6;
     m_iNanoSeconds  = 0;
 }
-
 //////////////////////////////////////////////////////////////////////////////
+CUtil::CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL])
+{
+
+    m_SymbolSet.clear();
+
+    for (int ii = 0; ii < NUMBER_OF_SYMBOLS; ii++) {
+        m_SymbolSet.insert(szActiveSymbols[ii]);
+    }
+}
+//////////////////////////////////////////////////////////////////////////////
+bool CUtil::IsSymbolIn(char* szSymbolIn)
+{
+    m_it = m_SymbolSet.find(szSymbolIn);
+    if (m_it == m_SymbolSet.end())
+      return false;
+  
+    return true;
+}
+/////////////////////////////////////////////////////////////////////////////
 char* CUtil::GetTimeFromNano(uint64_t ui64NanoTime)
 {
     lldiv_t Div;
@@ -253,20 +271,20 @@ char* CUtil::GetFormatedTime()
 ///////////////////////////////////////////////////////////////////////////////////
 bool CUtil::CheckInclude(char* szStock)
 {
-  
-  // ::TODO Throw away code ...for now until all testing is ready
-  
+
+    // ::TODO Throw away code ...for now until all testing is ready
+
     return true;
 
     if (!strcmp(szStock, theApp.SSettings.szInclude)) // Included with or w/o range
         return true;
-/*
-    if ((theApp.SSettings.cBeginRange == '\0') &&  (theApp.SSettings.cEndRange == '\0')) { //  No Range
-        if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included
-            return true;
-        return false;
-    }
-*/
+    /*
+        if ((theApp.SSettings.cBeginRange == '\0') &&  (theApp.SSettings.cEndRange == '\0')) { //  No Range
+            if (!strcmp(szStock, theApp.SSettings.strInclude)) // Included
+                return true;
+            return false;
+        }
+    */
     if ((theApp.SSettings.cBeginRange <= *szStock) &&  (theApp.SSettings.cEndRange >= *szStock)) { // In Range
         if (strcmp(szStock, theApp.SSettings.szExclude)) { // NOT excluded
             return true;

@@ -4,9 +4,14 @@
 #define		SIZE_OF_TEMP_BUFF	128
 #define		SIZE_OF_RET_BUFF	25
 
+
+#include <set>
+#include <string>
 #include "Includes.h"
 #include <inttypes.h>
 #include <mysql/mysql.h>
+
+using namespace std;
 
 class CUtil
 {
@@ -19,10 +24,15 @@ private:
       uint64_t m_iMilliSeconds;
       uint64_t m_iMicroSeconds;
       uint64_t m_iNanoSeconds;
+      
+      set<string> m_SymbolSet;
+      set<string>::iterator m_it;
+      pair<set<string>::iterator,bool> m_Ret;
 
 
 public:
 	CUtil(void);
+	CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL]);
 	~CUtil(void);
 
 //	CString		FloatToCString(double fIn);
@@ -64,5 +74,6 @@ public:
 	char* 	GetTimeFromNano(uint64_t);
 	void 	GetTimeWithSeconds();
  	bool 	CheckInclude(char*  szStock);
+	bool    IsSymbolIn(char* szSymbolIn);
 
 };

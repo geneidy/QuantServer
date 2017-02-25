@@ -127,24 +127,25 @@ typedef struct
 
 typedef struct   
 {//Name	Offset	Length	Value	Notes
-	char				cMessageType;				//Message Type	0	1	“L”	Market Participant Position message
+	char			cMessageType;				//Message Type	0	1	“L”	Market Participant Position message
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security Tracking
 	unsigned int		TrackingNumber;				//Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t     iTimeStamp;					// iTimeStamp	5	6	Integer	Nanoseconds since midnight
-	char				szMPID[5];					// MPID	11	4	Alpha	Denotes the market participant identifier for which the position message is being generated
-	char				szStock[SIZE_OF_SYMBOL];		//Stock 15	8	Alpha	Stock symbol, right padded with spaces
-	char				cPrimaryMM;					// Y N		//Primary Market Maker	23	1	Alpha	Indicates if the market participant firm qualifies as a Primary Market Maker in accordance with NASDAQ marketplace rules
-	char				cMMMode;					//Market Maker Mode	24	1	Alpha	Indicates the quoting participant’s registration status in relation to SEC Rules 101 and 104 of Regulation M 
-										/*“N” = normal 
-										“P” = passive “S” = syndicate
-										“R” = pre-syndicate
-										“L” = penalty*/
-	char				cMarketParticipantState;		// Market Participant State	25	1	Alpha	Indicates the market participant’s current registration status in the issue 
-										/*“A” = Active
-										“E” = Excused/Withdrawn
-										“W” = Withdrawn 
-										“S” = Suspended
-										“D” = Deleted*/
+	uint64_t     		iTimeStamp;					// iTimeStamp	5	6	Integer	Nanoseconds since midnight
+	char			szMPID[5];					// MPID	11	4	Alpha	Denotes the market participant identifier for which the position message is being generated
+	char			szStock[SIZE_OF_SYMBOL];		//Stock 15	8	Alpha	Stock symbol, right padded with spaces
+	char			cPrimaryMM;					// Y N		//Primary Market Maker	23	1	Alpha	Indicates if the market participant firm qualifies as a Primary Market Maker in accordance with NASDAQ marketplace rules
+	char			cMMMode;				//Market Maker Mode	24	1	Alpha	Indicates the quoting participant’s registration status in relation to SEC Rules 101 and 104 of Regulation M 
+									/*“N” = normal 
+									“P” = passive 
+									“S” = syndicate
+									“R” = pre-syndicate
+									“L” = penalty*/
+	char			cMarketParticipantState;		// Market Participant State	25	1	Alpha	Indicates the market participant’s current registration status in the issue 
+									/*“A” = Active
+									“E” = Excused/Withdrawn
+									“W” = Withdrawn 
+									“S” = Suspended
+									“D” = Deleted*/
 }MP_POSITION_MESSAGE;
 
 typedef struct     
