@@ -68,8 +68,8 @@ int main(int argc, char **argv)
         jj++;
         sleep(3);
 
-//       if (jj > 200)  // jj* 3 =  seconds
-        if (jj > 10)  // jj* 3 =  seconds
+//   if (jj > 200)  // jj* 3 =  seconds
+        if (jj > 30)  // jj* 3 =  seconds
 //        if (jj > 300)  // jj* 3 =  seconds
             theApp.SSettings.iStatus = STOPPED;
     };
@@ -525,6 +525,8 @@ void* StatsPerSec(void* pArg)
 
     while (theApp.SSettings.iStatus != STOPPED) {
         sleep(1);
+	pCStatsPerSec->SetPerSec();
+	pCStatsPerSec->SetMaxPerSec();
     }
 
     if (pCStatsPerSec) {

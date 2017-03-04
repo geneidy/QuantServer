@@ -1,19 +1,21 @@
 #pragma once
 
 
-#define SIZE_OF_CLT_NAME	31
-#define SIZE_OF_CLT_PASSWORD   31
+#define SIZE_OF_CLT_NAME	30+1
+#define SIZE_OF_CLT_PASSWORD   30+1
 
-#define SIZE_OF_NAME    31
-#define SIZE_OF_PASSWORD 31
+#define SIZE_OF_NAME    30+1
+#define SIZE_OF_PASSWORD 30+1
 #define SIZE_OF_FILENAME   255
 
 #define SIZE_OF_SYMBOL   8+1
-#define NUMBER_OF_SYMBOLS   5+1
+#define NUMBER_OF_SYMBOLS   5
 
 #define  UINT8  	unsigned char
 #define  UINT		unsigned int
 #define  ULONG		unsigned long
+
+#define MAX_MESSAGE_TYPES		23
 
 #define			NUMBER_OF_ROLES		14
 #define			NUMBER_OF_BOOKS_TO_DISPALY  5
@@ -41,6 +43,7 @@ enum FEED_STATE {
     FEED_PLAYBACK
 };
 
+
 enum FeedStatIndex {
     SYSTEM_EVENT = 0,
     STOCK_DIRECTORY,
@@ -52,7 +55,7 @@ enum FeedStatIndex {
     IPO_QUOTING_PERIOD_UPDATE,
     ADD_ORDER_NO_MPID,
     ADD_ORDER_WTIH_MPID,
-    ORDER_EXECUTION,
+    ORDER_EXECUTION, // 10
     ORDER_EXECUTION_WITH_PRICE,
     ORDER_CANCEL,
     ORDER_DELETE,
@@ -60,7 +63,7 @@ enum FeedStatIndex {
     TRADE_MESSAGE_NON_CROSS,
     NETWORK_ORDER_INBALANCE,
     RETAIL_PRICE_IMPROVEMENT,
-    TOTAL_MESSAGES
+    TOTAL_MESSAGES // 18
 };
 
 

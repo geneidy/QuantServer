@@ -82,7 +82,7 @@ void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
  BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile,\
  StatsPerSec, DisplayBook, Distributor, SaveToDisk};  // All Roles for the server functions are here
 
-const char *ThreadMessage[NUMBER_OF_ROLES ] = \
+const char *ThreadMessage[NUMBER_OF_ROLES +1] = \
 {   "Main Queue Thread", "Settings Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", \
     "Build Book Thread", "Tick Data Thread", "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread",\
     "Stats Per Second Thread", "Display Book Thread", "Distributor Thread", "Save To Disk Thread"

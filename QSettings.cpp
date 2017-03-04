@@ -152,7 +152,7 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.iarrRole[7] = 0;   		//  7= Save to DB
     SSettings.iarrRole[8] = 0;   		//  8= Play back
 
-    SSettings.iarrRole[9] = 0;   		//  9= Test File
+    SSettings.iarrRole[9] = 1;   		//  9= Test File
     SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
     SSettings.iarrRole[11]= 0;   		//  11= Display Book
     SSettings.iarrRole[12]= 0;   		//  12= Distributor

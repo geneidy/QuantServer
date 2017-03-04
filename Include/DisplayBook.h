@@ -54,6 +54,8 @@ static struct stat  m_sb[NUMBER_OF_BOOKS_TO_DISPALY ] ;
 static struct stat  m_st[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
 static void*  m_addr[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
 
+struct timespec    m_request;
+
 public:
     CDisplayBook(CBuildBook*  pCBuildBook);
     ~CDisplayBook();
@@ -62,7 +64,7 @@ public:
     static BOOK_THREAD_DATA 	m_arrBookThreadData[NUMBER_OF_BOOKS_TO_DISPALY];
 
     
-    static  void DisplaySelected(void);
+    void DisplaySelected(void);
     static  void* DisplaySingleBook(void* pArg);
     
     static  void  StopDisplaySelected(char*);

@@ -28,7 +28,7 @@ CTickDataMap::CTickDataMap()
 
     strTickFile = "../Ticks/";
     strTickFile += m_pcUtil->GetFormatedDate();
-    strTickFile += "QuanticksTicks.Qtx";
+    strTickFile += "QuanticksTicks.qtx";
 
 //    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
     m_fd = open64(strTickFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);

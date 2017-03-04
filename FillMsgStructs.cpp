@@ -74,7 +74,7 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
 
     strTickFile = "../StockDirectory/";
     strTickFile += m_pCUtil->GetFormatedDate();
-    strTickFile += "StockDirectory.Qtx";
+    strTickFile += "StockDirectory.qtx";
 
 //    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
     m_fd = open(strTickFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);

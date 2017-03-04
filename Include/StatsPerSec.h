@@ -31,7 +31,7 @@ class CStatsPerSec
 private:
     void* m_addr;
     int m_fd;
-    struct stat64 m_sb;
+    struct stat m_sb;
 
     int InitMemoryMappedFile();
 
@@ -47,8 +47,6 @@ static    SMESSAGESPERSEC* m_pMessagesPerSec;
     CUtil*  m_Util;
 
       static void ResetPerSec();
-      static void SetMaxPerSec();
-      static void SetPerSec();
 
     int  makeTimer( char *name, timer_t *timerID, int expireMS, int intervalMS );
       static void timerHandler( int sig, siginfo_t *si, void *uc );
@@ -59,6 +57,8 @@ public:
     CStatsPerSec();
     ~CStatsPerSec();
     int GetError();
+      static void SetMaxPerSec();
+      static void SetPerSec();
 
 
 };

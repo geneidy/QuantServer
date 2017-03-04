@@ -51,7 +51,7 @@ COrdersMap::COrdersMap()
 
     strOrdersFile = "../Orders/";
     strOrdersFile += m_Util->GetFormatedDate();
-    strOrdersFile += "QuanticksOrders.Qtx";
+    strOrdersFile += "QuanticksOrders.qtx";
 
     m_fd = open64(strOrdersFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
 

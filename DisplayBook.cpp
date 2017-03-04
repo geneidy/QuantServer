@@ -11,7 +11,7 @@ struct stat 	 CDisplayBook::m_sb[NUMBER_OF_BOOKS_TO_DISPALY ] ;
 struct stat 	 CDisplayBook::m_st[NUMBER_OF_BOOKS_TO_DISPALY ] ;
 int 		 CDisplayBook::m_iError = 0;
 CBuildBook* 	 CDisplayBook::m_pcBuildBook[NUMBER_OF_BOOKS_TO_DISPALY];
-void*  		 CDisplayBook::m_addr[NUMBER_OF_BOOKS_TO_DISPALY ];    
+void*  		 CDisplayBook::m_addr[NUMBER_OF_BOOKS_TO_DISPALY ];
 
 
 ///////////////////////////////////////////////////////////////////
@@ -19,16 +19,20 @@ CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
 {
     for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
         m_pcBuildBook[ii]  = pCBuildBook;
-	m_arrThreadInfo[ii].eState = _TS_INACTIVE;
-	m_addr[ii] = NULL ;    
-	m_SDisplayBook[ii] = NULL;
-	m_sb[ii] = {0} ;    
-	m_st[ii] = {0};    
-	m_uiSizeOfLob[ii] = 0 ;    
+        m_arrThreadInfo[ii].eState = _TS_INACTIVE;
+
+        m_addr[ii] = NULL ;
+        m_SDisplayBook[ii] = NULL;
+        m_sb[ii] = {0} ;
+        m_st[ii] = {0};
+        m_uiSizeOfLob[ii] = 0 ;
+
     }
     m_pcUtil = NULL;
 //    m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols);
-  
+    m_request.tv_sec = 0;
+    m_request.tv_nsec = 100000000;   // 1/10 of a second
+
 }
 ///////////////////////////////////////////////////////////////////
 CDisplayBook::~CDisplayBook()
@@ -37,15 +41,17 @@ CDisplayBook::~CDisplayBook()
         delete m_pcUtil;
         m_pcUtil = NULL;
     }
+
     for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
-	msync(m_addr[ii], m_sb[ii].st_size, MS_ASYNC);
-	munmap(m_addr[ii], m_sb[ii].st_size);
+        msync(m_addr[ii], m_sb[ii].st_size, MS_ASYNC);
+        munmap(m_addr[ii], m_sb[ii].st_size);
+        close(m_iFD[ii]);
     }
- 
 }
 ///////////////////////////////////////////////////////////////////
 void CDisplayBook::DisplaySelected()
 {
+    int iTotalThreads = 0;
 
     for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {        // spin a thread for each Stock
         if (!theApp.SSettings.arrbActive[ii]) { // Non active
@@ -58,7 +64,32 @@ void CDisplayBook::DisplaySelected()
         strcpy(m_arrBookThreadData[ii].szSymbol, theApp.SSettings.szActiveSymbols[ii]);  // copy the symbol
 
         int iRet = pthread_create(&m_arrThreadInfo[ii].thread_id, NULL, &DisplaySingleBook, &m_arrBookThreadData[ii]);
+	nanosleep (&m_request, NULL);  // sleep a 1/10 of a second
+        iTotalThreads++;
     }
+
+    int iJoined = 0;
+    string strExitMessage;
+
+    while (iJoined < iTotalThreads) {
+        // keep on checking for all terminated threads every three seconds
+        for (uint ii = 0;  ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++ ) {
+            if ((m_arrThreadInfo[ii].eState == _TS_INACTIVE)|| (m_arrThreadInfo[ii].eState == _TS_JOINED)|| (m_arrThreadInfo[ii].eState == _TS_ALIVE)|| (m_arrThreadInfo[ii].eState == _TS_STARTED))
+                continue;
+            if (m_arrThreadInfo[ii].eState == _TS_TERMINATED) {
+                pthread_join(m_arrThreadInfo[ii].thread_id, NULL);
+                m_arrThreadInfo[ii].eState = _TS_JOINED;
+
+                strExitMessage.clear();
+                strExitMessage = "Display Book Thread for Symbol: ";
+                strExitMessage += m_arrBookThreadData[ii].szSymbol;
+                strExitMessage += "  Joined";
+                Logger::instance().log(strExitMessage, Logger::Debug);
+                iJoined++;
+            }
+        } // for loop
+        sleep(1);
+    } // while loop
 }
 ///////////////////////////////////////////////////////////////////
 void CDisplayBook::StopDisplaySelected(char* szSymbol)
@@ -69,6 +100,9 @@ void CDisplayBook::StopDisplaySelected(char* szSymbol)
 void CDisplayBook::StopDisplayAllBooks()
 {
 
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
+        m_arrThreadInfo[ii].eState == _TS_TERMINATED;
+    }
 
 }
 ///////////////////////////////////////////////////////////////////
@@ -107,8 +141,10 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
     int nDisplayedLevels = 0;
 
     while (theApp.SSettings.iStatus != STOPPED) {
-
-//         SBookLevels = m_pcBuildBook->m_itBookMap->second;
+//    SBookLevels = m_pcBuildBook->m_itBookMap->second;
+        if (m_arrThreadInfo[idx].eState == _TS_TERMINATED) {
+            break;
+        }
 
         m_SDisplayBook[idx]->TopOfBook.dOpen 	=   SBookLevels.m_OHLC.dOpen;
         m_SDisplayBook[idx]->TopOfBook.dClose =   SBookLevels.m_OHLC.dClose;
@@ -195,7 +231,7 @@ int CDisplayBook::CreatLOBFileMapping(int iDx)
     }
 
     if (!m_iError) {
-        if (fstat(m_iFD[iDx], &m_st[iDx]) == -1) {
+        if (fstat(m_iFD[iDx], &m_sb[iDx]) == -1) {
             Logger::instance().log("LOB Error fstat", Logger::Error);
             m_iError = 110;
             // Set error code and exit

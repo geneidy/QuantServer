@@ -485,7 +485,7 @@ typedef struct {
 
 
 #define	MAX_TABLES				36
-#define MAX_MESSAGE_TYPES		23
+// #define MAX_MESSAGE_TYPES		23
 
 #ifdef __cplusplus
 extern "C"{
