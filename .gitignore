@@ -43,10 +43,15 @@ Logs/
 *.kdev*
 
 # .directory
-.directory*
+.directory
 # qt moc
 #moc*.cpp
 ui_*
 moc_*
 # ITCH Directory
 NasdTestFiles/
+
+# settings
+QSettings/
+
+
