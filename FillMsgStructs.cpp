@@ -238,23 +238,23 @@ int  CFillMsgStructs::StockDirectory(UINT8* uiMsg)
     m_IMUSys.StockDirectory.iTimeStamp				= m_pCUtil->GetValueUnsignedInt64(uiMsg, 5, 6);
     strcpy(m_IMUSys.StockDirectory.szStock, m_pCUtil->GetValueAlpha( uiMsg,11, 8));
     m_IMUSys.StockDirectory.eMarketCategory		= m_pCUtil->GetValueChar(uiMsg, 19, 1);
-    m_IMUSys.StockDirectory.eFSI					= m_pCUtil->GetValueChar(uiMsg, 20,1);
-    m_IMUSys.StockDirectory.iRoundLotSize			= m_pCUtil->GetValueUnsignedLong( uiMsg, 21, 4);
-    m_IMUSys.StockDirectory.cRoundLotsOnly         =  m_pCUtil->GetValueChar(  uiMsg, 25, 1);
+    m_IMUSys.StockDirectory.eFSI			= m_pCUtil->GetValueChar(uiMsg, 20,1);
+    m_IMUSys.StockDirectory.iRoundLotSize		= m_pCUtil->GetValueUnsignedLong( uiMsg, 21, 4);
+    m_IMUSys.StockDirectory.cRoundLotsOnly         	=  m_pCUtil->GetValueChar(  uiMsg, 25, 1);
     m_IMUSys.StockDirectory.cIssueClassification	= m_pCUtil->GetValueChar(uiMsg, 26, 1);
     strcpy(m_IMUSys.StockDirectory.strIssueSubType, m_pCUtil->GetValueAlpha(uiMsg, 27, 2));
-    m_IMUSys.StockDirectory.cAuthenticity			=  m_pCUtil->GetValueChar(uiMsg, 29, 1);
+    m_IMUSys.StockDirectory.cAuthenticity		=  m_pCUtil->GetValueChar(uiMsg, 29, 1);
     m_IMUSys.StockDirectory.cShortSaleThresholdInd = m_pCUtil->GetValueChar(uiMsg, 30, 1);
 
-    m_IMUSys.StockDirectory.cIPOFlag				= m_pCUtil->GetValueChar(uiMsg, 31, 1);
-    m_IMUSys.StockDirectory.cLULDRefPrice			= m_pCUtil->GetValueChar(uiMsg, 32, 1);
-    m_IMUSys.StockDirectory.cETPFlag				= m_pCUtil->GetValueChar(uiMsg, 33, 1);
+    m_IMUSys.StockDirectory.cIPOFlag			= m_pCUtil->GetValueChar(uiMsg, 31, 1);
+    m_IMUSys.StockDirectory.cLULDRefPrice		= m_pCUtil->GetValueChar(uiMsg, 32, 1);
+    m_IMUSys.StockDirectory.cETPFlag			= m_pCUtil->GetValueChar(uiMsg, 33, 1);
     m_IMUSys.StockDirectory.iETPLeverageFactor		= m_pCUtil->GetValueChar(uiMsg, 34, 4);
-    m_IMUSys.StockDirectory.cInverseFactor			= m_pCUtil->GetValueChar(uiMsg, 38, 1);
+    m_IMUSys.StockDirectory.cInverseFactor		= m_pCUtil->GetValueChar(uiMsg, 38, 1);
 
-    if (m_pQuantQueue)
+/*    if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'R');
-
+*/
     if (m_fd != -1)
 	write(m_fd, &m_IMUSys.StockDirectory , sizeof(STOCK_DIRECTORY_MESSAGE ));
    
@@ -275,7 +275,7 @@ int  CFillMsgStructs::StockTradingAction(UINT8* uiMsg)
     m_IMUSys.StockTradingAction.cTradingState = m_pCUtil->GetValueChar(uiMsg, 19, 1);
 
     m_IMUSys.StockTradingAction.cReserved = m_pCUtil->GetValueChar(uiMsg, 20, 1);
-    strcpy(m_IMUSys.StockTradingAction.strReason , m_pCUtil->GetValueAlpha(uiMsg, 21, 4));
+    strcpy(m_IMUSys.StockTradingAction.szReason , m_pCUtil->GetValueAlpha(uiMsg, 21, 4));
 
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'H');

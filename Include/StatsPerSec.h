@@ -23,7 +23,6 @@ typedef struct SMessagesPerSec {
   unsigned long arrMessagesPerSec[MAX_MESSAGE_TYPES];
   unsigned long arrMaxMessagesPerSec[MAX_MESSAGE_TYPES];
   unsigned long arrTotalMessages[MAX_MESSAGE_TYPES];
-  
 }SMESSAGESPERSEC;
 
 class CStatsPerSec

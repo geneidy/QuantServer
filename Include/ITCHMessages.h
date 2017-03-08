@@ -96,30 +96,30 @@ typedef struct
 
 typedef struct   
 {
-												//Name	Offset	Length	Value	Notes
-	char	cMessageType;						//Message Type	0	1	“H”	Stock Trading Action Message.
+								//Name	Offset	Length	Value	Notes
+	char	cMessageType;					//Message Type	0	1	“H”	Stock Trading Action Message.
 	unsigned int		iStockLocate;			//	Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		iTrackingNumber;		//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     iTimeStamp;				// Timestamp	5	6	Integer	Nanoseconds since midnight
 	char	Symbol[SIZE_OF_SYMBOL];				// Stock	11	8	Alpha	Stock symbol, right padded with spaces
-	char	cTradingState;						// Trading State	19	1	Alpha	Indicates the current trading state for the stock. Allowable values:
+	char	cTradingState;					// Trading State	19	1	Alpha	Indicates the current trading state for the stock. Allowable values:
 	//'H' = Halted across all U.S. equity markets / SROs
 	//'P' = Paused across all U.S. equity markets / SROs (NASDAQ-listed securities only)
 	//'Q' = Quotation only period for cross-SRO halt or pause
-	//'T' = Trading on NASDAQ
-	char	cReserved;							//Reserved	20	1	Alpha	Reserved.
-	char    strReason[5];						//Reason	21	4	Alpha	Trading Action reason.
+	//'T' = Trading on NASDAQ     
+	char	cReserved;					//Reserved	20	1	Alpha	Reserved.
+	char    szReason[5];					//Reason	21	4	Alpha	Trading Action reason.
 }STOCK_TRADING_ACTION_MESSAGE;
 
 
 typedef struct   
 {//		Name	Offset	Length	Value	Notes
-	char				cMessage;				//Message Type	0	1	“Y”	Reg SHO Short Sale Price Test Restricted Indicator
+	char			cMessage;				//Message Type	0	1	“Y”	Reg SHO Short Sale Price Test Restricted Indicator
 	unsigned int		iLocateCode;			// Locate Code	1	2	Integer	Locate code identifying the security 
 	unsigned int		TrackingNumber;			// Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t		iTimeStamp;  // 	5	6	Integer	Nanoseconds since midnight
-	char				Symbol[SIZE_OF_SYMBOL];    //  Stock	11	8	Alpha	Stock symbol, right padded with spaces
-	char				cRegSHOAction;	// Reg SHO Action   19	1	Alpha	Denotes the Reg SHO Short Sale Price Test Restriction status for the issue at the time of the message dissemination.  Allowable values are:
+	char			Symbol[SIZE_OF_SYMBOL];    //  Stock	11	8	Alpha	Stock symbol, right padded with spaces
+	char			cRegSHOAction;	// Reg SHO Action   19	1	Alpha	Denotes the Reg SHO Short Sale Price Test Restriction status for the issue at the time of the message dissemination.  Allowable values are:
 	//“0” = No price test in place
 	//“1” = Reg SHO Short Sale Price Test Restriction in effect due to an intra-day price drop in security
 	//“2” = Reg SHO Short Sale Price Test Restriction remains in effect
