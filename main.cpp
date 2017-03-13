@@ -366,11 +366,11 @@ void* BuildBook(void* pArg)
     while (theApp.SSettings.iStatus != STOPPED) {
         pCBuildBook->BuildBookFromMemoryMappedFile();
     }
-
+/*
     pCBuildBook->ListBook("MSFT    ");
     pCBuildBook->ListBook("INTC    ");
     pCBuildBook->ListBook("GOOG    ");
-
+*/
 
     delete pCBuildBook;
     pCBuildBook = NULL;
@@ -447,7 +447,21 @@ void *DisplayBook(void* pArg)
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
-//    pCBuildBook
+    int iWait = 0;
+    while (!pCBuildBook) {
+        Logger::instance().log("Waiting for Build Book to Start", Logger::Info);
+        sleep(1);  // Wait for the book to be Built
+        if (iWait++ > 10) {
+            Logger::instance().log("Waited more than 10 seconds for Build Book to Start", Logger::Error);
+            Logger::instance().log("Returning", Logger::Error);
+            pthread_mutex_lock(&mtxTick);
+            TermThreadLog(idx);
+            pthread_mutex_unlock(&mtxTick);
+            return NULL;
+        }
+    }
+    Logger::instance().log("Waiting for Build Book to Start is over...Starting Display Book", Logger::Info);
+
     pCDisplayBook = NULL;
     pCDisplayBook = new CDisplayBook(pCBuildBook);
 
@@ -471,11 +485,14 @@ void *DisplayBook(void* pArg)
     theApp.SSettings.iSaveApply = OK;
     while (theApp.SSettings.iStatus != STOPPED) {
         if ((theApp.SSettings.iSaveApply == OK) || (theApp.SSettings.iSaveApply == APPLY)) { // Check for change in status
+            if (pCDisplayBook->GetError() > 0)
+                break;
             pCDisplayBook->DisplaySelected(); // Display the selected by clicking the bool in arrbActive[NUMBER_OF_SYMBOLS ];
-            theApp.SSettings.iSaveApply = CANCEL;
+            theApp.SSettings.iSaveApply = CANCEL; //  so not to get back in here
         }
         sleep(1);
     }
+    pCDisplayBook->StopDisplayAllBooks();
 
     if (pCDisplayBook) {
         delete pCDisplayBook;
@@ -525,8 +542,8 @@ void* StatsPerSec(void* pArg)
 
     while (theApp.SSettings.iStatus != STOPPED) {
         sleep(1);
-	pCStatsPerSec->SetPerSec();
-	pCStatsPerSec->SetMaxPerSec();
+        pCStatsPerSec->SetPerSec();
+        pCStatsPerSec->SetMaxPerSec();
     }
 
     if (pCStatsPerSec) {

@@ -21,7 +21,7 @@ class CQSettings
 private:
   void* m_addr;
   int m_fd;
-  struct stat64 m_sb;
+  struct stat m_sb;
   
   int InitMemoryMappedFile();
 

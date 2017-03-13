@@ -25,7 +25,7 @@ CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
         m_SDisplayBook[ii] = NULL;
         m_sb[ii] = {0} ;
         m_st[ii] = {0};
-        m_uiSizeOfLob[ii] = 0 ;
+        m_uiSizeOfLob[ii] = sizeof(OHLC) + (sizeof(SBID_ASK[theApp.SSettings.iBookLevels]) *2 );  // should be the same for all array elements
 
     }
     m_pcUtil = NULL;
@@ -37,6 +37,8 @@ CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
 ///////////////////////////////////////////////////////////////////
 CDisplayBook::~CDisplayBook()
 {
+    StopDisplayAllBooks();
+
     if (m_pcUtil) {
         delete m_pcUtil;
         m_pcUtil = NULL;
@@ -64,7 +66,7 @@ void CDisplayBook::DisplaySelected()
         strcpy(m_arrBookThreadData[ii].szSymbol, theApp.SSettings.szActiveSymbols[ii]);  // copy the symbol
 
         int iRet = pthread_create(&m_arrThreadInfo[ii].thread_id, NULL, &DisplaySingleBook, &m_arrBookThreadData[ii]);
-	nanosleep (&m_request, NULL);  // sleep a 1/10 of a second
+        nanosleep (&m_request, NULL);  // sleep a 1/10 of a second
         iTotalThreads++;
     }
 
@@ -81,7 +83,7 @@ void CDisplayBook::DisplaySelected()
                 m_arrThreadInfo[ii].eState = _TS_JOINED;
 
                 strExitMessage.clear();
-                strExitMessage = "Display Book Thread for Symbol: ";
+                strExitMessage = "LOB Display Book Thread for Symbol: ";
                 strExitMessage += m_arrBookThreadData[ii].szSymbol;
                 strExitMessage += "  Joined";
                 Logger::instance().log(strExitMessage, Logger::Debug);
@@ -90,6 +92,7 @@ void CDisplayBook::DisplaySelected()
         } // for loop
         sleep(1);
     } // while loop
+    Logger::instance().log("LOB All Display Book threads joined", Logger::Debug);
 }
 ///////////////////////////////////////////////////////////////////
 void CDisplayBook::StopDisplaySelected(char* szSymbol)
@@ -101,9 +104,8 @@ void CDisplayBook::StopDisplayAllBooks()
 {
 
     for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
-        m_arrThreadInfo[ii].eState == _TS_TERMINATED;
+        m_arrThreadInfo[ii].eState = _TS_TERMINATED;
     }
-
 }
 ///////////////////////////////////////////////////////////////////
 void* CDisplayBook::DisplaySingleBook(void* pArg)
@@ -125,29 +127,23 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         return NULL;
     }
 
-    m_SDisplayBook[idx]->pSBid = new SBID_ASK[nLevels];
-    m_SDisplayBook[idx]->pSAsk = new SBID_ASK[nLevels];
-
-    m_uiSizeOfLob[idx] = sizeof(m_SDisplayBook);
-
-    m_arrThreadInfo[idx].eState == _TS_ALIVE;
+    m_arrThreadInfo[idx].eState = _TS_ALIVE;
 
     m_pcBuildBook[idx]->m_itBookMap = m_pcBuildBook[idx]->m_BookMap.find(strToFind);
     if (m_pcBuildBook[idx]->m_itBookMap == m_pcBuildBook[idx]->m_BookMap.end())
         return  NULL;
 
-    SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
+//    SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
 
     int nDisplayedLevels = 0;
 
     while (theApp.SSettings.iStatus != STOPPED) {
-//    SBookLevels = m_pcBuildBook->m_itBookMap->second;
         if (m_arrThreadInfo[idx].eState == _TS_TERMINATED) {
             break;
         }
 
         m_SDisplayBook[idx]->TopOfBook.dOpen 	=   SBookLevels.m_OHLC.dOpen;
-        m_SDisplayBook[idx]->TopOfBook.dClose =   SBookLevels.m_OHLC.dClose;
+        m_SDisplayBook[idx]->TopOfBook.dClose 	=   SBookLevels.m_OHLC.dClose;
         m_SDisplayBook[idx]->TopOfBook.dHigh 	=   SBookLevels.m_OHLC.dHigh;
         m_SDisplayBook[idx]->TopOfBook.dLow 	=   SBookLevels.m_OHLC.dLow;
         m_SDisplayBook[idx]->TopOfBook.dLast 	=   SBookLevels.m_OHLC.dLast;
@@ -160,33 +156,35 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
 
 //     Bid Levels
         nDisplayedLevels = 0;
+        SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
 
         while (SBookLevels.pTopBid != NULL) {  // Print the Bid Levels
 
             if (nDisplayedLevels++ >= nLevels)
                 break;
 //             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
-            m_SDisplayBook[idx]->pSBid[nDisplayedLevels].dPrice = SBookLevels.pTopBid->dPrice;
+            m_SDisplayBook[idx]->pSBid[nDisplayedLevels].dPrice 	= SBookLevels.pTopBid->dPrice;
             strcpy(m_SDisplayBook[idx]->pSBid[nDisplayedLevels].szMPID, SBookLevels.pTopBid->szMPID);
-            m_SDisplayBook[idx]->pSBid[nDisplayedLevels].uiQty = SBookLevels.pTopBid->uiQty;
-            m_SDisplayBook[idx]->pSBid[nDisplayedLevels].uiNumOfOrders = SBookLevels.pTopBid->uiNumOfOrders;
+            m_SDisplayBook[idx]->pSBid[nDisplayedLevels].uiQty 		= SBookLevels.pTopBid->uiQty;
+            m_SDisplayBook[idx]->pSBid[nDisplayedLevels].uiNumOfOrders 	= SBookLevels.pTopBid->uiNumOfOrders;
 
             pTemp = SBookLevels.pTopBid;
-            SBookLevels.pTopBid = pTemp->pNextBidAsk;
+            SBookLevels.pTopBid = pTemp->pNextBidAsk;  // could have done:  SBookLevels.pTopBid = SBookLevels.pTopBid->pNextBidAsk
         }// while (SBookLevels.pTopBid != NULL) {
 
 //      Ask Levels
         nDisplayedLevels = 0;
+        SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
 
         while (SBookLevels.pTopAsk != NULL) {  // Print the Ask Levels
 //             cout<< SBookLevels.pTopAsk->dPrice << " "  << SBookLevels.pTopAsk->szMPID << " " << SBookLevels.pTopAsk->uiQty << " "<< SBookLevels.pTopAsk->uiNumOfOrders << endl;
             if (nDisplayedLevels++ >= nLevels)
                 break;
 //             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
-            m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].dPrice = SBookLevels.pTopAsk->dPrice;
+            m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].dPrice 	= SBookLevels.pTopAsk->dPrice;
             strcpy(m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].szMPID, SBookLevels.pTopAsk->szMPID);
-            m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].uiQty = SBookLevels.pTopAsk->uiQty;
-            m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].uiNumOfOrders = SBookLevels.pTopAsk->uiNumOfOrders;
+            m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].uiQty 		= SBookLevels.pTopAsk->uiQty;
+            m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].uiNumOfOrders 	= SBookLevels.pTopAsk->uiNumOfOrders;
 
             pTemp = SBookLevels.pTopAsk;
             SBookLevels.pTopAsk = pTemp->pNextBidAsk;
@@ -202,11 +200,13 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         delete[] m_SDisplayBook[idx]->pSAsk;
         m_SDisplayBook[idx]->pSAsk = NULL;
     }
+    if  (m_SDisplayBook[idx]) {
+        delete m_SDisplayBook[idx];
+        m_SDisplayBook[idx] = NULL;
+    }
 
     m_arrThreadInfo[idx].eState = _TS_TERMINATED;
-
     return NULL;  // log later
-
 }
 ///////////////////////////////////////////////////////////////////
 int CDisplayBook::CreatLOBFileMapping(int iDx)
@@ -238,7 +238,7 @@ int CDisplayBook::CreatLOBFileMapping(int iDx)
         }
         else {
             if (!InitMemoryMappedFile(iDx)) {
-                Logger::instance().log("Error Initializing LOB File Mapping", Logger::Error);
+                Logger::instance().log("LOB Error Initializing File Mapping", Logger::Error);
                 close(m_iFD[iDx]);
                 m_iError = 120;
                 // Set error code and exit
@@ -247,13 +247,12 @@ int CDisplayBook::CreatLOBFileMapping(int iDx)
                 m_addr[iDx] = mmap(NULL, m_sb[iDx].st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_iFD[iDx], 0);
 
                 if (m_addr[iDx] == MAP_FAILED) {
-                    Logger::instance().log("Error Mapping Failed", Logger::Error);
+                    Logger::instance().log("LOB Error  Mapping Failed", Logger::Error);
                     m_iError = 130;
                     // Set error code and exit
                 }
                 m_SDisplayBook[iDx] = (DISPLAYBOOK*) m_addr[iDx];  //  cast in DISPLAYBOOK...now you have an array in memory of DISPLAYBOOK
             }
-            m_uiSizeOfLob[iDx] = sizeof(DISPLAYBOOK); // Avoid computing the size million times every second
         }
     }
 
@@ -262,16 +261,53 @@ int CDisplayBook::CreatLOBFileMapping(int iDx)
 //////////////////////////////////////////////////////////////////////////////////
 int CDisplayBook::InitMemoryMappedFile(int iDx)
 {
+    m_SDisplayBook[iDx] = new (DISPLAYBOOK);
+
+    m_SDisplayBook[iDx]->TopOfBook.dHigh 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dOpen 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dClose 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dLast 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dLow 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dVWAP 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.tLastUpdate 	= {0};
+    m_SDisplayBook[iDx]->TopOfBook.tOpen       	= {0};
+
+
+    m_SDisplayBook[iDx]->TopOfBook.uiTotalNumOfTrades = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiTotalVolume = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiVolume = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiNumOfTradesWithPrice = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiNumOfTradesNoPrice = 0;
+
+    m_SDisplayBook[iDx]->pSBid = new SBID_ASK[m_arrBookThreadData[iDx].nLevels];
+    m_SDisplayBook[iDx]->pSAsk = new SBID_ASK[m_arrBookThreadData[iDx].nLevels];
+
+    memset(m_SDisplayBook[iDx]->pSBid, 0, sizeof(m_SDisplayBook[iDx]->pSBid ));
+    memset(m_SDisplayBook[iDx]->pSAsk, 0, sizeof(m_SDisplayBook[iDx]->pSAsk ));
+
+    // Throw away code begin
+    int iSizeOfBidAsk = sizeof(m_SDisplayBook[iDx]);
+    int iSizeOfTopOfBook = sizeof(m_SDisplayBook[iDx]->TopOfBook);
+    //Throw away code end
+
+    m_uiSizeOfLob[iDx] = sizeof(m_SDisplayBook[iDx]);
+
     if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) { // Fresh file
-        Logger::instance().log("Initializing Mapped File...This will take few minutes", Logger::Debug);
-        write(m_iFD[iDx], &m_SDisplayBook, m_uiSizeOfLob[iDx]);  // init with NULL
+        Logger::instance().log("LOB Initializing Mapped File ", Logger::Debug);
+
+        write(m_iFD[iDx], &m_SDisplayBook[iDx]->TopOfBook, sizeof(OHLC));  // init with NULL
+
+        for (int ii=0; ii < m_arrBookThreadData[iDx].nLevels; ii++) {
+            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSBid, sizeof(SBID_ASK));  // init with NULL
+            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSAsk, sizeof(SBID_ASK));  // init with NULL
+        }
     }
 
-    Logger::instance().log("Finished Initializing LOB Mapped File", Logger::Debug);
+    Logger::instance().log("LOB Finished Initializing  Mapped File", Logger::Debug);
 
     fstat(m_iFD[iDx], &m_sb[iDx]);
-    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) { // Fresh file
-        Logger::instance().log("Error Initializing LOB Mapped File", Logger::Debug);
+    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) {
+        Logger::instance().log("LOB Error Initializing Mapped File", Logger::Debug);
         m_iError = 200; // enum later
         return false;
     }
@@ -281,11 +317,11 @@ int CDisplayBook::InitMemoryMappedFile(int iDx)
 ///////////////////////////////////////////////////////////////////
 int CDisplayBook::GetError()
 {
-    return 1;
+    return m_iError;
 }
 ///////////////////////////////////////////////////////////////////
 char* CDisplayBook::GetErrorDescription()
 {
-    return NULL;
+    return NULL;  //see the Logger message for now
 }
 ///////////////////////////////////////////////////////////////////

@@ -25,7 +25,7 @@ CQSettings::CQSettings()
         strSettingsFile.empty();
 
         strSettingsFile = "../QSettings/";
-        strSettingsFile += "QSettingsIni.Qtx";
+        strSettingsFile += "QSettingsIni.qtx";
 
         m_fd = open(strSettingsFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
 
@@ -35,7 +35,7 @@ CQSettings::CQSettings()
             // Set error code and exit
         }
         if (!m_iError) {
-            if (fstat64(m_fd, &m_sb) == -1) {
+            if (fstat(m_fd, &m_sb) == -1) {
                 Logger::instance().log("Settings Error fstat", Logger::Debug);
                 m_iError = 110;
                 // Set error code and exit
@@ -73,7 +73,7 @@ int CQSettings::InitMemoryMappedFile()
         write(m_fd, &m_ssettings, sizeof(SETTINGS));
         Logger::instance().log("Finished Initializing Settings Mapped File", Logger::Debug);
     }
-    fstat64(m_fd, &m_sb);
+    fstat(m_fd, &m_sb);
     if (m_sb.st_size <  sizeof(SETTINGS)) {
         Logger::instance().log("Error Initializing Settings Mapped File", Logger::Debug);
         m_iError = 200; // enum later
@@ -147,14 +147,14 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.iarrRole[2] = 0;   		//  2= Receive Feed
     SSettings.iarrRole[3] = 0;   		//  3= Parse
     SSettings.iarrRole[4] = 0;   		//  4= Orders Map
-    SSettings.iarrRole[5] = 0;   		//  5= Build Book
+    SSettings.iarrRole[5] = 1;   		//  5= Build Book
     SSettings.iarrRole[6] = 0;   		//  6= Tick Data
     SSettings.iarrRole[7] = 0;   		//  7= Save to DB
     SSettings.iarrRole[8] = 0;   		//  8= Play back
 
     SSettings.iarrRole[9] = 1;   		//  9= Test File
     SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
-    SSettings.iarrRole[11]= 0;   		//  11= Display Book
+    SSettings.iarrRole[11]= 1;   		//  11= Display Book
     SSettings.iarrRole[12]= 0;   		//  12= Distributor
     SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 
@@ -173,19 +173,24 @@ SETTINGS CQSettings::LoadSettings()
     strcpy(SSettings.szInclude, "AAPL    ");		//	char  strInclude[5];  // include from another range that was excluded from another partition
     strcpy(SSettings.szExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
 
-    
+
 // For the first release only for 5 stocks...All values to be set by the client....
     // Values for testing the server only
-    SSettings.iBookLevels = 20; 
-    strcpy(SSettings.szActiveSymbols[0], "AAPL    "); 	SSettings.arrbActive[0] = true;
-    strcpy(SSettings.szActiveSymbols[1], "MSFT    ");	SSettings.arrbActive[1] = true;
-    strcpy(SSettings.szActiveSymbols[2], "GOOG    ");	SSettings.arrbActive[2] = true;
-    strcpy(SSettings.szActiveSymbols[3], "INTC    ");	SSettings.arrbActive[3] = true;
-    strcpy(SSettings.szActiveSymbols[4], "AMD     ");	SSettings.arrbActive[4] = true;
+    SSettings.iBookLevels = 20;
+    strcpy(SSettings.szActiveSymbols[0], "AAPL    ");
+    SSettings.arrbActive[0] = true;
+    strcpy(SSettings.szActiveSymbols[1], "MSFT    ");
+    SSettings.arrbActive[1] = false;
+    strcpy(SSettings.szActiveSymbols[2], "GOOG    ");
+    SSettings.arrbActive[2] = false;
+    strcpy(SSettings.szActiveSymbols[3], "INTC    ");
+    SSettings.arrbActive[3] = false;
+    strcpy(SSettings.szActiveSymbols[4], "AMD     ");
+    SSettings.arrbActive[4] = false;
     // Values for testing the server only
-// For the first release only for 5 stocks    
-    
-    
+// For the first release only for 5 stocks
+
+
     strcpy(SSettings.szUserName, "UserName");   		//  char		szUserName[SIZE_OF_NAME];
     strcpy(SSettings.szPassword, "Password");	// char		szPassword[SIZE_OF_PASSWORD];
 
@@ -225,9 +230,9 @@ SETTINGS CQSettings::LoadSettings()
 //    theApp.SSettings = SSettings;
 
     m_pSettings = &SSettings;  // Just to verify for testing....that the Mapping is working
-    
+
     msync(m_addr, m_sb.st_size, MS_ASYNC);
-    
+
     return SSettings;
 }
 /////////////////////////////////////////////////////////////////////////////////

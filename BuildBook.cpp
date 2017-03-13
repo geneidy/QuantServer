@@ -480,11 +480,11 @@ int CBuildBook::ProcessAdd(int iMessage)
     else { // Update an existing one in the Map
         m_itBookMap->second = m_pBook;
     }
-/*   
+/*
    if ((!bBidAddedQty) && (!bBidInserted) && (!bAskAddedQty) && (!bAskInserted)) {
         int iError = true;
     }
-*/    
+*/
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////

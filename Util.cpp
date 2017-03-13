@@ -55,10 +55,10 @@ char* CUtil::GetTimeFromNano(uint64_t ui64NanoTime)
     lldiv_t Div;
     int iHours = 0;
     int iMinutes = 0;
-    int iSeconds = 0;
-    int iMilliSeconds = 0;
-    int iMicroSeconds = 0;
-    uint64_t ui64Nanos = 0;
+//    int iSeconds = 0;
+//    int iMilliSeconds = 0;
+//    int iMicroSeconds = 0;
+//    uint64_t ui64Nanos = 0;
     int i = 0;
 
     uint64_t iRem = 0;
