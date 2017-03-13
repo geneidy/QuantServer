@@ -39,12 +39,26 @@ Logger::~Logger()
 {
     mOutputStream.close();
 }
+
 ////////////////////////////////////////////////////////////////////
 Logger::Logger()
 {
     CUtil Util;
     std::string strkLogFileName;
     strkLogFileName.empty();
+    /*
+     * char *pPath;
+     * 
+     pPath = getenv("PATH");
+     if (pPath != NULL){
+       
+    }
+    */
+ 
+    struct stat64 st = {0};
+    if (stat64("../Logs/", &st) == -1) {
+        mkdir("../Logs/", 0700);
+    }
 
     strkLogFileName = "../Logs/"; //TODO fix relative path...
     strkLogFileName += Util.GetFormatedDate();

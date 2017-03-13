@@ -131,7 +131,7 @@ void* Settings(void* pArg)
         exit(EXIT_FAILURE);  //  for the calling process if any
     }
     // Do NOT call after starting the client....comment out or delete
-    pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+ //   pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
     // Do NOT call after starting the client....comment out or delete
     g_bSettingsLoaded = true;
 
@@ -169,9 +169,10 @@ void  PrimeSettings()
     }
 
     // Do NOT call after starting the client....comment out or delete
-    theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+    //theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
     // Do NOT call after starting the client....comment out or delete
 
+    theApp.SSettings  = pCQSettings->GetSettings();
     theApp.SSettings.iStatus = RUNNING;
 
     delete pCQSettings;
