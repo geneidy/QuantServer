@@ -32,7 +32,7 @@ private:
 
 public:
 	CUtil(void);
-	CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL]);
+	CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL], bool *bActive);
 	~CUtil(void);
 
 //	CString		FloatToCString(double fIn);

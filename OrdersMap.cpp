@@ -35,8 +35,7 @@ COrdersMap::COrdersMap()
     m_uiSizeOfCommonOrderRecord = sizeof(COMMON_ORDER_MESSAGE);
 
     m_Util = NULL;
-    m_Util = new CUtil(theApp.SSettings.szActiveSymbols);
-
+    m_Util = new CUtil(theApp.SSettings.szActiveSymbols, theApp.SSettings.arrbActive);
    
     struct stat64 st = {0};
 
@@ -89,7 +88,6 @@ COrdersMap::COrdersMap()
             m_request.tv_nsec = 100000000;   // 1/10 of a second
         }
     } //   if (!m_iError) {
-
 }
 //////////////////////////////////////////////////////////////////////////////////
 void COrdersMap::InitQueue(CQuantQueue* pQueue)

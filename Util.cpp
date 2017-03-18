@@ -10,6 +10,8 @@
 #include <chrono>
 #include <ctime>
 
+#include "NQTV.h"
+
 #define SIZEOFBUF 27
 
 int iValue = 0;
@@ -31,13 +33,15 @@ CUtil::CUtil(void)
     m_iNanoSeconds  = 0;
 }
 //////////////////////////////////////////////////////////////////////////////
-CUtil::CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL])
+CUtil::CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL], bool *bActive)
 {
-
     m_SymbolSet.clear();
 
     for (int ii = 0; ii < NUMBER_OF_SYMBOLS; ii++) {
-        m_SymbolSet.insert(szActiveSymbols[ii]);
+//        if (theApp.SSettings.arrbActive[ii]) {
+              if (bActive[ii]) {
+		  m_SymbolSet.insert(szActiveSymbols[ii]);
+        }
     }
 }
 //////////////////////////////////////////////////////////////////////////////
@@ -45,8 +49,8 @@ bool CUtil::IsSymbolIn(char* szSymbolIn)
 {
     m_it = m_SymbolSet.find(szSymbolIn);
     if (m_it == m_SymbolSet.end())
-      return false;
-  
+        return false;
+
     return true;
 }
 /////////////////////////////////////////////////////////////////////////////

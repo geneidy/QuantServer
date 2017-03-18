@@ -242,9 +242,9 @@ typedef struct
 	char			cMessageType;			//Message Type	0	1	“E”	Order Executed Message.
 	unsigned int		iLocateCode;			//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;			//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t       		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
+	uint64_t       		iTimeStamp;			//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t  		iOrderRefNumber;		//Order Reference Number	11	8	Integer	The order reference number associated with the executed order.
-	unsigned int		iShares;				//Executed Shares	19	4	Integer	The number of shares executed.
+	unsigned int		iShares;			//Executed Shares	19	4	Integer	The number of shares executed.
 	uint64_t     		iOrderMatchNumber;		//Match Number	23	8	Integer	The NASDAQ generated day-unique Match Number of this execution. The match number is also referenced in the Trade Break Message.
 } ORDER_EXECUTED_MESSAGE;
 
@@ -254,12 +254,12 @@ typedef struct
 	char			cMessageType;			//Message Type	0	1	“c”	Order Executed Message.
 	unsigned int		iLocateCode;			//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;			//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
+	uint64_t     		iTimeStamp;			//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOrderRefNumber;		//Order Reference Number	11	8	Integer	The order reference number associated with the executed order.
-	unsigned int		iShares;				//Executed Shares	19	4	Integer	The number of shares executed.
+	unsigned int		iShares;			//Executed Shares	19	4	Integer	The number of shares executed.
 	uint64_t     		iOrderMatchNumber;		//Match Number	23	8	Integer	The NASDAQ generated day-unique Match Number of this execution. The match number is also referenced in the Trade Break Message.
 	
-	char			cPrintable;				// Printable  31	1	Alpha	Indicates if the execution should be reflected on time and sale displays and volume calculations.
+	char			cPrintable;			// Printable  31	1	Alpha	Indicates if the execution should be reflected on time and sale displays and volume calculations.
 												//“N” = non-printable
 												//“Y” = printable
 	double			dExecutionPrice;		//Execution Price	32	4	Price (4)	The price at which the order execution occurred. Refer to Data Types for field processing notes.
@@ -270,19 +270,19 @@ typedef struct
 	char			cMessageType;				//Message Type	0	1	“X”	Order Cancel Message.
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t     		iTimeStamp;					//Timestamp	5	6	Integer	Nanoseconds since midnight.
+	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOrderRefNumber;			//Order Reference Number	11	8	Integer	The reference number of the order being reduced.
-	unsigned int		iShares;					//Canceled Shares	19	4	Integer	The number of shares being removed from the display size of the order as the result of a cancellation.
+	unsigned int		iShares;				//Canceled Shares	19	4	Integer	The number of shares being removed from the display size of the order as the result of a cancellation.
 }ORDER_CANCEL_MESSAGE;
 
 
 typedef struct   
-{											//Name	Offset	Length	Value	Notes
-	char			cMessageType;					//Message Type	0	1	“D”	Order Delete Message.
-	unsigned int		iLocateCode;					//Stock Locate	1	2	Integer	Locate code identifying the security
-	unsigned int		TrackingNumber;					//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t     		iTimeStamp;						//Timestamp	5	6	Integer	Nanoseconds since midnight.
-	uint64_t		iOrderRefNumber;				//Order Reference Number	11	8	Integer	The reference number of the order being canceled.
+{									//Name	Offset	Length	Value	Notes
+	char			cMessageType;				//Message Type	0	1	“D”	Order Delete Message.
+	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
+	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
+	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
+	uint64_t		iOrderRefNumber;			//Order Reference Number	11	8	Integer	The reference number of the order being canceled.
 }ORDER_DELETE_MESSAGE;
 
 //This message is sent whenever an order on the book has been cancel-replaced. 

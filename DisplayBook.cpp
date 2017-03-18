@@ -13,7 +13,6 @@ int 		 CDisplayBook::m_iError = 0;
 CBuildBook* 	 CDisplayBook::m_pcBuildBook[NUMBER_OF_BOOKS_TO_DISPALY];
 void*  		 CDisplayBook::m_addr[NUMBER_OF_BOOKS_TO_DISPALY ];
 
-
 ///////////////////////////////////////////////////////////////////
 CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
 {
@@ -29,10 +28,9 @@ CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
 
     }
     m_pcUtil = NULL;
-//    m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols);
+//  m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols);
     m_request.tv_sec = 0;
     m_request.tv_nsec = 100000000;   // 1/10 of a second
-
 }
 ///////////////////////////////////////////////////////////////////
 CDisplayBook::~CDisplayBook()
@@ -159,9 +157,12 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
 
         while (SBookLevels.pTopBid != NULL) {  // Print the Bid Levels
-
+// 	  if (SBookLevels.bUpdating)
+// 	      continue;
+// 	
             if (nDisplayedLevels++ >= nLevels)
                 break;
+	    
 //             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
             m_SDisplayBook[idx]->pSBid[nDisplayedLevels].dPrice 	= SBookLevels.pTopBid->dPrice;
             strcpy(m_SDisplayBook[idx]->pSBid[nDisplayedLevels].szMPID, SBookLevels.pTopBid->szMPID);
@@ -180,6 +181,7 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
 //             cout<< SBookLevels.pTopAsk->dPrice << " "  << SBookLevels.pTopAsk->szMPID << " " << SBookLevels.pTopAsk->uiQty << " "<< SBookLevels.pTopAsk->uiNumOfOrders << endl;
             if (nDisplayedLevels++ >= nLevels)
                 break;
+
 //             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
             m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].dPrice 	= SBookLevels.pTopAsk->dPrice;
             strcpy(m_SDisplayBook[idx]->pSAsk[nDisplayedLevels].szMPID, SBookLevels.pTopAsk->szMPID);
@@ -290,7 +292,6 @@ int CDisplayBook::InitMemoryMappedFile(int iDx)
     int iSizeOfTopOfBook = sizeof(m_SDisplayBook[iDx]->TopOfBook);
     //Throw away code end
 
-    m_uiSizeOfLob[iDx] = sizeof(m_SDisplayBook[iDx]);
 
     if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) { // Fresh file
         Logger::instance().log("LOB Initializing Mapped File ", Logger::Debug);

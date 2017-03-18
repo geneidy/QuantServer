@@ -10,7 +10,7 @@ CTickDataMap::CTickDataMap()
 
     m_pcUtil = NULL;
 
-    m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols);
+    m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols, theApp.SSettings.arrbActive);
 
     if (!m_pcUtil) {
         Logger::instance().log("Error Initializing CUtil", Logger::Error);

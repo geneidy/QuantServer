@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Logger.cpp
-// Implementation of a multithread safe singleton logger class
 #include <stdexcept>
 #include "Logger.h"
 #include "Util.h"
@@ -39,24 +38,22 @@ Logger::~Logger()
 {
     mOutputStream.close();
 }
-
 ////////////////////////////////////////////////////////////////////
 Logger::Logger()
 {
     CUtil Util;
     std::string strkLogFileName;
     strkLogFileName.empty();
-    /*
-     * char *pPath;
-     * 
-     pPath = getenv("PATH");
-     if (pPath != NULL){
-       
-    }
-    */
- 
-    struct stat64 st = {0};
-    if (stat64("../Logs/", &st) == -1) {
+    
+//     char *pPath;
+//      
+//      pPath = getenv("PATH");
+//      if (pPath != NULL){
+// 
+//     }
+
+    struct stat st = {0};
+    if (stat("../Logs/", &st) == -1) {
         mkdir("../Logs/", 0700);
     }
 
@@ -75,7 +72,6 @@ void Logger::log(const string& inMessage, const string& inLogLevel)
     lock_guard<mutex> guard(sMutex);
     logHelper(inMessage, inLogLevel);
 }
-
 ////////////////////////////////////////////////////////////////////
 void Logger::log(const vector<string>& inMessages, const string& inLogLevel)
 {
@@ -91,7 +87,7 @@ void Logger::logHelper(const std::string& inMessage, const std::string& inLogLev
     time_t ltime = 0;
     struct tm stToday;
 
-    char			szLogTime[26];
+    char	szLogTime[26];
     time( &ltime );
     localtime_r( &ltime ,  &stToday);
 

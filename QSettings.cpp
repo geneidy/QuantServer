@@ -146,7 +146,7 @@ SETTINGS CQSettings::LoadSettings()
 
     SSettings.iarrRole[2] = 0;   		//  2= Receive Feed
     SSettings.iarrRole[3] = 0;   		//  3= Parse
-    SSettings.iarrRole[4] = 0;   		//  4= Orders Map
+    SSettings.iarrRole[4] = 1;   		//  4= Orders Map
     SSettings.iarrRole[5] = 1;   		//  5= Build Book
     SSettings.iarrRole[6] = 0;   		//  6= Tick Data
     SSettings.iarrRole[7] = 0;   		//  7= Save to DB
@@ -158,19 +158,19 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.iarrRole[12]= 0;   		//  12= Distributor
     SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 
-    SSettings.uiDistListenOnPort = 9874;   		//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
+    SSettings.uiDistListenOnPort = 9874;   	//  uint 	uiListenPort;  // Case Y above....listen on which Port? (range  5000...65000)
 
-    SSettings.bPartitionActive = true;  		//  bool  bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
+    SSettings.bPartitionActive = true;  	//  bool  bPartitionActive;  // Y/N to  process....can keep the partition info but in an inactive state
     // Range for all Ex AAPL
     SSettings.cBeginRange = 'A';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
     SSettings.cEndRange = 'Z';  		//   int 	iEndRange;
     *SSettings.szInclude = '\0';		//	char  strInclude[5];  // include from another range that was excluded from another partition
-    strcpy(SSettings.szExclude, "AAPL    ");  		// char  strExclude[5]; 	// Exclude to be included in another partition
+    strcpy(SSettings.szExclude, "AAPL    ");  	// char  strExclude[5]; 	// Exclude to be included in another partition
 
 // Range for Apple only
     SSettings.cBeginRange = '\0';   		//  int 	iBeginRange;  // e.g 'A'  or 'G'
     SSettings.cEndRange = '\0';  		//   int 	iEndRange;
-    strcpy(SSettings.szInclude, "AAPL    ");		//	char  strInclude[5];  // include from another range that was excluded from another partition
+    strcpy(SSettings.szInclude, "AAPL    ");	//	char  strInclude[5];  // include from another range that was excluded from another partition
     strcpy(SSettings.szExclude, "");  		// char  strExclude[5]; 	// Exclude to be included in another partition
 
 

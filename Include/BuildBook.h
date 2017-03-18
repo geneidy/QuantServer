@@ -4,6 +4,9 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 #include <map>
+#include <atomic>
+#include <pthread.h>
+#include <mutex>
 
 #include "time.h"
 
@@ -28,7 +31,6 @@ typedef struct
     uint32_t 	uiLevelDeleted;
 } SLEVELSTAT; // consider adding per Second stats in the future
 
-
 typedef struct // Moving averages
 {
     double	dAvg3;		// three day moving average
@@ -49,7 +51,6 @@ typedef struct SBidAsk
 } SBID_ASK;
 
 typedef struct _OHLC {
-
     double	dLast;
     double	dOpen;
     double	dClose;
@@ -66,7 +67,6 @@ typedef struct _OHLC {
 
     struct timeval	tOpen;
     struct timeval	tLastUpdate;
-
 } OHLC;
 
 
@@ -79,6 +79,8 @@ typedef struct _BookLevels  // Per Symbol
     uint16_t	m_iAskLevels;
     bool	bUpdating;
     OHLC        m_OHLC;
+    pthread_mutex_t      mtxBidAsk;
+    pthread_mutexattr_t mtxAttr;
 
 } SBOOK_LEVELS;
 

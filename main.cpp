@@ -14,6 +14,10 @@
 #include "NQTVDlg.h"
 #include "NQTV.h"
 
+
+#define  _CLIENT 0
+
+
 static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t mtxTick 	= PTHREAD_MUTEX_INITIALIZER;
 
@@ -26,9 +30,10 @@ int main(int argc, char **argv)
     using namespace std;
 
     Logger::instance().log("Starting Server", Logger::Debug);
+
     PrimeSettings();
 
-    g_bSettingsLoaded = false;
+//    g_bSettingsLoaded = false;
 
     int iRet = 0;
     m_request.tv_sec = 0;
@@ -48,7 +53,6 @@ int main(int argc, char **argv)
 //      g_SThreadData.pVoid = pCQuantQueue;  // only needed for the first Thread.... to construct the Queue
         arrThreadInfo[ii].iThread_num = ii ;
         iRet = pthread_create(&arrThreadInfo[ii].thread_id, NULL, func_ptr[ii], &g_SThreadData);
-//        sleep(1);
         nanosleep (&m_request, NULL);  // sleep a 1/10 of a second
         g_SThreadData.iTotalThreads++;
         arrThreadInfo[ii].eState = TS_ALIVE;
@@ -62,16 +66,18 @@ int main(int argc, char **argv)
     };
     pthread_mutex_unlock(&mtxQueue);
 
-    int jj = 0;
 
-    while (theApp.SSettings.iStatus != STOPPED) {
-        jj++;
-        sleep(3);
+    if (!_CLIENT) {  // server only
+        int jj = 0;
+        while (theApp.SSettings.iStatus != STOPPED) {
+            jj++;
+            sleep(3);
 
 //   if (jj > 200)  // jj* 3 =  seconds
-        if (jj > 30)  // jj* 3 =  seconds
+            if (jj > 30)  // jj* 3 =  seconds
 //        if (jj > 300)  // jj* 3 =  seconds
-            theApp.SSettings.iStatus = STOPPED;
+                theApp.SSettings.iStatus = STOPPED;
+        };
     };
 
     int iJoined = 0;
@@ -130,9 +136,6 @@ void* Settings(void* pArg)
         Logger::instance().log("Error Initializing Settings Object", Logger::Error);
         exit(EXIT_FAILURE);  //  for the calling process if any
     }
-    // Do NOT call after starting the client....comment out or delete
- //   pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
-    // Do NOT call after starting the client....comment out or delete
     g_bSettingsLoaded = true;
 
     while (pCQSettings->GetSettings().iStatus == RUNNING) {
@@ -156,7 +159,6 @@ void* Settings(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void  PrimeSettings()
 {
-
     pCQSettings = NULL;
     pCQSettings= new CQSettings();
 
@@ -168,12 +170,15 @@ void  PrimeSettings()
         exit(EXIT_FAILURE);  //  for the calling process if any
     }
 
-    // Do NOT call after starting the client....comment out or delete
-    //theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
-    // Do NOT call after starting the client....comment out or delete
-
-    theApp.SSettings  = pCQSettings->GetSettings();
-    theApp.SSettings.iStatus = RUNNING;
+    if (!_CLIENT) { // server only
+        theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+        // Do NOT call after starting the client....comment out or delete ...Use the next statement
+        //    theApp.SSettings  = pCQSettings->GetSettings();
+        theApp.SSettings.iStatus = RUNNING;
+    }
+    else {  // Client is active
+        theApp.SSettings  = pCQSettings->GetSettings();
+    }
 
     delete pCQSettings;
     pCQSettings = NULL;
@@ -367,11 +372,11 @@ void* BuildBook(void* pArg)
     while (theApp.SSettings.iStatus != STOPPED) {
         pCBuildBook->BuildBookFromMemoryMappedFile();
     }
-/*
-    pCBuildBook->ListBook("MSFT    ");
-    pCBuildBook->ListBook("INTC    ");
-    pCBuildBook->ListBook("GOOG    ");
-*/
+    /*
+        pCBuildBook->ListBook("MSFT    ");
+        pCBuildBook->ListBook("INTC    ");
+        pCBuildBook->ListBook("GOOG    ");
+    */
 
     delete pCBuildBook;
     pCBuildBook = NULL;
@@ -783,3 +788,4 @@ static void *NQTVFunction(void* ptr)
 //     app.show();
 //     return a.exec();
 // }
+
