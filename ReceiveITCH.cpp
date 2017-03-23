@@ -158,7 +158,7 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
     case ENOENT:
         break;
     }
-     strLogMessage += iHandle;
+//      strLogMessage += iHandle;
      Logger::instance().log(strLogMessage, Logger::Debug);
      return false;
     }

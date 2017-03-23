@@ -52,7 +52,7 @@ typedef struct thread_info
 } THREAD_INFO;
 
 THREAD_INFO arrThreadInfo[NUMBER_OF_ROLES];
-void  PrimeSettings();
+int PrimeSettings();
 //////////////////////////////////////
 void *Settings(void* );
 void *MainQueue(void* );

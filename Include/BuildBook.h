@@ -77,7 +77,7 @@ typedef struct _BookLevels  // Per Symbol
 
     uint16_t	m_iBidLevels;
     uint16_t	m_iAskLevels;
-    bool	bUpdating;
+    bool	bUpdated;
     OHLC        m_OHLC;
     pthread_mutex_t      mtxBidAsk;
     pthread_mutexattr_t mtxAttr;

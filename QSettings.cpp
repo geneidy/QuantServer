@@ -62,6 +62,7 @@ CQSettings::CQSettings()
     } //     if (stat("../QSettings", &st) == -1) {
     m_request.tv_sec = 0;
     m_request.tv_nsec = 100000000;   // 1/10 of a second
+    m_pSettings->iStatus = CONSTRUCTED;
 }
 /////////////////////////////////////////////////////////////////////////////////
 int CQSettings::InitMemoryMappedFile()
@@ -90,6 +91,9 @@ int CQSettings::GetError()
 /////////////////////////////////////////////////////////////////////////////////
 CQSettings::~CQSettings()
 {
+
+    m_pSettings->iStatus = DESTRUCTED;  // Exit with this status
+
     msync(m_addr, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);
 
@@ -147,14 +151,14 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.iarrRole[2] = 0;   		//  2= Receive Feed
     SSettings.iarrRole[3] = 0;   		//  3= Parse
     SSettings.iarrRole[4] = 1;   		//  4= Orders Map
-    SSettings.iarrRole[5] = 1;   		//  5= Build Book
+    SSettings.iarrRole[5] = 0;   		//  5= Build Book
     SSettings.iarrRole[6] = 0;   		//  6= Tick Data
     SSettings.iarrRole[7] = 0;   		//  7= Save to DB
     SSettings.iarrRole[8] = 0;   		//  8= Play back
 
     SSettings.iarrRole[9] = 1;   		//  9= Test File
     SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
-    SSettings.iarrRole[11]= 1;   		//  11= Display Book
+    SSettings.iarrRole[11]= 0;   		//  11= Display Book
     SSettings.iarrRole[12]= 0;   		//  12= Distributor
     SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 
@@ -177,9 +181,9 @@ SETTINGS CQSettings::LoadSettings()
 // For the first release only for 5 stocks...All values to be set by the client....
     // Values for testing the server only
     SSettings.iBookLevels = 20;
-    strcpy(SSettings.szActiveSymbols[0], "AAPL    ");
+    strcpy(SSettings.szActiveSymbols[0], "MSFT    ");
     SSettings.arrbActive[0] = true;
-    strcpy(SSettings.szActiveSymbols[1], "MSFT    ");
+    strcpy(SSettings.szActiveSymbols[1], "INTC    ");
     SSettings.arrbActive[1] = false;
     strcpy(SSettings.szActiveSymbols[2], "GOOG    ");
     SSettings.arrbActive[2] = false;

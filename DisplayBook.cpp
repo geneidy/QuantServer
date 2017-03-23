@@ -27,8 +27,8 @@ CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
         m_uiSizeOfLob[ii] = sizeof(OHLC) + (sizeof(SBID_ASK[theApp.SSettings.iBookLevels]) *2 );  // should be the same for all array elements
 
     }
-    m_pcUtil = NULL;
-//  m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols);
+//     m_pcUtil = NULL;
+//     m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols);
     m_request.tv_sec = 0;
     m_request.tv_nsec = 100000000;   // 1/10 of a second
 }
@@ -37,12 +37,15 @@ CDisplayBook::~CDisplayBook()
 {
     StopDisplayAllBooks();
 
-    if (m_pcUtil) {
-        delete m_pcUtil;
-        m_pcUtil = NULL;
-    }
+//     if (m_pcUtil) {
+//         delete m_pcUtil;
+//         m_pcUtil = NULL;
+//     }
 
     for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
+       if (!theApp.SSettings.arrbActive[ii]) { // Non active
+            continue;
+        }
         msync(m_addr[ii], m_sb[ii].st_size, MS_ASYNC);
         munmap(m_addr[ii], m_sb[ii].st_size);
         close(m_iFD[ii]);
@@ -117,21 +120,25 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
 
     string strToFind(SThreadData.szSymbol);
 
+    struct timespec    request;
+
+    request.tv_sec = 0;
+    request.tv_nsec = 100000000;   // 1/10 of a second
+
+
     SBOOK_LEVELS SBookLevels;
     SBID_ASK* pTemp;
 
-    if (CreatLOBFileMapping(idx) == -1) {
+    if (CreatLOBFileMapping(idx) == -1) {  // consider moving this block higher
         m_iError = 120; // enum later
         return NULL;
     }
 
     m_arrThreadInfo[idx].eState = _TS_ALIVE;
 
-    m_pcBuildBook[idx]->m_itBookMap = m_pcBuildBook[idx]->m_BookMap.find(strToFind);
-    if (m_pcBuildBook[idx]->m_itBookMap == m_pcBuildBook[idx]->m_BookMap.end())
-        return  NULL;
-
-//    SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
+//     m_pcBuildBook[idx]->m_itBookMap = m_pcBuildBook[idx]->m_BookMap.find(strToFind);
+//     if (m_pcBuildBook[idx]->m_itBookMap == m_pcBuildBook[idx]->m_BookMap.end())
+//         return  NULL;
 
     int nDisplayedLevels = 0;
 
@@ -139,6 +146,19 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         if (m_arrThreadInfo[idx].eState == _TS_TERMINATED) {
             break;
         }
+
+        m_pcBuildBook[idx]->m_itBookMap = m_pcBuildBook[idx]->m_BookMap.find(strToFind);
+        if (m_pcBuildBook[idx]->m_itBookMap == m_pcBuildBook[idx]->m_BookMap.end()) {
+            sleep(1); // Book Not constructed yet
+            continue;
+        }
+
+        SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
+        if (!SBookLevels.bUpdated) {
+            nanosleep (&request, NULL);  // sleep a 1/10 of a second
+            continue;
+        }
+        m_pcBuildBook[idx]->m_itBookMap->second.bUpdated = false;
 
         m_SDisplayBook[idx]->TopOfBook.dOpen 	=   SBookLevels.m_OHLC.dOpen;
         m_SDisplayBook[idx]->TopOfBook.dClose 	=   SBookLevels.m_OHLC.dClose;
@@ -159,10 +179,10 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         while (SBookLevels.pTopBid != NULL) {  // Print the Bid Levels
 // 	  if (SBookLevels.bUpdating)
 // 	      continue;
-// 	
+//
             if (nDisplayedLevels++ >= nLevels)
                 break;
-	    
+
 //             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
             m_SDisplayBook[idx]->pSBid[nDisplayedLevels].dPrice 	= SBookLevels.pTopBid->dPrice;
             strcpy(m_SDisplayBook[idx]->pSBid[nDisplayedLevels].szMPID, SBookLevels.pTopBid->szMPID);

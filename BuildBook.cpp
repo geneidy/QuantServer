@@ -73,7 +73,7 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     m_dPrice = m_pCommonOrder->dPrice;
     m_uiQty = m_pCommonOrder->iShares;
 
-    if (m_dPrice == 0)
+    if ((m_dPrice == 0) || (m_uiQty == 0))
         return 0;
 
     m_iMessage = m_pCommonOrder->cMessageType;
@@ -83,7 +83,6 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     case 'F': 	// Add orders
         ProcessAdd(m_iMessage); // just to put a break point
         break;
-
     case 'E':  	// Order executed
     case 'c':  	// Order executed  with price
     case 'X':  	// Order Cancel
@@ -93,11 +92,9 @@ int CBuildBook::BuildBookFromMemoryMappedFile()  // Entry point for processing..
     case 'U':
         ProcessReplace(m_iMessage);
         break;
-
     default:
         return 0;
     }
-
     return 0;
 }
 ////////////////////////////////////////////////////
@@ -198,9 +195,7 @@ NLEVELS  CBuildBook::FlushBook(char* szSymbol )
     Del.iAskLevels = 0;
     Del.iBidLevels = 0;
 
-
     m_itBookMap = m_BookMap.find(szSymbol);
-
 
     if (m_itBookMap == m_BookMap.end())
         return  Del;
@@ -243,17 +238,14 @@ NLEVELS CBuildBook::FlushAllBooks()
 
     string strMsg;
 
-    char  szStock[9];
-    memset(szStock, '\0', 9);
+    char  szStock[SIZE_OF_SYMBOL];
+    memset(szStock, '\0', SIZE_OF_SYMBOL);
 
-    for (m_itBookMap = m_BookMap.begin(); m_itBookMap != m_BookMap.end(); m_itBookMap++)
+    for (m_itBookMap = m_BookMap.begin(); m_itBookMap != m_BookMap.end(); ++m_itBookMap)
     {
         SBookLevels = m_itBookMap->second;
 //        strncpy(szStock, m_itBookMap->first.c_str(), 8);
         strcpy(szStock, m_itBookMap->first.c_str());
-
-	pthread_mutexattr_destroy(&m_pBook.mtxAttr);
-        pthread_mutex_destroy(&SBookLevels.mtxBidAsk);
 
         while (SBookLevels.pTopAsk != NULL) {  // Clear the Ask Levels
             pTemp = SBookLevels.pTopAsk;
@@ -268,7 +260,10 @@ NLEVELS CBuildBook::FlushAllBooks()
             Del.iBidLevels++;
             delete pTemp;
         }// while (SBookLevels.pTopAsk != NULL) {
-        memset(szStock, '\0', 9);
+        memset(szStock, '\0', SIZE_OF_SYMBOL);
+	pthread_mutexattr_destroy(&SBookLevels.mtxAttr);
+        pthread_mutex_destroy(&SBookLevels.mtxBidAsk);
+
     };
 
     strMsg.empty();
@@ -313,26 +308,25 @@ int CBuildBook::ProcessAdd(int iMessage)
         m_pBook.m_iBidLevels 	= 0;
         m_pBook.pTopAsk     	= NULL;
         m_pBook.pTopBid     	= NULL;
-        int s = pthread_mutexattr_init(&m_pBook.mtxAttr);
-	
-        pthread_mutex_init(&m_pBook.mtxBidAsk, &m_pBook.mtxAttr); // first argument according to The Linux Programming Interface should NOT be a reference!!!
-	
+        m_pBook.bUpdated = false;
+	pthread_mutexattr_init(&m_pBook.mtxAttr);
+	pthread_mutex_init(&m_pBook.mtxBidAsk, NULL);
         InitOHLC();
     }
 
-    if ((m_dPrice == 0) || (m_uiQty == 0)) {
-        m_strMsg.empty();
-        m_strMsg = "Build Book...Error Adding Order to Book..Symbol: ";
-        m_strMsg += m_pCommonOrder->szStock;
-        m_strMsg += " Price = ";
-        m_strMsg += to_string(m_dPrice);
-        m_strMsg += " Qty = ";
-        m_strMsg += to_string(m_uiQty);
-        Logger::instance().log(m_strMsg, Logger::Error);
-        return 0;
-    }
+//     if ((m_dPrice == 0) || (m_uiQty == 0)) {
+//         m_strMsg.empty();
+//         m_strMsg = "Build Book...Error Adding Order to Book..Symbol: ";
+//         m_strMsg += m_pCommonOrder->szStock;
+//         m_strMsg += " Price = ";
+//         m_strMsg += to_string(m_dPrice);
+//         m_strMsg += " Qty = ";
+//         m_strMsg += to_string(m_uiQty);
+//         Logger::instance().log(m_strMsg, Logger::Error);
+//         return 0;
+//     }
 
-    memset(m_szMPID, '\0', 5);
+    memset(m_szMPID, '\0', SIZE_OF_MM);
     strcpy(m_szMPID, m_pCommonOrder->szMPID);
 
     pthread_mutex_lock(&m_pBook.mtxBidAsk);
@@ -485,7 +479,8 @@ int CBuildBook::ProcessAdd(int iMessage)
             }//		if ((lpCurrent == NULL) && (!bFound))
         } // else ....not an empty list
     }// else
-
+    m_pBook.bUpdated = true;
+    pthread_mutex_unlock(&m_pBook.mtxBidAsk);
     if (m_itBookMap == m_BookMap.end()) {  // A Fresh Stock just in
         m_RetPair = m_BookMap.insert(pair<string, SBOOK_LEVELS> (m_pCommonOrder->szStock, m_pBook));
         // :: TODO check on error
@@ -498,7 +493,6 @@ int CBuildBook::ProcessAdd(int iMessage)
             int iError = true;
         }
     */
-    pthread_mutex_unlock(&m_pBook.mtxBidAsk);
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -512,11 +506,11 @@ int CBuildBook::ProcessDelete(int iIn)
     m_strMsg.empty();
 
     m_itBookMap = m_BookMap.find(m_pCommonOrder->szStock);
-    pthread_mutex_lock(&m_pBook.mtxBidAsk);
 
     if (m_itBookMap != m_BookMap.end()) {  // found
         m_pBook = m_itBookMap->second;  // Fetch the book for this stock
-
+	pthread_mutex_lock(&m_pBook.mtxBidAsk);
+	
         if ((m_iMessage == 'E' ) || (m_iMessage == 'c' )) {  	// Order executed
             m_pBook.m_OHLC.dLast 	= m_dPrice;
             if ((theApp.SSettings.iSystemEventCode == 'Q') && (m_pBook.m_OHLC.dOpen == 0))  {
@@ -567,11 +561,8 @@ int CBuildBook::ProcessDelete(int iIn)
         return 0;
     }
 
-    memset(m_szMPID, '\0', 5);
+    memset(m_szMPID, '\0', SIZE_OF_MM);
     strcpy(m_szMPID, m_pCommonOrder->szMPID);
-
-    pthread_mutex_lock(&m_pBook.mtxBidAsk);
-
 
     if (m_pCommonOrder->cBuySell == 'B') { // bid to buy
         lpCurrent	=	m_pBook.pTopBid;
@@ -590,9 +581,8 @@ int CBuildBook::ProcessDelete(int iIn)
             lpCurrent = lpCurrent->pNextBidAsk;
         } // while (lpCurrent != NULL)
         if ((lpCurrent == NULL) && (!bFound)) {
-
             pthread_mutex_unlock(&m_pBook.mtxBidAsk);
-
+	    m_itBookMap->second = m_pBook;
             return -1; // enum later  ... Should Not Happen
         }
         if ((bFound) && (lpCurrent->uiQty <= 0)) { // Remove this node
@@ -607,16 +597,12 @@ int CBuildBook::ProcessDelete(int iIn)
             lpCurrent = NULL;
             m_Stats.uiLevelDeleted++;
         }
-
+        m_pBook.bUpdated = true;
         pthread_mutex_unlock(&m_pBook.mtxBidAsk);
-
         m_itBookMap->second = m_pBook;
     } // if (m_pCommonOrder->cBuySell == 'B')  // bid to buy
 /////////////////////////////////////////////////////////////////////////////////
     if (m_pCommonOrder->cBuySell == 'S') {  // Ask to sell
-        m_pBook.bUpdating = true;
-        pthread_mutex_lock(&m_pBook.mtxBidAsk);
-
         lpCurrent	=	m_pBook.pTopAsk;
         lpPrevious	=	lpCurrent;
         bFound = false;
@@ -635,7 +621,7 @@ int CBuildBook::ProcessDelete(int iIn)
         if ((lpCurrent == NULL) && (!bFound)) {
 
             pthread_mutex_unlock(&m_pBook.mtxBidAsk);
-
+	    m_itBookMap->second = m_pBook;
             return -1; // enum later
         }
         if ((bFound) && (lpCurrent->uiQty <= 0)) { // Remove this node
@@ -650,10 +636,9 @@ int CBuildBook::ProcessDelete(int iIn)
             lpCurrent = NULL;
             m_Stats.uiLevelDeleted++;
         }
+        m_pBook.bUpdated = true;
         pthread_mutex_unlock(&m_pBook.mtxBidAsk);
-
-        m_pBook.bUpdating = false;
-        m_itBookMap->second = m_pBook;
+	m_itBookMap->second = m_pBook;
 
     } // if (m_pCommonOrder->cBuySell == 'S')  // ask to sell
     return 0;
@@ -686,7 +671,7 @@ SBID_ASK* CBuildBook::AllocateNode(double dPrice, unsigned int uiQty)
     }
     lpNewNode->uiQty		= uiQty;
     lpNewNode->dPrice		= dPrice;
-    strcpy(lpNewNode->szMPID, m_szMPID);
+    strncpy(lpNewNode->szMPID, m_szMPID, SIZE_OF_MM);
 
     lpNewNode->uiNumOfOrders	= 1;
     lpNewNode->pNextBidAsk	= NULL;

@@ -10,10 +10,10 @@
 
  
 //#define	SIZE_OF_CLT_NAME		30 + 1
-//#define	SIZE_OF_CLT_PASSWORD	30 + 1
+//#define	SIZE_OF_CLT_PASSWORD		30 + 1
 
-#define	ERR_NONE			0
-#define	ERR_INIT			1
+#define	ERR_NONE		0
+#define	ERR_INIT		1
 #define	ERR_socket_LISTEN	2
 #define	ERR_socket_PORT		3
 #define	ERR_socket_BINDING	4

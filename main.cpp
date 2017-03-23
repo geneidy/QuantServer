@@ -15,7 +15,7 @@
 #include "NQTV.h"
 
 
-#define  _CLIENT 0
+#define  _CLIENT 0   // our own pre-processor directive for now....
 
 
 static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
@@ -31,7 +31,11 @@ int main(int argc, char **argv)
 
     Logger::instance().log("Starting Server", Logger::Debug);
 
-    PrimeSettings();
+    if (PrimeSettings() == TERMINATE) {
+        Logger::instance().log("Terminating Server", Logger::Debug);
+        // Nothing to cleanup
+        return 0;
+    }
 
 //    g_bSettingsLoaded = false;
 
@@ -66,19 +70,16 @@ int main(int argc, char **argv)
     };
     pthread_mutex_unlock(&mtxQueue);
 
-
     if (!_CLIENT) {  // server only
         int jj = 0;
         while (theApp.SSettings.iStatus != STOPPED) {
             jj++;
             sleep(3);
 
-//   if (jj > 200)  // jj* 3 =  seconds
-            if (jj > 30)  // jj* 3 =  seconds
-//        if (jj > 300)  // jj* 3 =  seconds
+            if (jj > 200)  // jj* 3 =  seconds
                 theApp.SSettings.iStatus = STOPPED;
         };
-    };
+    }; //    if (!_CLIENT) {  // server only
 
     int iJoined = 0;
     string strExitMessage;
@@ -112,6 +113,40 @@ int main(int argc, char **argv)
     return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
+int  PrimeSettings()
+{
+    pCQSettings = NULL;
+    pCQSettings= new CQSettings();
+
+    if (!pCQSettings) {
+        Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
+    }
+    if (pCQSettings->GetError() > 0) {
+        Logger::instance().log("Error Initializing Settings Object", Logger::Error);
+        exit(EXIT_FAILURE);  //  for the calling process if any
+    }
+    theApp.SSettings  = pCQSettings->GetSettings();
+    if (!_CLIENT) { // server only
+        theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
+        // Do NOT call after starting the client....comment out or delete ...Use the next statement
+        theApp.SSettings.iStatus = RUNNING;
+    }
+    else {  // Client is active....Keep on checking for the status to change and then start the threads (if any) depending on iRoles
+        while (theApp.SSettings.iStatus == CONSTRUCTED) { // Will start witg CONSTRUCTED
+            theApp.SSettings  = pCQSettings->GetSettings();
+            sleep(1);
+        }
+        delete pCQSettings;
+        pCQSettings = NULL;
+        return theApp.SSettings.iStatus; // Client to determine what to do with the status...either fork and start or return..
+        // the ball is in the Client's court.....
+    }
+    if (pCQSettings) {
+        delete pCQSettings;
+        pCQSettings = NULL;
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////////
 void* Settings(void* pArg)
 {
     // 	open Settings file to fill the Settings structure
@@ -138,51 +173,40 @@ void* Settings(void* pArg)
     }
     g_bSettingsLoaded = true;
 
-    while (pCQSettings->GetSettings().iStatus == RUNNING) {
-        sleep(1);
-        if (theApp.SSettings.iStatus == STOPPED)  //  Remove After the client is up
-            break;
+    // Throw away code ... for debugging only
+    SETTINGS TSettings;
+    TSettings = pCQSettings->GetSettings();
+    // Throw away code ... for debugging only
+
+    if (_CLIENT) {
+        int ii;
+        while ( (ii = pCQSettings->GetSettings().iStatus) == CONSTRUCTED)  {   // RUNNING = 4  STOPPED  = 10
+            sleep(1);
+            if (ii == STOPPED) {
+                theApp.SSettings.iStatus = ii;
+                break;
+            }
+            continue;
+        }
+    } // if (_CLIENT)
+    else { // server testing
+        while (theApp.SSettings.iStatus == RUNNING) {
+            sleep(1);
+	    continue; // Will get the signal from the "JJ" variable in main()
+        }
     }
 
-    theApp.SSettings.iStatus = STOPPED;   // Will have to keep it here even after the client is up
 
-    delete pCQSettings;
-    pCQSettings = NULL;
+    if (pCQSettings) {
+        delete pCQSettings;
+        pCQSettings = NULL;
+    }
 
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
 
     return  NULL;
-
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-void  PrimeSettings()
-{
-    pCQSettings = NULL;
-    pCQSettings= new CQSettings();
-
-    if (!pCQSettings) {
-        Logger::instance().log("Error Getting instance of Settings Object", Logger::Error);
-    }
-    if (pCQSettings->GetError() > 0) {
-        Logger::instance().log("Error Initializing Settings Object", Logger::Error);
-        exit(EXIT_FAILURE);  //  for the calling process if any
-    }
-
-    if (!_CLIENT) { // server only
-        theApp.SSettings = pCQSettings->LoadSettings(); // Do NOT call after starting the client....comment out or delete
-        // Do NOT call after starting the client....comment out or delete ...Use the next statement
-        //    theApp.SSettings  = pCQSettings->GetSettings();
-        theApp.SSettings.iStatus = RUNNING;
-    }
-    else {  // Client is active
-        theApp.SSettings  = pCQSettings->GetSettings();
-    }
-
-    delete pCQSettings;
-    pCQSettings = NULL;
-
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 void*  MainQueue(void* pArg)
@@ -342,7 +366,6 @@ void* BuildBook(void* pArg)
 {
 
     pthread_mutex_lock(&mtxTick);
-
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
 
@@ -365,7 +388,10 @@ void* BuildBook(void* pArg)
     if (pCBuildBook->m_iError) {
         delete pCBuildBook;
         pCBuildBook = NULL;
-        arrThreadInfo[idx].eState = TS_TERMINATED;
+        pthread_mutex_lock(&mtxTick);
+        TermThreadLog(idx);
+        pthread_mutex_unlock(&mtxTick);
+
         return NULL;
     }
 
