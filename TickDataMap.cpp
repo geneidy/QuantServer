@@ -164,7 +164,7 @@ uint64_t CTickDataMap::FillTickFile()
                 break;
 
             if (!m_pcUtil->IsSymbolIn(m_pCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 
             /*
                         if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
@@ -230,7 +230,7 @@ uint64_t CTickDataMap::FillTickFile()
                 break;
 
             if (!m_pcUtil->IsSymbolIn(m_pCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);
 
@@ -290,7 +290,7 @@ uint64_t CTickDataMap::FillTickFile()
                 break;
 
             if (!m_pcUtil->IsSymbolIn(m_pCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);

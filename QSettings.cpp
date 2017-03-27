@@ -158,7 +158,7 @@ SETTINGS CQSettings::LoadSettings()
 
     SSettings.iarrRole[9] = 1;   		//  9= Test File
     SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
-    SSettings.iarrRole[11]= 0;   		//  11= Display Book
+    SSettings.iarrRole[11]= 1;   		//  11= Display Book
     SSettings.iarrRole[12]= 0;   		//  12= Distributor
     SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 

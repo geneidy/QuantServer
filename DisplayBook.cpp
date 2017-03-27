@@ -93,7 +93,7 @@ void CDisplayBook::DisplaySelected()
         } // for loop
         sleep(1);
     } // while loop
-    Logger::instance().log("LOB All Display Book threads joined", Logger::Debug);
+    Logger::instance().log("LOB: All Display Book threads joined", Logger::Debug);
 }
 ///////////////////////////////////////////////////////////////////
 void CDisplayBook::StopDisplaySelected(char* szSymbol)

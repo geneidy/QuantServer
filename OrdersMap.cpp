@@ -17,7 +17,6 @@ OrdersUnOrderedMap COrdersMap::m_SymbolMap;
 ////////////////////////////////////////////////////////////////////
 COrdersMap* COrdersMap::instance()
 {
-
     lock_guard<mutex> guard(COrdersMap::MapMutex);
     if (pInstance == nullptr) {
         pInstance = new COrdersMap();
@@ -55,19 +54,19 @@ COrdersMap::COrdersMap()
     m_fd = open64(strOrdersFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
 
     if (m_fd == -1) {
-        Logger::instance().log("Orders open File Mapping Error", Logger::Debug);
+        Logger::instance().log("Orders Map: Orders open File Mapping Error", Logger::Debug);
         m_iError = 100;
         // Set error code and exit
     }
     if (!m_iError) {
         if (fstat64(m_fd, &m_sb) == -1) {
-            Logger::instance().log("Error fstat", Logger::Debug);
+            Logger::instance().log("Orders Map: Error fstat", Logger::Debug);
             m_iError = 110;
             // Set error code and exit
         }
         else   {
             if (!InitMemoryMappedFile()) {
-                Logger::instance().log("Error Initializing", Logger::Error);
+                Logger::instance().log("Orders Map: Error Initializing", Logger::Error);
                 close(m_fd);
                 m_iError = 120;
                 // Set error code and exit
@@ -76,7 +75,7 @@ COrdersMap::COrdersMap()
                 m_addr = mmap(NULL, m_sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
 
                 if (m_addr == MAP_FAILED) {
-                    Logger::instance().log("Error Mapping Failed", Logger::Error);
+                    Logger::instance().log("Orders Map: Error Mapping Failed", Logger::Error);
                     m_iError = 130;
                     // Set error code and exit
                 }
@@ -95,19 +94,19 @@ void COrdersMap::InitQueue(CQuantQueue* pQueue)
     m_pQuantQueue = pQueue;
     // Init the Queue
     m_pQuantQueue->InitReader(POSITION_TOP);
-    Logger::instance().log("Queue initialized in Orders Data Map file", Logger::Info);
+    Logger::instance().log("Orders Map: Queue initialized in Orders Data Map file", Logger::Info);
 }
 //////////////////////////////////////////////////////////////////////////////////
 COrdersMap::~COrdersMap()
 {
-    Logger::instance().log("Start...UnMapping Orders Data Map file", Logger::Info);
+    Logger::instance().log("Orders Map: Start...UnMapping Orders Data Map file", Logger::Info);
     msync(m_addr, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);
-    Logger::instance().log("End...UnMapping Orders Data Map file", Logger::Info);
+    Logger::instance().log("Orders Map: End...UnMapping Orders Data Map file", Logger::Info);
 
-    Logger::instance().log("Start...Clearing Orders Map", Logger::Info);
+    Logger::instance().log("Orders Map: Start...Clearing Orders Map", Logger::Info);
     m_SymbolMap.clear();
-    Logger::instance().log("End...Clearing Orders Map", Logger::Info);
+    Logger::instance().log("Orders Map: End...Clearing Orders Map", Logger::Info);
 
    if (m_fd)
       close(m_fd);
@@ -135,16 +134,16 @@ int COrdersMap::InitMemoryMappedFile()
     m_uiNumberOfMessagesToHold = (theApp.SSettings.ui64SizeOfOrdersMappedFile* 1000000000) / m_uiSizeOfCommonOrderRecord;
 
     if (m_sb.st_size < (theApp.SSettings.ui64SizeOfOrdersMappedFile* 1000000000)) { // Fresh file
-        Logger::instance().log("Initializing Mapped File...This will take few minutes", Logger::Debug);
+        Logger::instance().log("Orders Map: Initializing Mapped File...This will take few minutes", Logger::Debug);
         for (uint64_t ii = 0; ii < (m_uiNumberOfMessagesToHold + 1); ii++) {
             write(m_fd, &SCommonOrder, m_uiSizeOfCommonOrderRecord);  // init with NULL
         }
-        Logger::instance().log("Finished Initializing Orders Mapped File", Logger::Debug);
+        Logger::instance().log("Orders Map: Finished Initializing Orders Mapped File", Logger::Debug);
     }
 
     fstat64(m_fd, &m_sb);
     if (m_sb.st_size < (theApp.SSettings.ui64SizeOfOrdersMappedFile* 1000000000)) { // Fresh file
-        Logger::instance().log("Error Initializing Mapped File", Logger::Debug);
+        Logger::instance().log("Orders Map: Error Initializing Mapped File", Logger::Debug);
         m_iError = 200; // enum later
         return false;
     }
@@ -221,7 +220,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         }
 
         if (m_ui64NumOfOrders >= m_uiNumberOfMessagesToHold) {
-            Logger::instance().log("Exceeded Number of Orders to be Inserted in the Memory Mapped File ", Logger::Error);
+            Logger::instance().log("Orders Map: Orders Map Exceeded Number of Orders to be Inserted in the Memory Mapped File ", Logger::Error);
             m_iError = 300; // Enum later
             return m_ui64NumOfOrders;
         }
@@ -232,10 +231,10 @@ uint64_t COrdersMap::FillMemoryMappedFile()
         case 'A':  // Add Order NO MPID
 
 	  if (!m_Util->IsSymbolIn(pItchMessageUnion->AddOrderNoMPID.szStock))
-                return 0;
+                break;
 
 	    m_pCommonOrder[m_ui64NumOfOrders].cBuySell 		= pItchMessageUnion->AddOrderNoMPID.cBuySell;
-            m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->AddOrderNoMPID.cMessageType;
+            m_pCommonOrder[m_ui64NumOfOrders].cMessageType 	= pItchMessageUnion->AddOrderNoMPID.cMessageType;
             m_pCommonOrder[m_ui64NumOfOrders].dPrice 		= pItchMessageUnion->AddOrderNoMPID.dPrice;
             m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber 	= pItchMessageUnion->AddOrderNoMPID.iOrderRefNumber;
             m_pCommonOrder[m_ui64NumOfOrders].iShares 		= pItchMessageUnion->AddOrderNoMPID.iShares;
@@ -253,7 +252,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
             pthread_mutex_unlock(&mtxFindMap);
             if (!RetPair.second) {
-                Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Add Order No MPID) ", Logger::Error);
+                Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Add Order No MPID) ", Logger::Error);
                 break;
             }
             m_ui64NumOfOrders++;
@@ -262,7 +261,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
 
         case 'F':  // Add Order with MPID
  	    if (!m_Util->IsSymbolIn(pItchMessageUnion->AddOrderMPID.szStock))
-	      return 0;
+	      break;
 
             m_pCommonOrder[m_ui64NumOfOrders].cBuySell 		= pItchMessageUnion->AddOrderMPID.cBuySell;
             m_pCommonOrder[m_ui64NumOfOrders].cMessageType 		= pItchMessageUnion->AddOrderMPID.cMessageType;
@@ -284,7 +283,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             RetPair = m_SymbolMap.insert(pair<uint64_t , uint64_t>(m_pCommonOrder[m_ui64NumOfOrders].iOrderRefNumber, m_ui64NumOfOrders) );
             pthread_mutex_unlock(&mtxFindMap);
             if (!RetPair.second) {
-                Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Add Order With MPID) ", Logger::Error);
+                Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Add Order With MPID) ", Logger::Error);
                 break;
             }
             m_ui64NumOfOrders++;
@@ -300,7 +299,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
                 return 0;
 */
             if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 
 	    strcpy(m_pCommonOrder[m_ui64NumOfOrders].szStock, m_pTempCommonOrder->szStock);
             strcpy(m_pCommonOrder[m_ui64NumOfOrders].szMPID, m_pTempCommonOrder->szMPID);
@@ -333,7 +332,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
             pthread_mutex_unlock(&mtxFindMap);
 
             if (!RetPair.second) {
-                Logger::instance().log("Error inserting in 'Map' in Orders Mapped File (Replace Order) ", Logger::Error);
+                Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Replace Order) ", Logger::Error);
                 break;
             }
 
@@ -348,7 +347,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
                 break;
 	    
             if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
                 return 0;
@@ -376,7 +375,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
                 break;
 
 	    if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
@@ -410,7 +409,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
                 break;
 
 	    if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 	    
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
@@ -441,7 +440,7 @@ uint64_t COrdersMap::FillMemoryMappedFile()
                 break;
 	    
             if (!m_Util->IsSymbolIn(m_pTempCommonOrder->szStock)) // check for Range
-                return 0;
+                break;
 	    
 /*
             if (!m_Util->CheckInclude(m_pTempCommonOrder->szStock)) // check for Range
