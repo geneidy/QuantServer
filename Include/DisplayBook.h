@@ -28,12 +28,20 @@ typedef struct _ThreadData {
     int		nLevels; //  could use a default here
 } BOOK_THREAD_DATA;
 
+typedef struct SBidAskValues  // To copy SBID_ASK W/O the pointers....was causing a problem in delete
+{
+    char	szMPID[5];
+    double	dPrice;
+    int 	uiQty;
+    int 	uiNumOfOrders;
+    //SLEVELSTAT  	SLevelStat;   // Stats per Level
+} SBID_ASK_VALUES;
 
 typedef struct _SDisplayBook {
 
     OHLC 	TopOfBook;
-    SBID_ASK*	pSBid;  // Number of levels apply here
-    SBID_ASK*	pSAsk; 	// Number of levels apply here
+    SBID_ASK_VALUES*	pSBid;  // Number of levels apply here
+    SBID_ASK_VALUES*	pSAsk; 	// Number of levels apply here
 
 } DISPLAYBOOK;
  
@@ -41,7 +49,7 @@ typedef struct _SDisplayBook {
 class CDisplayBook {
 
 static    int 		m_iError;
-    CUtil*  	m_pcUtil;
+CUtil*  	m_pcUtil;
 
 static    CBuildBook* 		m_pcBuildBook[NUMBER_OF_BOOKS_TO_DISPALY];
 static    DISPLAYBOOK* 		m_SDisplayBook[NUMBER_OF_BOOKS_TO_DISPALY];
@@ -64,7 +72,7 @@ public:
     static BOOK_THREAD_DATA 	m_arrBookThreadData[NUMBER_OF_BOOKS_TO_DISPALY];
 
     
-    void DisplaySelected(void);
+    void 	DisplaySelected(void);
     static  void* DisplaySingleBook(void* pArg);
     
     static  void  StopDisplaySelected(char*);
@@ -73,6 +81,8 @@ public:
     
     int GetError();
     char* GetErrorDescription();
+    
+    bool  m_bAllDone;
 
 };
 

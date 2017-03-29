@@ -151,7 +151,7 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.iarrRole[2] = 0;   		//  2= Receive Feed
     SSettings.iarrRole[3] = 0;   		//  3= Parse
     SSettings.iarrRole[4] = 1;   		//  4= Orders Map
-    SSettings.iarrRole[5] = 0;   		//  5= Build Book
+    SSettings.iarrRole[5] = 1;   		//  5= Build Book
     SSettings.iarrRole[6] = 0;   		//  6= Tick Data
     SSettings.iarrRole[7] = 0;   		//  7= Save to DB
     SSettings.iarrRole[8] = 0;   		//  8= Play back

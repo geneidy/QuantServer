@@ -15,7 +15,7 @@
 #include "NQTV.h"
 
 
-#define  _CLIENT 0   // our own pre-processor directive for now....
+int  _CLIENT = 0;   // our own pre-processor directive for now...
 
 
 static pthread_mutex_t mtxQueue = PTHREAD_MUTEX_INITIALIZER;
@@ -25,11 +25,24 @@ static pthread_cond_t condMap 	= PTHREAD_COND_INITIALIZER;
 static bool bReady = false;
 
 //////////////////////////////////////////////////////////////////////////////////////////
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     using namespace std;
 
-    Logger::instance().log("Starting Server", Logger::Debug);
+    if (argc > 0) { // Look for 'C' for Client  or else for Server
+        if (*argv[1] == '0x67') {  // 'C' in upper case
+            _CLIENT = 1;
+            Logger::instance().log("Starting Server With Client", Logger::Debug);
+        }
+        else {
+            _CLIENT = 0;
+            Logger::instance().log("Starting Server NO Client", Logger::Debug);
+        }
+    }
+    else { // No args then Server Mode
+        _CLIENT = 0;
+        Logger::instance().log("Starting Server NO Client", Logger::Debug);
+    }
 
     if (PrimeSettings() == TERMINATE) {
         Logger::instance().log("Terminating Server", Logger::Debug);
@@ -76,7 +89,7 @@ int main(int argc, char **argv)
             jj++;
             sleep(3);
 
-            if (jj > 200)  // jj* 3 =  seconds
+            if (jj > 100)  // jj* 3 =  seconds
                 theApp.SSettings.iStatus = STOPPED;
         };
     }; //    if (!_CLIENT) {  // server only
@@ -192,7 +205,7 @@ void* Settings(void* pArg)
     else { // server testing
         while (theApp.SSettings.iStatus == RUNNING) {
             sleep(1);
-	    continue; // Will get the signal from the "JJ" variable in main()
+            continue; // Will get the signal from the "JJ" variable in main()
         }
     }
 
@@ -525,6 +538,11 @@ void *DisplayBook(void* pArg)
         sleep(1);
     }
     pCDisplayBook->StopDisplayAllBooks();
+
+    while(!pCDisplayBook->m_bAllDone) {  // Wait for all Threads Displaying the boook to TERMINATE
+        sleep(1);
+        continue;
+    }
 
     if (pCDisplayBook) {
         delete pCDisplayBook;
