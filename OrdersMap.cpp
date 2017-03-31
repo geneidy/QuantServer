@@ -95,10 +95,18 @@ void COrdersMap::InitQueue(CQuantQueue* pQueue)
     // Init the Queue
     m_pQuantQueue->InitReader(POSITION_TOP);
     Logger::instance().log("Orders Map: Queue initialized in Orders Data Map file", Logger::Info);
+
 }
 //////////////////////////////////////////////////////////////////////////////////
 COrdersMap::~COrdersMap()
 {
+    string strMessage;
+    
+    strMessage = "Number of Orders Inserted: ";
+    strMessage += to_string(m_ui64NumOfOrders); 
+    
+    Logger::instance().log(strMessage, Logger::Info);
+  
     Logger::instance().log("Orders Map: Start...UnMapping Orders Data Map file", Logger::Info);
     msync(m_addr, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);

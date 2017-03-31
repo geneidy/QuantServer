@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     using namespace std;
 
     if (argc > 0) { // Look for 'C' for Client  or else for Server
-        if (*argv[1] == '0x67') {  // 'C' in upper case
+        if (*argv[1] == 'C') {  // 'C' in upper case
             _CLIENT = 1;
             Logger::instance().log("Starting Server With Client", Logger::Debug);
         }
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
             jj++;
             sleep(3);
 
-            if (jj > 100)  // jj* 3 =  seconds
+            if (jj > 200)  // jj* 3 =  seconds
                 theApp.SSettings.iStatus = STOPPED;
         };
     }; //    if (!_CLIENT) {  // server only

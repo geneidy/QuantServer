@@ -330,7 +330,7 @@ int  CFillMsgStructs::MWCBDeclineLevelMessage(UINT8* uiMsg)
     m_IMUSys.MWCBDLM.iTimeStamp	=  m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     m_IMUSys.MWCBDLM.dLevel1      =   double (m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8))/100000000;
     m_IMUSys.MWCBDLM.dLevel2      =   double (m_pCUtil->GetValueUnsignedInt64(uiMsg, 19, 8))/100000000;
-    m_IMUSys.MWCBDLM.dLevel3		=  double (m_pCUtil->GetValueUnsignedInt64(uiMsg, 27, 8))/100000000;
+    m_IMUSys.MWCBDLM.dLevel3	  =  double (m_pCUtil->GetValueUnsignedInt64(uiMsg, 27, 8))/100000000;
 
 
     if (m_pQuantQueue)
@@ -477,7 +477,7 @@ int  CFillMsgStructs::OrderCancelMessage(UINT8* uiMsg)
 
     m_IMUSys.OrderCancel.cMessageType		=	'X';
     m_IMUSys.OrderCancel.iLocateCode		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
-    m_IMUSys.OrderCancel.TrackingNumber	=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
+    m_IMUSys.OrderCancel.TrackingNumber		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
     m_IMUSys.OrderCancel.iTimeStamp		=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     m_IMUSys.OrderCancel.iOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
     m_IMUSys.OrderCancel.iShares			=	m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
@@ -494,7 +494,7 @@ int  CFillMsgStructs::OrderDelete(UINT8* uiMsg)
 
     m_IMUSys.OrderDelete.cMessageType		=	'D';
     m_IMUSys.OrderDelete.iLocateCode		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
-    m_IMUSys.OrderDelete.TrackingNumber	=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
+    m_IMUSys.OrderDelete.TrackingNumber		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
     m_IMUSys.OrderDelete.iTimeStamp		=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     m_IMUSys.OrderDelete.iOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
 
@@ -513,11 +513,11 @@ int  CFillMsgStructs::OrderReplace(UINT8* uiMsg)
     m_IMUSys.OrderReplace.iLocateCode			=	m_pCUtil->GetValueUnsignedLong( uiMsg, 1, 2);
     m_IMUSys.OrderReplace.TrackingNumber		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
     m_IMUSys.OrderReplace.iTimeStamp			=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
-    m_IMUSys.OrderReplace.iOldOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
-    m_IMUSys.OrderReplace.iNewOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 19, 8);
+    m_IMUSys.OrderReplace.iOldOrderRefNumber		=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
+    m_IMUSys.OrderReplace.iNewOrderRefNumber		=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 19, 8);
 
-    m_IMUSys.OrderReplace.iShares				=   m_pCUtil->GetValueUnsignedLong(uiMsg, 27, 4);
-    m_IMUSys.OrderReplace.dPrice				=   double (m_pCUtil->GetValueUnsignedLong(uiMsg, 31, 4))/10000;
+    m_IMUSys.OrderReplace.iShares			=   m_pCUtil->GetValueUnsignedLong(uiMsg, 27, 4);
+    m_IMUSys.OrderReplace.dPrice			=   double (m_pCUtil->GetValueUnsignedLong(uiMsg, 31, 4))/10000;
 
 
     if (m_pQuantQueue)
@@ -537,11 +537,11 @@ int  CFillMsgStructs::TradeMessageNonCross(UINT8* uiMsg)
     m_IMUSys.TradeNonCross.iTimeStamp			=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     m_IMUSys.TradeNonCross.iOrderRefNumber		=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
 
-    m_IMUSys.TradeNonCross.cBuySell = m_pCUtil->GetValueChar(uiMsg, 19, 1);
-    m_IMUSys.TradeNonCross.iShares = m_pCUtil->GetValueUnsignedLong(uiMsg, 20, 4);
+    m_IMUSys.TradeNonCross.cBuySell 			= m_pCUtil->GetValueChar(uiMsg, 19, 1);
+    m_IMUSys.TradeNonCross.iShares 			= m_pCUtil->GetValueUnsignedLong(uiMsg, 20, 4);
     strcpy(m_IMUSys.TradeNonCross.szStock,  m_pCUtil->GetValueAlpha(uiMsg, 24, 8));
-    m_IMUSys.TradeNonCross.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
-    m_IMUSys.TradeNonCross.iMatchNumber  = m_pCUtil->GetValueUnsignedInt64(uiMsg, 36, 8);
+    m_IMUSys.TradeNonCross.dPrice 			= double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
+    m_IMUSys.TradeNonCross.iMatchNumber  		= m_pCUtil->GetValueUnsignedInt64(uiMsg, 36, 8);
 
 
     if (m_pQuantQueue)

@@ -75,13 +75,18 @@ CTickDataMap::~CTickDataMap()
 {
     if (m_pCOrdersMap)
         m_pCOrdersMap->iNInstance--;
-
+    
+    string strMessage;
+    
+    strMessage = "Number of Ticks Inserted: ";
+    strMessage += to_string(m_ui64NumOfTickData); 
+    
+    Logger::instance().log(strMessage, Logger::Info);
 
     Logger::instance().log("Start...UnMapping TickDataMap file", Logger::Info);
     msync(m_addr, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);
     Logger::instance().log("End...UnMapping TickDataMap file", Logger::Info);
-
     /*    Logger::instance().log("Start...Clearing TickMap", Logger::Info);
         m_TickMap.clear();
         Logger::instance().log("End...Clearing TickMap", Logger::Info);
@@ -89,13 +94,12 @@ CTickDataMap::~CTickDataMap()
         Logger::instance().log("Start...Clearing Fundamental Map", Logger::Info);
         m_FundamentalMap.clear();
         Logger::instance().log("End...Clearing Fundamental Map", Logger::Info);
-    */    close(m_fd);
-
+    */
+    close(m_fd);
     if (m_pcUtil) {
         delete m_pcUtil;
         m_pcUtil = NULL;
     }
-
 }
 //////////////////////////////////////////////////////////////////////////////////
 int CTickDataMap::GetError()

@@ -38,8 +38,8 @@ CReceiveITCH::CReceiveITCH (CQuantQueue* pQueue) //(socket *Sock): m_Socket(*Soc
 
     if ((m_pszTVBuf == NULL) || (m_pszRecvBuf == NULL)) //|| (m_pszOutputBuf == NULL))
     {
-	m_iError = 100;  // enum all the errors > 100   GTE 100 means do not continue
-        Logger::instance().log("Error Allocating Buffers in Constructor", Logger::Debug);    
+        m_iError = 100;  // enum all the errors > 100   GTE 100 means do not continue
+        Logger::instance().log("Error Allocating Buffers in Constructor", Logger::Debug);
     }
 
     m_pFillStructs = NULL;
@@ -118,6 +118,13 @@ int  CReceiveITCH::ProcessFeed()
         m_pLast = m_pBegin;
         m_pBegin += (m_iPacketLength + 2);
 
+        if (theApp.SSettings.iStatus == STOPPED) {
+            Logger::instance().log("Nasd Test File: Process Feed Returning Before Completion", Logger::Info);
+	    m_pszRecvBuf = &m_pszRecvBuf[0];
+            break;
+        }
+
+
 //        if (!theApp.g_bReceiving)
 //            break;
     }; //
@@ -139,30 +146,30 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
     int iHandle = open(strFileName, O_RDWR );
 
     if ( iHandle < 0 ) {
-      string strLogMessage;
-      strLogMessage = "Opening file: ";
-      strLogMessage += strFileName; 
-      strLogMessage += " Failed";
+        string strLogMessage;
+        strLogMessage = "Opening file: ";
+        strLogMessage += strFileName;
+        strLogMessage += " Failed";
 
 // redundant...just for debug purposes
-    switch (iHandle)
-    {
-    case EACCES:
-        break;
-    case EEXIST:
-        break;
-    case EINVAL:
-        break;
-    case EMFILE:
-        break;
-    case ENOENT:
-        break;
-    }
+        switch (iHandle)
+        {
+        case EACCES:
+            break;
+        case EEXIST:
+            break;
+        case EINVAL:
+            break;
+        case EMFILE:
+            break;
+        case ENOENT:
+            break;
+        }
 //      strLogMessage += iHandle;
-     Logger::instance().log(strLogMessage, Logger::Debug);
-     return false;
+        Logger::instance().log(strLogMessage, Logger::Debug);
+        return false;
     }
-    
+
     int64_t	i64NumberOfBytes = 0;
     uint64_t	ulTotalBytes = 0;
 
@@ -177,10 +184,11 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
 
             i64NumberOfBytes = read(iHandle, m_pszRecvBuf, theApp.SSettings.dwBufferSize);
             memmove(&(m_pszTVBuf[m_iLen]), m_pszRecvBuf, i64NumberOfBytes);		// Accumulate in m_szTVBuf
-	    if (theApp.SSettings.iStatus == STOPPED) {
-	      Logger::instance().log("Test File Returning Before Completion", Logger::Error);
-	      break;
-	    }
+            if (theApp.SSettings.iStatus == STOPPED) {
+                Logger::instance().log("Nasd Test File: Test File Returning Before Completion", Logger::Info);
+		m_pszRecvBuf = &m_pszRecvBuf[0];
+                break;
+            }
 
             m_iLen += i64NumberOfBytes;
 
