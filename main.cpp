@@ -1,6 +1,8 @@
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+
 
 #include "ReceiveITCH.h"
 #include "Distributor.h"
@@ -30,7 +32,10 @@ int main(int argc, char *argv[])
     using namespace std;
 
     if (argc > 0) { // Look for 'C' for Client  or else for Server
-        if (*argv[1] == 'C') {  // 'C' in upper case
+        cout << argv[0] << endl;
+        cout << argv[1] << endl;
+        
+        if (!strncmp(argv[1], "C", 1)) {  // 'C' in upper case
             _CLIENT = 1;
             Logger::instance().log("Starting Server With Client", Logger::Debug);
         }
@@ -49,7 +54,7 @@ int main(int argc, char *argv[])
         // Nothing to cleanup
         return 0;
     }
-
+    return 0 ;
 //    g_bSettingsLoaded = false;
 
     int iRet = 0;

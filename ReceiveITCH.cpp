@@ -120,7 +120,7 @@ int  CReceiveITCH::ProcessFeed()
 
         if (theApp.SSettings.iStatus == STOPPED) {
             Logger::instance().log("Nasd Test File: Process Feed Returning Before Completion", Logger::Info);
-	    m_pszRecvBuf = &m_pszRecvBuf[0];
+            m_pszRecvBuf = &m_pszRecvBuf[0];
             break;
         }
 
@@ -186,7 +186,7 @@ int CReceiveITCH::ReadFromTestFile(const char* strFileName)  ///  ignore the for
             memmove(&(m_pszTVBuf[m_iLen]), m_pszRecvBuf, i64NumberOfBytes);		// Accumulate in m_szTVBuf
             if (theApp.SSettings.iStatus == STOPPED) {
                 Logger::instance().log("Nasd Test File: Test File Returning Before Completion", Logger::Info);
-		m_pszRecvBuf = &m_pszRecvBuf[0];
+                m_pszRecvBuf = &m_pszRecvBuf[0];
                 break;
             }
 
