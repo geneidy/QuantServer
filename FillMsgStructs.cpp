@@ -37,16 +37,17 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
     memset(theApp.g_arrTotalMessages, 0, sizeof(theApp.g_arrTotalMessages));
 //    memset(theApp.g_arrMessagesPerSec, 0, sizeof(theApp.g_arrMessagesPerSec));
 //    memset(theApp.g_arrMaxMessagesPerSec, 0, sizeof(theApp.g_arrMaxMessagesPerSec));
-    m_pCUtil	= NULL;
-    m_pCUtil	= new CUtil();
+    m_pCUtil	= nullptr;
+    m_pCUtil	= new CUtil(theApp.SSettings.szActiveSymbols, theApp.SSettings.arrbActive);  // After refactor
 
+    m_uiRejected = 0;
     m_bConnected = false;
 
     m_iError = 0;
 
     i64Counter = 0;
 
-//    m_pQuantQueue = NULL;
+  //    m_pQuantQueue = NULL;
 //    m_pQuantQueue = CQuantQueue::Instance();   // Only one instance is allowed of this singelton class
 
     if (!m_pQuantQueue) {
@@ -54,15 +55,15 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
         m_iError = 100;  // ::TODO enum the Error
     }
     else {
-        Logger::instance().log("Queue initialized", Logger::Info);
+        Logger::instance().log("Queue initialized in Fill Messages", Logger::Info);
     }
     m_remain.tv_sec = 0;
     m_remain.tv_nsec = 0;
 
     m_request.tv_sec = 0;
     m_request.tv_nsec = 10000000;   // 1/100 of a second
-    
-// Get the file ready to store the stock directory    
+
+// Get the file ready to store the stock directory
     struct stat st = {0};
 
     if (stat("../StockDirectory/", &st) == -1) {
@@ -78,12 +79,16 @@ CFillMsgStructs::CFillMsgStructs(CQuantQueue* pQuantQueue): m_pQuantQueue(pQuant
 
 //    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
     m_fd = open(strTickFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-    
-    if (m_fd == -1){
-         Logger::instance().log("Error opening Stock Direcotry File", Logger::Error);
+
+    if (m_fd == -1) {
+        Logger::instance().log("Error opening Stock Direcotry File", Logger::Error);
     }
 
-   
+    m_pOrdersMap = nullptr;
+    m_pOrdersMap = COrdersMap::instance();
+    if (!m_pOrdersMap){
+      m_iError = 1000;   // enum later
+    }
 }
 ////////////////////////////////////////////////////////////////////////////
 int CFillMsgStructs::GetError()
@@ -109,14 +114,15 @@ CFillMsgStructs::~CFillMsgStructs(void)
     if (m_pCUtil)
     {
         delete	m_pCUtil;
-        m_pCUtil = NULL;
+        m_pCUtil = nullptr;
     }
-    
-    if (m_fd){
-      close(m_fd);
+
+    if (m_fd) {
+        close(m_fd);
     }
-    
+
     m_bConnected = false;
+    m_pOrdersMap->iNInstance--;
 }
 ////////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
@@ -185,7 +191,9 @@ int  CFillMsgStructs::DirectToMethod(UINT8* uiMsg)
         theApp.g_arrTotalMessages[ORDER_REPLACE]++;
         break;
     case 'P':
-        TradeMessageNonCross(uiMsg);
+      TradeMessageNonCross(uiMsg);
+      //From documentation
+      //Since Trade Messages do NOT affect the book, however, they may be ignored by firms just looking to build and track the NASDAQ execution system display.
         theApp.g_arrTotalMessages[TRADE_MESSAGE_NON_CROSS]++;
         break;
     case 'I':
@@ -252,12 +260,12 @@ int  CFillMsgStructs::StockDirectory(UINT8* uiMsg)
     m_IMUSys.StockDirectory.iETPLeverageFactor		= m_pCUtil->GetValueChar(uiMsg, 34, 4);
     m_IMUSys.StockDirectory.cInverseFactor		= m_pCUtil->GetValueChar(uiMsg, 38, 1);
 
-/*    if (m_pQuantQueue)
-        m_pQuantQueue->Enqueue(&m_IMUSys, 'R');
-*/
+    /*    if (m_pQuantQueue)
+            m_pQuantQueue->Enqueue(&m_IMUSys, 'R');
+    */
     if (m_fd != -1)
-	write(m_fd, &m_IMUSys.StockDirectory , sizeof(STOCK_DIRECTORY_MESSAGE ));
-   
+        write(m_fd, &m_IMUSys.StockDirectory , sizeof(STOCK_DIRECTORY_MESSAGE ));
+
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////*/
@@ -310,6 +318,13 @@ int  CFillMsgStructs::Market_Participant_Position(UINT8* uiMsg)
     m_IMUSys.MpPosition.iTimeStamp			= m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     strcpy(m_IMUSys.MpPosition.szMPID, m_pCUtil->GetValueAlpha( uiMsg, 11, 4));
     strcpy(m_IMUSys.MpPosition.szStock, m_pCUtil->GetValueAlpha( uiMsg, 15, 8));
+
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.MpPosition.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
+    }
+
+
     m_IMUSys.MpPosition.cPrimaryMM			= m_pCUtil->GetValueChar(uiMsg, 23, 1);
     m_IMUSys.MpPosition.cMMMode			= m_pCUtil->GetValueChar(uiMsg, 24, 1);
     m_IMUSys.MpPosition.cMarketParticipantState = m_pCUtil->GetValueChar(uiMsg, 25, 1);
@@ -366,6 +381,12 @@ int  CFillMsgStructs::IPOQuotingPeriodUpdate(UINT8* uiMsg)
     m_IMUSys.IPOQutationUpdate.iTimeStamp     = m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     strcpy(m_IMUSys.IPOQutationUpdate.szStock, m_pCUtil->GetValueAlpha( uiMsg, 11, 8));
 
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.IPOQutationUpdate.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
+    }
+
+
     m_IMUSys.IPOQutationUpdate.iIPOQuotationReleaseTime = m_pCUtil->GetValueUnsignedLong( uiMsg, 19, 4);
     m_IMUSys.IPOQutationUpdate.cIPOQuotationReleaseQualifier = m_pCUtil->GetValueChar( uiMsg, 23, 1);
     m_IMUSys.IPOQutationUpdate.dIPOPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 24, 4))/10000;
@@ -391,22 +412,22 @@ int  CFillMsgStructs::AddOrderNoMPIDMessage(UINT8* uiMsg)
     m_IMUSys.AddOrderNoMPID.iShares		=  m_pCUtil->GetValueUnsignedLong(uiMsg, 20, 4);
 
     strcpy(m_IMUSys.AddOrderNoMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
-    m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
-    /*
-        if (!strcmp(m_IMUSys.AddOrderNoMPID.szStock, "MSFT    ")){
-    	int iStop = 0;
-        }
-    */
-    if (m_IMUSys.AddOrderNoMPID.iOrderRefNumber == 0) {
-        iStopHere++;
-    }
-    else {
-        iPassedHere++;
+
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.AddOrderNoMPID.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
     }
 
+    m_IMUSys.AddOrderNoMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
+
+/*
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'A');
-
+*/
+     if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'A');
+     }
+     
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -423,11 +444,23 @@ int  CFillMsgStructs::AddOrderWithMPID(UINT8* uiMsg)
     m_IMUSys.AddOrderMPID.iShares		=  m_pCUtil->GetValueUnsignedLong(uiMsg, 20, 4);
 
     strcpy(m_IMUSys.AddOrderMPID.szStock, m_pCUtil->GetValueAlpha( uiMsg, 24, 8));
+
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.AddOrderMPID.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
+    }
+
     m_IMUSys.AddOrderMPID.dPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     strcpy(m_IMUSys.AddOrderMPID.szMPID,  m_pCUtil->GetValueAlpha(uiMsg, 36, 4));
-
+/*
     if (m_pQuantQueue)
-        m_pQuantQueue->Enqueue(&m_IMUSys, 'F');
+        m_pQuantQueue->Enqueue(&m_IMUSys, 'F');*/
+
+     if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'F');
+     }
+
+
 
     return 0;
 }
@@ -443,9 +476,13 @@ int  CFillMsgStructs::OrderExecutionMessage(UINT8* uiMsg)
     m_IMUSys.OrderExecuted.iOrderRefNumber = m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
     m_IMUSys.OrderExecuted.iShares = m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
     m_IMUSys.OrderExecuted.iOrderMatchNumber = m_pCUtil->GetValueUnsignedInt64(uiMsg, 23, 8);
-
+/*
     if (m_pQuantQueue)
-        m_pQuantQueue->Enqueue(&m_IMUSys, 'E');
+        m_pQuantQueue->Enqueue(&m_IMUSys, 'E');*/
+
+    if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'E');
+    }
 
     return 0;
 }
@@ -464,11 +501,17 @@ int  CFillMsgStructs::OrderExecutionWithPriceMessage(UINT8* uiMsg)
 
     m_IMUSys.OrderExecutedWithPrice.dExecutionPrice = double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     m_IMUSys.OrderExecutedWithPrice.cPrintable = m_pCUtil->GetValueChar(uiMsg, 31, 1);
-
+/*
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'c');
 
-    return 0;
+ */
+
+  if (m_pOrdersMap) {
+    m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'c');
+  }
+
+  return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::OrderCancelMessage(UINT8* uiMsg)
@@ -480,11 +523,14 @@ int  CFillMsgStructs::OrderCancelMessage(UINT8* uiMsg)
     m_IMUSys.OrderCancel.TrackingNumber		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
     m_IMUSys.OrderCancel.iTimeStamp		=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     m_IMUSys.OrderCancel.iOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
-    m_IMUSys.OrderCancel.iShares			=	m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
-
+    m_IMUSys.OrderCancel.iShares		=	m_pCUtil->GetValueUnsignedLong(uiMsg, 19, 4);
+/*
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'X');
-
+*/
+     if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'X');
+     }
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -498,10 +544,13 @@ int  CFillMsgStructs::OrderDelete(UINT8* uiMsg)
     m_IMUSys.OrderDelete.iTimeStamp		=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     m_IMUSys.OrderDelete.iOrderRefNumber	=	m_pCUtil->GetValueUnsignedInt64(uiMsg, 11, 8);
 
-
+/*
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'D');
-
+*/
+     if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'D');
+     }
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////
@@ -518,17 +567,23 @@ int  CFillMsgStructs::OrderReplace(UINT8* uiMsg)
 
     m_IMUSys.OrderReplace.iShares			=   m_pCUtil->GetValueUnsignedLong(uiMsg, 27, 4);
     m_IMUSys.OrderReplace.dPrice			=   double (m_pCUtil->GetValueUnsignedLong(uiMsg, 31, 4))/10000;
-
-
+/*
     if (m_pQuantQueue)
         m_pQuantQueue->Enqueue(&m_IMUSys, 'U');
-
-
+*/
+     if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'U');
+     }
     return 0; // :: TODO
 }
 ///////////////////////////////////////////////////////////////////////////
 int  CFillMsgStructs::TradeMessageNonCross(UINT8* uiMsg)
 {
+  /*
+  From documentation:
+  Since Trade Messages do NOT affect the book, however, they may be ignored by firms just looking to build and track the NASDAQ execution system display.
+  */
+  
     memset(&m_IMUSys.TradeNonCross  , '\0', sizeof(TRADE_NON_CROSS_MESSAGE ));
 
     m_IMUSys.TradeNonCross.cMessageType		= 'P';
@@ -540,6 +595,13 @@ int  CFillMsgStructs::TradeMessageNonCross(UINT8* uiMsg)
     m_IMUSys.TradeNonCross.cBuySell 			= m_pCUtil->GetValueChar(uiMsg, 19, 1);
     m_IMUSys.TradeNonCross.iShares 			= m_pCUtil->GetValueUnsignedLong(uiMsg, 20, 4);
     strcpy(m_IMUSys.TradeNonCross.szStock,  m_pCUtil->GetValueAlpha(uiMsg, 24, 8));
+
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.TradeNonCross.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
+    }
+
+
     m_IMUSys.TradeNonCross.dPrice 			= double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     m_IMUSys.TradeNonCross.iMatchNumber  		= m_pCUtil->GetValueUnsignedInt64(uiMsg, 36, 8);
 
@@ -563,6 +625,12 @@ int  CFillMsgStructs::NOII(UINT8* uiMsg)
     m_IMUSys.NOII.iImbalanceDirection  		=  m_pCUtil->GetValueChar( uiMsg, 27, 1);
     strcpy(m_IMUSys.NOII.szStock, m_pCUtil->GetValueAlpha( uiMsg, 28, 8));
 
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.NOII.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
+    }
+
+
     m_IMUSys.NOII.dFarPrice =  double (m_pCUtil->GetValueUnsignedLong(uiMsg, 36, 4))/10000;
 
     m_IMUSys.NOII.dNearPrice 		= double (m_pCUtil->GetValueUnsignedLong(uiMsg, 40, 4))/10000;
@@ -585,6 +653,12 @@ int  CFillMsgStructs::RetailPriceImprovementIndicator(UINT8* uiMsg)
     m_IMUSys.RPPI.TrackingNumber		=	m_pCUtil->GetValueUnsignedLong( uiMsg, 3, 2);
     m_IMUSys.RPPI.iTimeStamp			=	m_pCUtil->GetValueUnsignedInt64( uiMsg, 5, 6);
     strcpy(m_IMUSys.RPPI.szStock, m_pCUtil->GetValueAlpha( uiMsg, 11, 8));
+
+    if (!m_pCUtil->IsSymbolIn(m_IMUSys.RPPI.szStock)) {
+        m_uiRejected++;
+        return 1;  // log later
+    }
+
 
     m_IMUSys.RPPI.cInterestFlag  = m_pCUtil->GetValueChar(uiMsg, 19, 1);
 

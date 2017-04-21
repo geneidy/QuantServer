@@ -76,9 +76,9 @@ void CDisplayBook::DisplaySelected()
     strMessage.clear();
     strMessage = "LOB: Waiting for Threads to complete";
     Logger::instance().log(strMessage, Logger::Debug);
-    
+
     m_bAllDone = false;
-    
+
     while (iJoined < iTotalThreads) {
         // keep on checking for all terminated threads every three seconds
         for (uint ii = 0;  ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++ ) {
@@ -99,7 +99,7 @@ void CDisplayBook::DisplaySelected()
         sleep(1);
     } // while loop
     Logger::instance().log("LOB: All Display Book threads joined", Logger::Debug);
-    
+
     m_bAllDone = true;
 }
 ///////////////////////////////////////////////////////////////////
@@ -118,7 +118,7 @@ void CDisplayBook::StopDisplayAllBooks()
 ///////////////////////////////////////////////////////////////////
 void* CDisplayBook::DisplaySingleBook(void* pArg)
 {
-
+/*
     BOOK_THREAD_DATA SThreadData;
 
     SThreadData =  *((BOOK_THREAD_DATA*)pArg) ;
@@ -138,6 +138,7 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
 
     if (CreatLOBFileMapping(idx) == -1) {  // consider moving this block higher
         m_iError = 120; // enum later
+        m_arrThreadInfo[idx].eState == _TS_TERMINATED;
         return NULL;
     }
 
@@ -154,7 +155,7 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
             break;
         }
 
-        m_pcBuildBook[idx]->m_itBookMap = m_pcBuildBook[idx]->m_BookMap.find(strToFind);
+//        m_pcBuildBook[idx]->m_itBookMap = m_pcBuildBook[idx]->m_BookMap.find(strToFind.c_str());
         if (m_pcBuildBook[idx]->m_itBookMap == m_pcBuildBook[idx]->m_BookMap.end()) {
             sleep(1); // Book Not constructed yet
             continue;
@@ -183,17 +184,17 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         nDisplayedLevels = 0;
         SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
 
-	//Clear all levels 
+        //Clear all levels
 //	memset(m_SDisplayBook[idx]->pSBid, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
-	
+
         while (SBookLevels.pTopBid != NULL) {  // Print the Bid Levels
 // 	  if (SBookLevels.bUpdating)
 // 	      continue;
 //
-            if (nDisplayedLevels++ >= nLevels){
-//	      memset(m_SDisplayBook[idx]->pSBid, 0, (sizeof(SBID_ASK_VALUES))*nLevels);           
-	      break;
-	    }
+            if (nDisplayedLevels++ >= nLevels) {
+//	      memset(m_SDisplayBook[idx]->pSBid, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
+                break;
+            }
 
 //             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
             m_SDisplayBook[idx]->pSBid[nDisplayedLevels].dPrice 	= SBookLevels.pTopBid->dPrice;
@@ -209,8 +210,8 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
         nDisplayedLevels = 0;
         SBookLevels = m_pcBuildBook[idx]->m_itBookMap->second;
 
-	//Clear all levels 
-	memset(m_SDisplayBook[idx]->pSAsk, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
+        //Clear all levels
+        memset(m_SDisplayBook[idx]->pSAsk, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
 
         while (SBookLevels.pTopAsk != NULL) {  // Print the Ask Levels
 //             cout<< SBookLevels.pTopAsk->dPrice << " "  << SBookLevels.pTopAsk->szMPID << " " << SBookLevels.pTopAsk->uiQty << " "<< SBookLevels.pTopAsk->uiNumOfOrders << endl;
@@ -225,24 +226,25 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
 
             pTemp = SBookLevels.pTopAsk;
             SBookLevels.pTopAsk = pTemp->pNextBidAsk;
-        }// while (SBookLevels.pTopAsk != NULL) 
+        }// while (SBookLevels.pTopAsk != NULL)
     }
-/*
-    if  (m_SDisplayBook[idx]->pSBid != NULL) {
-        delete[] m_SDisplayBook[idx]->pSBid;
-        m_SDisplayBook[idx]->pSBid = NULL;
-    }
+    /*
+        if  (m_SDisplayBook[idx]->pSBid != NULL) {
+            delete[] m_SDisplayBook[idx]->pSBid;
+            m_SDisplayBook[idx]->pSBid = NULL;
+        }
 
-    if  (m_SDisplayBook[idx]->pSAsk != NULL) {
-        delete[] m_SDisplayBook[idx]->pSAsk;
-        m_SDisplayBook[idx]->pSAsk = NULL;
-    }
-    if  (m_SDisplayBook[idx] != NULL) {
-        delete m_SDisplayBook[idx];
-        m_SDisplayBook[idx] = NULL;
-    }
-*/
+        if  (m_SDisplayBook[idx]->pSAsk != NULL) {
+            delete[] m_SDisplayBook[idx]->pSAsk;
+            m_SDisplayBook[idx]->pSAsk = NULL;
+        }
+        if  (m_SDisplayBook[idx] != NULL) {
+            delete m_SDisplayBook[idx];
+            m_SDisplayBook[idx] = NULL;
+        }
+  
     m_arrThreadInfo[idx].eState = _TS_TERMINATED;
+    */
     return NULL;  // log later
 }
 ///////////////////////////////////////////////////////////////////
@@ -259,7 +261,7 @@ int CDisplayBook::CreatLOBFileMapping(int iDx)
     strLOBFile = "../LOB/";
     strLOBFile += theApp.SSettings.szActiveSymbols[iDx];
 
-    m_iFD[iDx] =  open(strLOBFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+    m_iFD[iDx] =  open(strLOBFile.c_str(), O_CREAT|O_RDWR|O_TRUNC, S_IRWXU);
 
     if (m_iFD[iDx] == -1) {
         Logger::instance().log("LOB: open File Mapping Error", Logger::Error);
@@ -331,7 +333,7 @@ int CDisplayBook::InitMemoryMappedFile(int iDx)
 
         write(m_iFD[iDx], &m_SDisplayBook[iDx]->TopOfBook, sizeof(OHLC));  // init with NULL
 
-        for (int ii=0; ii < m_arrBookThreadData[iDx].nLevels; ii++) {  // could have conbined the next to lines...i.e. *2 
+        for (int ii=0; ii < m_arrBookThreadData[iDx].nLevels; ii++) {  // could have conbined the next to lines...i.e. *2
             write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSBid, sizeof(SBID_ASK_VALUES));  // init with NULL
             write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSAsk, sizeof(SBID_ASK_VALUES));  // init with NULL
         }

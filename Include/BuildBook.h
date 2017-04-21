@@ -9,6 +9,7 @@
 #include <mutex>
 
 #include "time.h"
+#include "unordered_map"
 
 #include "ITCHMessages.h"
 #include "OrdersMap.h"
@@ -79,15 +80,15 @@ typedef struct _BookLevels  // Per Symbol
     uint16_t	m_iAskLevels;
     bool	bUpdated;
     OHLC        m_OHLC;
-    pthread_mutex_t      mtxBidAsk;
-    pthread_mutexattr_t mtxAttr;
+//    pthread_mutex_t      mtxBidAsk;
+//    pthread_mutexattr_t mtxAttr;
 
 } SBOOK_LEVELS;
 
 
 typedef unordered_map<string , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
 
-class CBuildBook
+class CBuildBook //: public COrdersMap
 {
 private:   // by default
 
@@ -95,6 +96,7 @@ private:   // by default
     int 	m_fd;
     struct stat64 m_sb;
 
+    uint64_t m_ui64NumRequest;
 
     CQuantQueue*		m_pQuantQueue;
     ITCH_MESSAGES_UNION* 	m_pItchMessageUnion;
@@ -159,12 +161,12 @@ private:   // by default
 
 public:
     int 	m_iError;
-    int  	BuildBookFromMemoryMappedFile();
+    int  	BuildBookFromOrdersMap();
     CBuildBook();
     ~CBuildBook();
 
-    static BookMap  	m_BookMap;
-    static BookMap::iterator	m_itBookMap;    
+    /*static*/ BookMap  	m_BookMap;
+    /*static*/ BookMap::iterator	m_itBookMap;    
 //    int 		ListBook(const char *szSymbol, uint32_t uiMaxLevels);
 
     SBID_ASK*	AllocateNode(double fPrice, unsigned int uiQty);

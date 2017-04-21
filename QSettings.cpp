@@ -158,7 +158,7 @@ SETTINGS CQSettings::LoadSettings()
 
     SSettings.iarrRole[9] = 1;   		//  9= Test File
     SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
-    SSettings.iarrRole[11]= 1;   		//  11= Display Book
+    SSettings.iarrRole[11]= 0;   		//  11= Display Book
     SSettings.iarrRole[12]= 0;   		//  12= Distributor
     SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 
@@ -184,13 +184,13 @@ SETTINGS CQSettings::LoadSettings()
     strcpy(SSettings.szActiveSymbols[0], "MSFT    ");
     SSettings.arrbActive[0] = true;
     strcpy(SSettings.szActiveSymbols[1], "INTC    ");
-    SSettings.arrbActive[1] = false;
+    SSettings.arrbActive[1] = true;
     strcpy(SSettings.szActiveSymbols[2], "GOOG    ");
-    SSettings.arrbActive[2] = false;
-    strcpy(SSettings.szActiveSymbols[3], "INTC    ");
-    SSettings.arrbActive[3] = false;
+    SSettings.arrbActive[2] = true;
+    strcpy(SSettings.szActiveSymbols[3], "AAPL    ");
+    SSettings.arrbActive[3] = true;
     strcpy(SSettings.szActiveSymbols[4], "AMD     ");
-    SSettings.arrbActive[4] = false;
+    SSettings.arrbActive[4] = true;
     // Values for testing the server only
 // For the first release only for 5 stocks
 
@@ -225,7 +225,7 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
     SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
-    SSettings.uiQueueSize = 50000000;  // 25 Million elements
+    SSettings.uiQueueSize = 50000000;  // 100 Million elements
 
     // ::TODO throw away after the GUI
     SSettings.iStatus = RUNNING;  // ::TODO throw away after the GUI

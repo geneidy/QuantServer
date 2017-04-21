@@ -4,9 +4,10 @@
 #include "Util.h"
 
 #include "ITCHMessages.h"
-#include "DBLayer.h"
-#include "Distributor.h"
+//#include "DBLayer.h"
+//#include "Distributor.h"
 #include "QuantQueue.h"
+#include "OrdersMap.h"
 
 
 class CFillMsgStructs
@@ -42,6 +43,10 @@ private:
 	CUtil		*m_pCUtil;
 	CQuantQueue*	m_pQuantQueue;
 	
+	COrdersMap*     m_pOrdersMap;
+	
+	
+	
 	ITCH_MESSAGES_UNION m_IMUSys;
 
 	bool		m_bConnected;
@@ -52,6 +57,8 @@ private:
 	int 	m_fd;  // File discriptor
 	
 	timespec m_request, m_remain;
+	
+	uint64_t m_uiRejected;
 
 /*
 	SYSTEM_EVENT_MESSAGE						m_SystemEvent;

@@ -82,6 +82,7 @@ void CQuantQueue::init()
     m_iErrorCode = ERR_CLEAR;
 
     bConstructed = true;
+    m_i64LastWrite = 0;
     
     memset(&m_QStat, 0, sizeof(QSTAT));
     // log
@@ -149,7 +150,9 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
 
     m_Threadi64LastRead++;  // never reset
     
-    m_i64LastRead = m_Threadi64LastRead;
+    
+//    m_i64LastRead = m_Threadi64LastRead;
+
     
     *iMessgaType = m_pReader[m_Threadi64LastIndex].iMessagetype;
  
@@ -215,8 +218,8 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
         return NULL;   // Unknow message 
         break;
     }
+    m_i64LastRead++;
     return  &m_pReader[m_Threadi64LastIndex++].QMessage;
-    
 }
 ////////////////////////////////////////////////////////////////////////////
 int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)

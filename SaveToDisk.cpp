@@ -4,7 +4,7 @@ uint64_t CSaveToDisk::m_ui64WriteSequence = 0;  // Last Message number written
 
 //////////////////////////////////////////////////////////////////////////////////////////
 CSaveToDisk::CSaveToDisk()
-{
+{/*
   m_iError = 0;
   m_iHandle = open("QuanticksDistributor.Qtx", O_CREAT|O_APPEND, S_IRWXG);  // -1 is returned on error
   
@@ -19,7 +19,7 @@ CSaveToDisk::CSaveToDisk()
 //    Logger::instance().log("Error initialized the Queue", Logger::kLogLevelDebug);	  
   
   m_pQuantQueue->InitReader(POSITION_TOP);
-  m_iSizeOfMessage = sizeof(QT_ITCH_MESSAGE);
+  m_iSizeOfMessage = sizeof(QT_ITCH_MESSAGE);*/
 
 }
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ uint64_t CSaveToDisk::GetLastSequence()
 int CSaveToDisk::WriteFeedToFile()
 {
   // File format : One struct containing the sequence, messagetype and then the Union
-
+/*
   int iMessage = 0;
   memset(&m_DiskMessage, '\0', m_iSizeOfMessage);
 
@@ -98,7 +98,7 @@ int CSaveToDisk::WriteFeedToFile()
 	m_strError = "Unknown Error";
 	break;
     }
-  }
+  }*/
   return 1;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////

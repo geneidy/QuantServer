@@ -8,10 +8,8 @@ CTickDataMap::CTickDataMap()
     m_iMessage = 0;
     m_ui64NumOfTickData = 0;
 
-    m_pcUtil = NULL;
-
-    m_pcUtil = new CUtil(theApp.SSettings.szActiveSymbols, theApp.SSettings.arrbActive);
-
+    m_pcUtil = new CUtil();
+   
     if (!m_pcUtil) {
         Logger::instance().log("Error Initializing CUtil", Logger::Error);
         m_iError = 100;
@@ -48,7 +46,7 @@ CTickDataMap::CTickDataMap()
         else {
             m_iSizeOfCommonTradeRecord = sizeof(COMMON_TRADE_MESSAGE); // Avoid computing the size million times every second
 
-            m_pCOrdersMap = NULL;
+            m_pCOrdersMap = nullptr;
             m_pCOrdersMap = COrdersMap::instance();
             if (m_pCOrdersMap) {
                 Logger::instance().log("Order Map File instance in Tick Data", Logger::Info);
@@ -87,18 +85,12 @@ CTickDataMap::~CTickDataMap()
     msync(m_addr, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);
     Logger::instance().log("End...UnMapping TickDataMap file", Logger::Info);
-    /*    Logger::instance().log("Start...Clearing TickMap", Logger::Info);
-        m_TickMap.clear();
-        Logger::instance().log("End...Clearing TickMap", Logger::Info);
 
-        Logger::instance().log("Start...Clearing Fundamental Map", Logger::Info);
-        m_FundamentalMap.clear();
-        Logger::instance().log("End...Clearing Fundamental Map", Logger::Info);
-    */
+    
     close(m_fd);
     if (m_pcUtil) {
         delete m_pcUtil;
-        m_pcUtil = NULL;
+        m_pcUtil = nullptr;
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +112,7 @@ int CTickDataMap::InitMemoryMappedFile()
     if (m_sb.st_size < (theApp.SSettings.ui64SizeOfTickDataMappedFile* 1000000000)) { // Fresh file
         Logger::instance().log("Initializing Tick Data Mapped File", Logger::Info);
         for (uint64_t ii = 0; ii < (m_uiNumberOfMessagesToHold +1); ii++) {
-            iRet = write(m_fd, &SCommonTrade, m_iSizeOfCommonTradeRecord);  // init with NULL
+            iRet = write(m_fd, &SCommonTrade, m_iSizeOfCommonTradeRecord);  // init with nullptr
             // check for errors
         }
         Logger::instance().log("Finished Initializing Tick Data Mapped File", Logger::Info);
@@ -154,7 +146,7 @@ uint64_t CTickDataMap::FillTickFile()
 // ::TODO Check for the size limitation of the Memory Mapped File
     while (theApp.SSettings.iStatus != STOPPED) {
         pItchMessageUnion = (ITCH_MESSAGES_UNION*) m_pQuantQueue->Dequeue(&m_iMessage);
-        if (pItchMessageUnion == NULL) {
+        if (pItchMessageUnion == nullptr) {
             nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
 //            return m_ui64NumOfTickData;
         }
@@ -163,12 +155,10 @@ uint64_t CTickDataMap::FillTickFile()
 
         switch (m_iMessage) {
         case 'E':  // Executed Order  // Tick Data
-            m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            m_pCommonOrder     = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pCommonOrder)
                 break;
 
-            if (!m_pcUtil->IsSymbolIn(m_pCommonOrder->szStock)) // check for Range
-                break;
 
             /*
                         if (!m_pcUtil->CheckInclude(m_pCommonOrder->szStock)) // check for Range
@@ -229,12 +219,10 @@ uint64_t CTickDataMap::FillTickFile()
             break;
 
         case 'c': // Executed with price   // Tick Data
-            m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            m_pCommonOrder     = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pCommonOrder)
                 break;
 
-            if (!m_pcUtil->IsSymbolIn(m_pCommonOrder->szStock)) // check for Range
-                break;
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);
 
@@ -289,12 +277,10 @@ uint64_t CTickDataMap::FillTickFile()
             */            break;
 
         case 'P' :  // TRADE_NON_CROSS_MESSAGE
-            m_pCommonOrder     = m_pCOrdersMap->GetOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            m_pCommonOrder     = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pCommonOrder)
                 break;
 
-            if (!m_pcUtil->IsSymbolIn(m_pCommonOrder->szStock)) // check for Range
-                break;
 
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);
@@ -388,13 +374,13 @@ COMMON_TRADE_MESSAGE* CTickDataMap::GetTradeTicks(char* szStock)
 
         ret = m_TickMap.equal_range(szStock);
         if ((ret.first == m_TickMap.end()) && (ret.second == m_TickMap.end()))
-            return NULL;
+            return nullptr;
 
         for (it = ret.first; it != ret.second; ++it) {
             return &m_pCommonTrade[it->second];  //  this is the data to be plotted
         }
     */
-    return NULL;
+    return nullptr;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 SFUNDAMENTAL_RECORD* CTickDataMap::GetFundamentalRecord(char* szStock)
@@ -408,7 +394,7 @@ SFUNDAMENTAL_RECORD* CTickDataMap::GetFundamentalRecord(char* szStock)
         if ( it != m_FundamentalMap.end())
             return &it->second;  // This is the data to be plotted
     */
-    return NULL;
+    return nullptr;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 /*

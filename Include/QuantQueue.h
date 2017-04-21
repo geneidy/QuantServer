@@ -15,6 +15,8 @@ using namespace std;
 #include "Logger.h"
 #include "NQTV.h"
 
+//#include "OrdersMap.h"
+
 
 
 
@@ -48,49 +50,49 @@ using namespace std;
 #pragma pack(push,old_pack,1)
 
    typedef struct {
-        unsigned int uiEnqQSystemEvent		;
-        unsigned int uiEnqQStockDirectory	;
-        unsigned int uiEnqQStockTradingAction	;
-        unsigned int uiEnqQRegSho		;
-        unsigned int uiEnqQMpPosition		;
-        unsigned int uiEnqQMWCBDLM 		;
-        unsigned int uiEnqQMWCBDBM		;
-        unsigned int uiEnqQIPOQutationUpdate	;
-        unsigned int uiEnqQAddOrderNoMPID	;
-        unsigned int uiEnqQAddOrderMPID      	;
-        unsigned int uiEnqQOrderExecuted     	;
-        unsigned int uiEnqQOrderExecutedWithPrice;
-        unsigned int uiEnqQOrderCancel		;
-        unsigned int uiEnqQOrderDelete       	;
-        unsigned int uiEnqQOrderReplace      	;
-        unsigned int uiEnqQTradeNonCross     	;
-        unsigned int uiEnqQNOII 		;
-        unsigned int uiEnqQRPPI         	;
-	unsigned int uiEnqQUnknown         	;
+        u_int64_t uiEnqQSystemEvent		;
+        u_int64_t uiEnqQStockDirectory	;
+        u_int64_t uiEnqQStockTradingAction	;
+        u_int64_t uiEnqQRegSho		;
+        u_int64_t uiEnqQMpPosition		;
+        u_int64_t uiEnqQMWCBDLM 		;
+        u_int64_t uiEnqQMWCBDBM		;
+        u_int64_t uiEnqQIPOQutationUpdate	;
+        u_int64_t uiEnqQAddOrderNoMPID	;
+        u_int64_t uiEnqQAddOrderMPID      	;
+        u_int64_t uiEnqQOrderExecuted     	;
+        u_int64_t uiEnqQOrderExecutedWithPrice;
+        u_int64_t uiEnqQOrderCancel		;
+        u_int64_t uiEnqQOrderDelete       	;
+        u_int64_t uiEnqQOrderReplace      	;
+        u_int64_t uiEnqQTradeNonCross     	;
+        u_int64_t uiEnqQNOII 		;
+        u_int64_t uiEnqQRPPI         	;
+	u_int64_t uiEnqQUnknown         	;
 	
 
-	unsigned int uiDeqQSystemEvent		;
-        unsigned int uiDeqQStockDirectory	;
-        unsigned int uiDeqQStockTradingAction	;
-        unsigned int uiDeqQRegSho		;
-        unsigned int uiDeqQMpPosition		;
-        unsigned int uiDeqQMWCBDLM 		;
-        unsigned int uiDeqQMWCBDBM		;
-        unsigned int uiDeqQIPOQutationUpdate	;
-        unsigned int uiDeqQAddOrderNoMPID	;
-        unsigned int uiDeqQAddOrderMPID      	;
-        unsigned int uiDeqQOrderExecuted     	;
-        unsigned int uiDeqQOrderExecutedWithPrice;
-        unsigned int uiDeqQOrderCancel		;
-        unsigned int uiDeqQOrderDelete       	;
-        unsigned int uiDeqQOrderReplace      	;
-        unsigned int uiDeqQTradeNonCross     	;
-        unsigned int uiDeqQNOII 		;
-        unsigned int uiDeqQRPPI         	;
-        unsigned int uiDeqQUnknown         	;
+	u_int64_t uiDeqQSystemEvent		;
+        u_int64_t uiDeqQStockDirectory	;
+        u_int64_t uiDeqQStockTradingAction	;
+        u_int64_t uiDeqQRegSho		;
+        u_int64_t uiDeqQMpPosition		;
+        u_int64_t uiDeqQMWCBDLM 		;
+        u_int64_t uiDeqQMWCBDBM		;
+        u_int64_t uiDeqQIPOQutationUpdate	;
+        u_int64_t uiDeqQAddOrderNoMPID	;
+        u_int64_t uiDeqQAddOrderMPID      	;
+        u_int64_t uiDeqQOrderExecuted     	;
+        u_int64_t uiDeqQOrderExecutedWithPrice;
+        u_int64_t uiDeqQOrderCancel		;
+        u_int64_t uiDeqQOrderDelete       	;
+        u_int64_t uiDeqQOrderReplace      	;
+        u_int64_t uiDeqQTradeNonCross     	;
+        u_int64_t uiDeqQNOII 		;
+        u_int64_t uiDeqQRPPI         	;
+        u_int64_t uiDeqQUnknown         	;
 	
-	unsigned int uiQWrap;
-	unsigned int uiReadWrap;
+	u_int64_t uiQWrap;
+	u_int64_t uiReadWrap;
     }QSTAT;
 
 

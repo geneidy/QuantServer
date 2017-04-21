@@ -319,7 +319,7 @@ typedef struct       //    Common Order Record Struct...Wil handle the order rel
 												//“U”	Order Replace Message
 
 //	unsigned int	iLocateCode;			// Stock Locate	Integer	Locate code identifying the security
-//	unsigned int	TrackingNumber;			// Tracking Number		Integer	NASDAQ OMX internal tracking number
+	unsigned int	TrackingNumber;			// Tracking Number		Integer	NASDAQ OMX internal tracking number
 	uint64_t     	iTimeStamp;				// Timestamp	Integer	Nanoseconds since midnight.
 	uint64_t	iOrderRefNumber;		// Order Reference Number	Integer	The unique reference number assigned to the new order at the time of receipt.
 	uint64_t	iPrevOrderRefNumber;	// Previous Order Reference Number	In case we are processing an order replace

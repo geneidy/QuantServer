@@ -5,7 +5,7 @@
 #define		SIZE_OF_RET_BUFF	25
 
 
-#include <set>
+#include <unordered_set>
 #include <string>
 #include "Includes.h"
 #include <inttypes.h>
@@ -25,9 +25,9 @@ private:
       uint64_t m_iMicroSeconds;
       uint64_t m_iNanoSeconds;
       
-      set<string> m_SymbolSet;
-      set<string>::iterator m_it;
-      pair<set<string>::iterator,bool> m_Ret;
+      unordered_set<string> m_SymbolSet;
+      unordered_set<string>::iterator m_it;
+      pair<unordered_set<string>::iterator,bool> m_Ret;
 
 
 public:

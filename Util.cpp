@@ -39,8 +39,8 @@ CUtil::CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL], bool *bAct
 
     for (int ii = 0; ii < NUMBER_OF_SYMBOLS; ii++) {
 //        if (theApp.SSettings.arrbActive[ii]) {
-              if (bActive[ii]) {
-		  m_SymbolSet.insert(szActiveSymbols[ii]);
+        if (bActive[ii]) {
+            m_SymbolSet.insert(szActiveSymbols[ii]);
         }
     }
 }
@@ -195,7 +195,7 @@ uint64_t   CUtil::GetValueUnsignedInt64(UINT8 *uiMsg, int iOffset, int iLength)
 // 	i64Value =   ntohl(i64Buff);  // NEED an i64 functions.....should be ntohll !!!   //_WS2_32_WINSOCK_SWAP_LONGLONG(i64Buff);
     i64Value =   be64toh(i64Buff);  // Found it
 
-    GetTimeFromNano(i64Value);
+//    GetTimeFromNano(i64Value);
 
     return i64Value;
 }

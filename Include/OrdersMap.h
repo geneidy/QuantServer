@@ -12,11 +12,13 @@
 #include <atomic>
 #include <mutex>
 #include "Util.h"
+#include "QuantQueue.h"
 
-// #define _POSIX_C_SOURCE 199309
+
+//#define _POSIX_C_SOURCE 199309
 
 #include "ITCHMessages.h"
-#include "QuantQueue.h"
+
 
   typedef struct {
   uint64_t 	uiNumberOfMessagesToHold;
@@ -27,16 +29,14 @@
   }SOrdersDataStat;
 
 
-typedef unordered_map<  uint64_t , uint64_t > OrdersUnOrderedMap;  // <  Order Ref Number  ,   Location in File   >
+typedef unordered_map<  uint64_t , uint64_t >   OrdersSequenceUnOrderedMap;  // <  Order Ref Number  ,   Location in File   >
+typedef unordered_map<  uint64_t , COMMON_ORDER_MESSAGE > OrdersUnOrderedMap;  // <  Order Ref Number  ,   Location in File   >
 
 class COrdersMap 
 {
 private:
-  void* m_addr;
-  int m_fd;
-  struct stat64 m_sb;
   
-  static OrdersUnOrderedMap 	 	m_SymbolMap;
+  
   OrdersUnOrderedMap::const_iterator		m_itSymbolMap;
   
   OrdersUnOrderedMap::const_iterator		m_itAuxSymbolMap;
@@ -45,12 +45,12 @@ private:
   CQuantQueue*		m_pQuantQueue;
   
   COMMON_ORDER_MESSAGE* m_pCommonOrder;
+  COMMON_ORDER_MESSAGE  m_CommonOrder;
+  
   static __thread COMMON_ORDER_MESSAGE* m_pReturnCommonOrder;
   
   COMMON_ORDER_MESSAGE* m_pRefCommonOrder;  
 
-  
-  
   static __thread COMMON_ORDER_MESSAGE* m_pTempCommonOrder;
   
   ITCH_MESSAGES_UNION* pItchMessageUnion;  
@@ -69,11 +69,13 @@ private:
   
   int m_iMessage;
   uint64_t   m_uiSizeOfCommonOrderRecord;
-  static uint64_t	m_ui64NumOfOrders;
   
   uint64_t m_uiNumberOfMessagesToHold;
   
   struct timespec m_request, m_remain;
+  
+  struct timespec tspec;
+  uint64_t  m_ui64OrderTime;
 
   CUtil*  m_Util;
   
@@ -86,22 +88,32 @@ private:
 
    COrdersMap();
    pair<OrdersUnOrderedMap::iterator, bool>  RetPair;
+   pair<OrdersSequenceUnOrderedMap::iterator, bool>  RetPair1;
 protected:
 	static COrdersMap *pInstance;  
  
 public:
-
+  static  OrdersUnOrderedMap 	 		m_SymbolMap;
+  static  OrdersUnOrderedMap::iterator		m_itBookRefSymbolMap;  
+  
+  static  OrdersSequenceUnOrderedMap            	m_SequenceMap;
+  static  OrdersSequenceUnOrderedMap::const_iterator    m_itSequenceMap; 
+  
+  
+  
+  /*static*/ uint64_t	m_ui64NumOfOrders;
+  /*static*/ uint64_t	m_ui64OrderSequence;
   ~COrdersMap();
   static COrdersMap* instance();
   static uint iNInstance;
-  uint64_t FillMemoryMappedFile();
+  uint64_t FillMemoryMap(ITCH_MESSAGES_UNION* , int);
   uint64_t GetNumberOfOrders();
   
   COMMON_ORDER_MESSAGE* GetMemoryMappedOrder(uint64_t);
   
   SOrdersDataStat GetOrdersDataStat();
   SOrdersDataStat  m_SOrdersDataStat;
-  COMMON_ORDER_MESSAGE* GetOrder(uint64_t uiOrderRefNumber);
+//  COMMON_ORDER_MESSAGE* GetOrder(uint64_t uiOrderRefNumber);
   int GetError();
   uint64_t GetMapSize();
   void InitQueue(CQuantQueue* pQueue);

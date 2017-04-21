@@ -31,10 +31,13 @@ int main(int argc, char *argv[])
 {
     using namespace std;
 
+    Logger::instance().log("===========================================================================", Logger::Info);
+    Logger::instance().log("===========================================================================", Logger::Info);
+    Logger::instance().log("===========================================================================", Logger::Info);    
     if (argc > 0) { // Look for 'C' for Client  or else for Server
         cout << argv[0] << endl;
         cout << argv[1] << endl;
-        
+
         if (!strncmp(argv[1], "C", 1)) {  // 'C' in upper case
             _CLIENT = 1;
             Logger::instance().log("Starting Server With Client", Logger::Debug);
@@ -54,7 +57,7 @@ int main(int argc, char *argv[])
         // Nothing to cleanup
         return 0;
     }
-    return 0 ;
+//    return 0 ;
 //    g_bSettingsLoaded = false;
 
     int iRet = 0;
@@ -94,7 +97,7 @@ int main(int argc, char *argv[])
             jj++;
             sleep(3);
 
-            if (jj > 200)  // jj* 3 =  seconds
+            if (jj > 100)  // jj* 3 =  seconds
                 theApp.SSettings.iStatus = STOPPED;
         };
     }; //    if (!_CLIENT) {  // server only
@@ -313,16 +316,12 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
 
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCOrdersMap->InitQueue(pQueue);
-    /*/    while (theApp.iStatus != STOPPED) {
-            if (pCOrdersMap->GetError() > 0)
-                break;
-            pCOrdersMap->FillMemoryMappedFile();
-        };
-    */  // The above loop has been moved to the funtion below...with the same condition (theApp.iStatus != STOPPED)
-    uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMappedFile();
+
+  //  uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMap();  //called from FillMsgStructs
 
     pCOrdersMap->iNInstance--;
-    Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
+//    Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
+        sleep(10);    //for now....
     while (pCOrdersMap->iNInstance > 0) {
         sleep(3);    //wait for last instance
     }
@@ -363,12 +362,6 @@ void* TickDataMap(void* pArg)
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCTickDataMap->InitQueue(pQueue);
 
-    /*    while (theApp.iStatus != STOPPED) {
-            if (pCTickDataMap->GetError() > 0)
-                break;
-            pCTickDataMap->FillMemoryMappedFile();
-        };
-    */
     uint64_t ui64NumberOfTicks =  pCTickDataMap->FillTickFile();
 
     delete pCTickDataMap;
@@ -382,7 +375,6 @@ void* TickDataMap(void* pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 void* BuildBook(void* pArg)
 {
-
     pthread_mutex_lock(&mtxTick);
     THREAD_DATA SThreadData;
     CQuantQueue* pQueue = NULL;
@@ -413,15 +405,15 @@ void* BuildBook(void* pArg)
         return NULL;
     }
 
-    while (theApp.SSettings.iStatus != STOPPED) {
-        pCBuildBook->BuildBookFromMemoryMappedFile();
-    }
-    /*
-        pCBuildBook->ListBook("MSFT    ");
-        pCBuildBook->ListBook("INTC    ");
-        pCBuildBook->ListBook("GOOG    ");
-    */
+    pCBuildBook->BuildBookFromOrdersMap();
 
+    pCBuildBook->ListBook("MSFT    ");
+    pCBuildBook->ListBook("INTC    ");
+    pCBuildBook->ListBook("GOOG    ");
+    pCBuildBook->ListBook("AAPL    ");
+    pCBuildBook->ListBook("AMD    ");
+    
+    
     delete pCBuildBook;
     pCBuildBook = NULL;
 
@@ -485,14 +477,12 @@ void* NasdTestFile(void* pArg)
 ///////////////////////////////////////////////////////////////
 void *DisplayBook(void* pArg)
 {
-
     pthread_mutex_lock(&mtxTick);
 
     THREAD_DATA SThreadData;
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
-
 
     InitThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -567,7 +557,6 @@ void* StatsPerSec(void* pArg)
     pthread_mutex_lock(&mtxTick);
 
     THREAD_DATA SThreadData;
-
 
     SThreadData =  *((THREAD_DATA*)pArg) ;
     int idx = SThreadData.idx;
@@ -670,7 +659,6 @@ void* ParseFeed(void* pArg)
     InitThreadLog(idx);    // Calls to functions and threads go here
     pthread_mutex_unlock(&mtxTick);
 
-
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);
@@ -687,28 +675,28 @@ void* SaveToDB(void* pArg)
     int idx = SThreadData.idx;
     pQueue = ((CQuantQueue*)(SThreadData.pVoid)) ;
 
-    InitThreadLog(idx);
-    pthread_mutex_unlock(&mtxTick);
-
-    pCSaveToDB = NULL;
-    pCSaveToDB = new CSaveToDB();
-
-    // Call the worker thread here and check for !STOPPED
-    // The worker thread has to check for the availability of the Memory Mapped Files ....Check here before you continue
-    if (pCSaveToDB == NULL) {
-        pthread_mutex_lock(&mtxTick);
-        TermThreadLog(idx);
-        pthread_mutex_unlock(&mtxTick);
-        return NULL;
-    }
-
-    // Call member functions here
-
-    delete pCSaveToDB;
-    pCSaveToDB = NULL;
-    pthread_mutex_lock(&mtxTick);
-    TermThreadLog(idx);
-    pthread_mutex_unlock(&mtxTick);
+//     InitThreadLog(idx);
+//     pthread_mutex_unlock(&mtxTick);
+// 
+//     pCSaveToDB = NULL;
+//     pCSaveToDB = new CSaveToDB();
+// 
+//     // Call the worker thread here and check for !STOPPED
+//     // The worker thread has to check for the availability of the Memory Mapped Files ....Check here before you continue
+//     if (pCSaveToDB == NULL) {
+//         pthread_mutex_lock(&mtxTick);
+//         TermThreadLog(idx);
+//         pthread_mutex_unlock(&mtxTick);
+//         return NULL;
+//     }
+// 
+//     // Call member functions here
+// 
+//     delete pCSaveToDB;
+//     pCSaveToDB = NULL;
+//     pthread_mutex_lock(&mtxTick);
+//     TermThreadLog(idx);
+//     pthread_mutex_unlock(&mtxTick);
 
     return pArg;
 }
