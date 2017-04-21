@@ -9,7 +9,6 @@
 //BookMap  CBuildBook::m_BookMap;
 //BookMap::iterator	CBuildBook::m_itBookMap;
 
-
 CBuildBook::CBuildBook()
 {
     m_iError = 0;
@@ -29,7 +28,6 @@ CBuildBook::CBuildBook()
     m_Stats.uiLevelDeleted = 0;
 
     m_ui64NumRequest = 0;
-
 }
 ////////////////////////////////////////////////////
 CBuildBook::~CBuildBook()
@@ -340,13 +338,13 @@ int CBuildBook::ProcessAdd(int iMessage)
     else { // Update an existing one in the Map
         m_itBookMap->second = m_pBook;
     }
-    
-       if ((!bBidAddedQty) && (!bBidInserted) && (!bAskAddedQty) && (!bAskInserted)) {
-            int iError = true;
-        }
-        
+
+    if ((!bBidAddedQty) && (!bBidInserted) && (!bAskAddedQty) && (!bAskInserted)) {
+        int iError = true;
+    }
+
 //        ListBook("MSFT    ");
-    
+
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,7 +484,7 @@ int CBuildBook::ProcessDelete(int iIn)
         if ((bFound) && (lpCurrent->uiQty <= 0)) { // Remove this node
             if (lpCurrent   ==	m_pBook.pTopAsk)  { // first node
 //                m_pBook.pTopAsk = nullptr;
-	          m_pBook.pTopAsk = lpCurrent->pNextBidAsk;
+                m_pBook.pTopAsk = lpCurrent->pNextBidAsk;
 //                m_itBookMap->second = m_pBook;
             }
             else {

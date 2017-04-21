@@ -189,7 +189,7 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.arrbActive[2] = true;
     strcpy(SSettings.szActiveSymbols[3], "AAPL    ");
     SSettings.arrbActive[3] = true;
-    strcpy(SSettings.szActiveSymbols[4], "AMD     ");
+    strcpy(SSettings.szActiveSymbols[4], "BAA     ");
     SSettings.arrbActive[4] = true;
     // Values for testing the server only
 // For the first release only for 5 stocks
@@ -211,7 +211,7 @@ SETTINGS CQSettings::LoadSettings()
     strcpy(SSettings.szDBUserName, "MySqlUserName");  	//  char		szDBUserName[SIZE_OF_NAME];
     strcpy(SSettings.szDBPassword, "MySqlPass");     	//  char		szDBPassword[SIZE_OF_PASSWORD];
 
-//    SSettings.strTestFileName = "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"; // Test file name ...pick from UI dialog
+//    strcpy(SSettings.szTestFileName, "/home/amro/workspace/QuantServer/NasdTestFiles/08022014.NASDAQ_ITCH50"); // Test file name ...pick from UI dialog
     strcpy(SSettings.szTestFileName , "/home/amro/workspace/QuantServer/NasdTestFiles/02022015.NASDAQ_ITCH50"); // The big file!!!!
 
     strcpy(SSettings.szPlayBackFileName, "Play Back File Name");  // Test file name ...pick from UI dialog
@@ -225,7 +225,7 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.uiNumberOfIssues = 9000; 		//    uint		uiNumberOfIssues; // Max number of issues approx...9000 = default. Will reserve an entry for each issue in a hash table.
     SSettings.ui64SizeOfOrdersMappedFile = 10; // !0 Gig           // in Giga BYtes  u_int64_t 	ui64SizeOfMemoryMappedFile; // Will set Default later...
     SSettings.ui64SizeOfTickDataMappedFile = 10;  // !0 Gig
-    SSettings.uiQueueSize = 50000000;  // 100 Million elements
+    SSettings.uiQueueSize = 50000000;  // 50 Million elements
 
     // ::TODO throw away after the GUI
     SSettings.iStatus = RUNNING;  // ::TODO throw away after the GUI

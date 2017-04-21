@@ -210,25 +210,25 @@ CReceiveITCH::~CReceiveITCH(void)
     //	(void)inflateEnd(&m_zstStream);
     //	bInflateEnd = true;
     //}
-
+/*
     if (m_pszTVBuf != NULL)
     {
         delete[] m_pszTVBuf;
         m_pszTVBuf = NULL;
     }
 
-    if (m_pszRecvBuf != NULL)
-    {
+       if (m_pszRecvBuf != NULL)
+     {
         delete[] m_pszRecvBuf;
-        m_pszRecvBuf = NULL;
-    }
+         m_pszRecvBuf = NULL;
+     }
 
     if (m_pszOutputBuf != NULL)
     {
         delete[] m_pszOutputBuf;
         m_pszOutputBuf = NULL;
     }
-
+*/
     if (m_pFillStructs)
     {
         delete m_pFillStructs;

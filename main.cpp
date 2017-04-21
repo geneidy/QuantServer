@@ -406,12 +406,21 @@ void* BuildBook(void* pArg)
     }
 
     pCBuildBook->BuildBookFromOrdersMap();
+/*
+    pCBuildBook->ListBook("CISW    ");
+    pCBuildBook->ListBook("AQUUM   ");
+    pCBuildBook->ListBook("EGI     ");
+    pCBuildBook->ListBook("HEB     ");
 
+    pCBuildBook->ListBook("AXN     ");
+    pCBuildBook->ListBook("CRMD    ");
+    
+    */
     pCBuildBook->ListBook("MSFT    ");
     pCBuildBook->ListBook("INTC    ");
     pCBuildBook->ListBook("GOOG    ");
     pCBuildBook->ListBook("AAPL    ");
-    pCBuildBook->ListBook("AMD    ");
+    pCBuildBook->ListBook("BAA     ");
     
     
     delete pCBuildBook;
