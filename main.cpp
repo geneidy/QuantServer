@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     Logger::instance().log("===========================================================================", Logger::Info);
     Logger::instance().log("===========================================================================", Logger::Info);
-    Logger::instance().log("===========================================================================", Logger::Info);    
+    Logger::instance().log("===========================================================================", Logger::Info);
     if (argc > 0) { // Look for 'C' for Client  or else for Server
         cout << argv[0] << endl;
         cout << argv[1] << endl;
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
             jj++;
             sleep(3);
 
-            if (jj > 100)  // jj* 3 =  seconds
+            if (jj > 200)  // jj* 3 =  seconds
                 theApp.SSettings.iStatus = STOPPED;
         };
     }; //    if (!_CLIENT) {  // server only
@@ -317,11 +317,11 @@ void* OrdersMap(void* pArg)  // only if buid book is checked
     arrThreadInfo[idx].eState = TS_ALIVE;
     pCOrdersMap->InitQueue(pQueue);
 
-  //  uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMap();  //called from FillMsgStructs
+    //  uint64_t ui64NumberOfOrders =  pCOrdersMap->FillMemoryMap();  //called from FillMsgStructs
 
     pCOrdersMap->iNInstance--;
 //    Logger::instance().log("Waiting for last instance of the Orders Map", Logger::Info);
-        sleep(10);    //for now....
+    sleep(10);    //for now....
     while (pCOrdersMap->iNInstance > 0) {
         sleep(3);    //wait for last instance
     }
@@ -406,21 +406,29 @@ void* BuildBook(void* pArg)
     }
 
     pCBuildBook->BuildBookFromOrdersMap();
-/*
-    pCBuildBook->ListBook("CISW    ");
-    pCBuildBook->ListBook("AQUUM   ");
-    pCBuildBook->ListBook("EGI     ");
-    pCBuildBook->ListBook("HEB     ");
+    /*
+        pCBuildBook->ListBook("CISW    ");
+        pCBuildBook->ListBook("AQUUM   ");
+        pCBuildBook->ListBook("EGI     ");
+        pCBuildBook->ListBook("HEB     ");
 
-    pCBuildBook->ListBook("AXN     ");
-    pCBuildBook->ListBook("CRMD    ");
+        pCBuildBook->ListBook("AXN     ");
+        pCBuildBook->ListBook("CRMD    ");
+*/
+/*        
+    pCBuildBook->ListBook("MSFT    ", theApp.SSettings.iBookLevels);
+    pCBuildBook->ListBook("INTC    ", theApp.SSettings.iBookLevels);
+    pCBuildBook->ListBook("GOOG    ", theApp.SSettings.iBookLevels);
+    pCBuildBook->ListBook("AAPL    ", theApp.SSettings.iBookLevels);
+    pCBuildBook->ListBook("BAA     ", theApp.SSettings.iBookLevels);
+*/
+    pCBuildBook->ListBook("MSFT    ", 1000);
+    pCBuildBook->ListBook("INTC    ", 1000);
+    pCBuildBook->ListBook("GOOG    ", 1000);
+    pCBuildBook->ListBook("AAPL    ", 1000);
+    pCBuildBook->ListBook("BAA     ", 1000);
     
-    */
-    pCBuildBook->ListBook("MSFT    ");
-    pCBuildBook->ListBook("INTC    ");
-    pCBuildBook->ListBook("GOOG    ");
-    pCBuildBook->ListBook("AAPL    ");
-    pCBuildBook->ListBook("BAA     ");
+    
     
     
     delete pCBuildBook;
@@ -484,7 +492,7 @@ void* NasdTestFile(void* pArg)
     return pArg;
 }
 ///////////////////////////////////////////////////////////////
-void *DisplayBook(void* pArg)
+void* SaveOrdersToDisc(void* pArg)
 {
     pthread_mutex_lock(&mtxTick);
 
@@ -497,60 +505,31 @@ void *DisplayBook(void* pArg)
     pthread_mutex_unlock(&mtxTick);
 
     int iWait = 0;
-    while (!pCBuildBook) {
-        Logger::instance().log("Waiting for Build Book to Start", Logger::Info);
-        sleep(1);  // Wait for the book to be Built
-        if (iWait++ > 10) {
-            Logger::instance().log("Waited more than 10 seconds for Build Book to Start", Logger::Error);
-            Logger::instance().log("Returning", Logger::Error);
-            pthread_mutex_lock(&mtxTick);
-            TermThreadLog(idx);
-            pthread_mutex_unlock(&mtxTick);
-            return NULL;
-        }
-    }
-    Logger::instance().log("Waiting for Build Book to Start is over...Starting Display Book", Logger::Info);
+    pCSaveOrdersToDisc = NULL;
+    pCSaveOrdersToDisc = new CSaveOrdersToDisc();
 
-    pCDisplayBook = NULL;
-    pCDisplayBook = new CDisplayBook(pCBuildBook);
-
-    if (!pCDisplayBook) {
+    if (!pCSaveOrdersToDisc) {
         Logger::instance().log("Error Creating DisplayBook Object", Logger::Error);
         pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
         pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
-    if (pCDisplayBook->GetError() >= 100) {
+    if (pCSaveOrdersToDisc->GetError() >= 100) {
         Logger::instance().log("Error Constructing DisplayBook Object", Logger::Error);
-        delete pCDisplayBook;
-        pCDisplayBook = NULL;
+        delete pCSaveOrdersToDisc;
+        pCSaveOrdersToDisc = NULL;
         pthread_mutex_lock(&mtxTick);
         TermThreadLog(idx);
         pthread_mutex_unlock(&mtxTick);
         return NULL;
     }
 
-    theApp.SSettings.iSaveApply = OK;
-    while (theApp.SSettings.iStatus != STOPPED) {
-        if ((theApp.SSettings.iSaveApply == OK) || (theApp.SSettings.iSaveApply == APPLY)) { // Check for change in status
-            if (pCDisplayBook->GetError() > 0)
-                break;
-            pCDisplayBook->DisplaySelected(); // Display the selected by clicking the bool in arrbActive[NUMBER_OF_SYMBOLS ];
-            theApp.SSettings.iSaveApply = CANCEL; //  so not to get back in here
-        }
-        sleep(1);
-    }
-    pCDisplayBook->StopDisplayAllBooks();
+    pCSaveOrdersToDisc->ReadFromOrdersMap();
 
-    while(!pCDisplayBook->m_bAllDone) {  // Wait for all Threads Displaying the boook to TERMINATE
-        sleep(1);
-        continue;
-    }
-
-    if (pCDisplayBook) {
-        delete pCDisplayBook;
-        pCDisplayBook = NULL;
+    if (pCSaveOrdersToDisc) {
+        delete pCSaveOrdersToDisc;
+        pCSaveOrdersToDisc = NULL;
     }
 
     pthread_mutex_lock(&mtxTick);
@@ -686,10 +665,10 @@ void* SaveToDB(void* pArg)
 
 //     InitThreadLog(idx);
 //     pthread_mutex_unlock(&mtxTick);
-// 
+//
 //     pCSaveToDB = NULL;
 //     pCSaveToDB = new CSaveToDB();
-// 
+//
 //     // Call the worker thread here and check for !STOPPED
 //     // The worker thread has to check for the availability of the Memory Mapped Files ....Check here before you continue
 //     if (pCSaveToDB == NULL) {
@@ -698,9 +677,9 @@ void* SaveToDB(void* pArg)
 //         pthread_mutex_unlock(&mtxTick);
 //         return NULL;
 //     }
-// 
+//
 //     // Call member functions here
-// 
+//
 //     delete pCSaveToDB;
 //     pCSaveToDB = NULL;
 //     pthread_mutex_lock(&mtxTick);

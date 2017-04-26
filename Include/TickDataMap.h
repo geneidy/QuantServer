@@ -80,7 +80,7 @@ private:
   SYSTEM_EVENT_MESSAGE		m_pSystemEvent;	
   SFUNDAMENTAL_RECORD 		m_SFundamentalRecord;
   
-  int InitMemoryMappedFile();
+//  int InitMemoryMappedFile();
 
   inline void InitFundamentalRecord();
 

@@ -158,7 +158,7 @@ SETTINGS CQSettings::LoadSettings()
 
     SSettings.iarrRole[9] = 1;   		//  9= Test File
     SSettings.iarrRole[10]= 1;   		//  10= Stats Per Second
-    SSettings.iarrRole[11]= 0;   		//  11= Display Book
+    SSettings.iarrRole[11]= 1;   		//  11= Save Orders to Disc
     SSettings.iarrRole[12]= 0;   		//  12= Distributor
     SSettings.iarrRole[13]= 0;   		//  13= Save to Disk
 
@@ -204,7 +204,7 @@ SETTINGS CQSettings::LoadSettings()
     SSettings.ulIPAddress1	=  85236;   	//  unsigned long	ulIPAddress1;
     SSettings.uiPort1 		=  8521;  		//  uint		uiPort1;
 
-    SSettings.dwBufferSize 	= 10000000;  		//  unsigned long	dwBufferSize;
+    SSettings.dwBufferSize 	= 1000000000;  		//  unsigned long	dwBufferSize;
 
 // ODBC connection parameters in case option 3
     strcpy(SSettings.szConnName, "MySqlConnection");    	//  std::string  	strConnName;  // from ODBC

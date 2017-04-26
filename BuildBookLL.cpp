@@ -586,21 +586,21 @@ string CBuildBook::MakeKey() // NOT needed in this version
 
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-NLEVELS  CBuildBook::ListBook(char* szSymbol )
+NLEVELS  CBuildBook::ListBook(char* szSymbol, int nLevels )
 {
     SBOOK_LEVELS SBookLevels;
     SBID_ASK* pTemp;
 
     string strToFind(szSymbol);
 
-    NLEVELS Del;
+    NLEVELS SLevels;
 
-    Del = {0};
+    SLevels = {0};
 
     m_itBookMap = m_BookMap.find(strToFind);
 
     if (m_itBookMap == m_BookMap.end())
-        return  Del;
+        return  SLevels;
 
     SBookLevels = m_itBookMap->second;
     /*
@@ -625,11 +625,12 @@ NLEVELS  CBuildBook::ListBook(char* szSymbol )
         cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
         pTemp = SBookLevels.pTopBid;
         SBookLevels.pTopBid = pTemp->pNextBidAsk;
-        Del.iBidLevels++;
+        if (++SLevels.iBidLevels > nLevels)
+	  break;
     }// while (SBookLevels.pTopBid != nullptr) {
 
     cout << endl << endl;
-    cout << "Bid Levels: " << Del.iBidLevels << endl;
+    cout << "Bid Levels: " << SLevels.iBidLevels << endl;
 
     cout << "======================================================================================"<< endl;
     cout << "Ask Levels for: " << szSymbol << endl;
@@ -641,16 +642,17 @@ NLEVELS  CBuildBook::ListBook(char* szSymbol )
         cout<< SBookLevels.pTopAsk->dPrice << " "  << SBookLevels.pTopAsk->szMPID << " " << SBookLevels.pTopAsk->uiQty << " "<< SBookLevels.pTopAsk->uiNumOfOrders << endl;
         pTemp = SBookLevels.pTopAsk;
         SBookLevels.pTopAsk = pTemp->pNextBidAsk;
-        Del.iAskLevels++;
+        if (++SLevels.iAskLevels > nLevels)
+	  break;
     }// while (SBookLevels.pTopAsk != nullptr) {
+    
     cout << endl << endl;
-    cout << "Ask Levels: " << Del.iAskLevels << endl;
-
+    cout << "Ask Levels: " << SLevels.iAskLevels << endl;
     cout << endl;
     cout << endl;
     cout << endl;
 
-    return Del;  // log later
+    return SLevels;  // log later
 }
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////

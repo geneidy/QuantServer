@@ -306,7 +306,8 @@ typedef struct
 	double			dPrice;							//Price	31	4	Price (4)	The new display price for the order. Refer to Data Types for field processing notes.
 }ORDER_REPLACE_MESSAGE;
 
-typedef struct       //    Common Order Record Struct...Wil handle the order related issues...Add, delete, Modify
+typedef struct              // Quanticks Common Order Message....this is NOT received from ITCH
+			    //Common Order Record Struct...Will handle the order related issues...Add, delete, Modify
 					// Does not get the data directly from a parsed message in the feed
 {	
 	char		cMessageType;			// Message Type		 	
@@ -335,22 +336,22 @@ typedef struct       //    Common Order Record Struct...Wil handle the order rel
 	char		szMPID[SIZE_OF_MM];	// Attribution	4	Alpha	NASDAQ market participant identifier associated with the entered order.
 }COMMON_ORDER_MESSAGE;
 
-typedef struct     
+typedef struct     // Quanticks Common Trade Message....this is NOT received from ITCH
  {													//Name	Offset	Length	Value	Notes
-	char			cMessageType;				//Message Type	0	1	“P”	Trade Message
-//	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
-	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-	uint64_t     		iTimeStamp;					//Timestamp	5	6	Integer	Nanoseconds since midnight.
-	uint64_t		iOrderRefNumber;			//Order Reference Number	11	8	Integer	The unique reference number assigned to the order on the book being executed.
+	char		cMessageType;				//Message Type	0	1	“P”	Trade Message
+//	unsigned int	iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
+	unsigned int	TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
+	uint64_t     	iTimeStamp;					//Timestamp	5	6	Integer	Nanoseconds since midnight.
+	uint64_t	iOrderRefNumber;			//Order Reference Number	11	8	Integer	The unique reference number assigned to the order on the book being executed.
 													//Effective December 6, 2010, NASDAQ OMX will populate the Order Reference Number field within the Trade (Non-Cross) message as zero. For the binary versions of the TotalView-ITCH data feeds, the field will be null-filled bytes (which encodes sequence of zero).
-	char			cBuySell;					//Buy/Sell Indicator	19	1	Alpha	The type of non-display order on the book being matched.
+	char		cBuySell;					//Buy/Sell Indicator	19	1	Alpha	The type of non-display order on the book being matched.
 													//“B” =buy order
 													//“S” =sell order
-	unsigned int		iShares;					//Shares	20	4	Integer	The number of shares being matched in this execution.
-	char			szStock[SIZE_OF_SYMBOL];		//Stock	24	8	Alpha	Stock symbol, right padded with spaces
-	double			dPrice;						//Price	32	4	Price (4)	The match price of the order.  Refer to Data Types for field processing notes.
-	uint64_t		iMatchNumber;				//Match Number	36	8	Integer	The NASDAQ generated session-unique Match Number for this trade. The Match Number is referenced in the Trade Break Message.
-	uint64_t		uiNextLocation;
+	unsigned int	iShares;					//Shares	20	4	Integer	The number of shares being matched in this execution.
+	char		szStock[SIZE_OF_SYMBOL];		//Stock	24	8	Alpha	Stock symbol, right padded with spaces
+	double		dPrice;						//Price	32	4	Price (4)	The match price of the order.  Refer to Data Types for field processing notes.
+	uint64_t	iMatchNumber;				//Match Number	36	8	Integer	The NASDAQ generated session-unique Match Number for this trade. The Match Number is referenced in the Trade Break Message.
+	char		szMPID[SIZE_OF_MM];	// Attribution	4	Alpha	NASDAQ market participant identifier associated with the entered order.
 }COMMON_TRADE_MESSAGE;
 
 //4.5.1 Trade Message (Non-Cross)
@@ -388,7 +389,7 @@ typedef struct
 //The Broken Trade Message is sent whenever an execution on NASDAQ is broken. An execution may be broken if it is found to be “clearly erroneous” pursuant to  NASDAQ’s Clearly Erroneous Policy.
 //A trade break is final; once a trade is broken, it cannot be reinstated.
 //Firms that use the ITCH feed to create time-and-sales displays or calculate market statistics should be prepared to process the broken trade message.  
-//If a firm is only using the ITCH feed to build a book, however, it may ignore these messages as they have NO impact on the current book.
+//If a firm is only using the ITCH feed to build a book, however, it may ignore these messages as they have NO impact on the current book. << IMPORTANT
 
 //BROKEN TRADE MESSAGE
 //Name	Offset	Length	Value	Notes
@@ -402,23 +403,23 @@ typedef struct
 
 typedef struct    
 {//Name	Offset	Length	Value	Notes
-char				cMessageType;								//Message Type	0	1	“I”	NOII Message
-unsigned int		iLocateCode;								//Stock Locate	1	2	Integer	Locate code identifying the security
-unsigned int		TrackingNumber;								//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
-uint64_t     iTimeStamp;									//Timestamp	5	6	Integer	Nanoseconds since midnight.
-uint64_t		iPairedShares;								//Paired Shares	11	8	Integer	The total number of shares that are eligible to be matched at the Current Reference Price.
-uint64_t     iImbalanceShares;							//Imbalance Shares	19	8	Integer	The number of shares not paired at the Current Reference Price.
-unsigned int		iImbalanceDirection;						//Imbalance Direction	27	1	Alpha	The market side of the order imbalance.
-																//“B” = buy imbalance “S” = sell imbalance “N” = no imbalance “O” = Insufficient orders to calculate
-char				szStock[SIZE_OF_SYMBOL];						//Stock	28	8	Alpha	Stock symbol, right padded with spaces
-double				dFarPrice;									//Far Price	36	4	Price (4)	A hypothetical auction-clearing price for cross orders only. Refer to Data Types for field processing notes.
-double				dNearPrice;									//Near Price	40	4	Price (4)	A hypothetical auction-clearing price for cross orders as well as continuous orders. Refer to Data Types for field processing notes.
-double				dRefPrice;									//Current Reference Price	44	4	Price (4)	The price at which the NOII shares are being calculated.  Refer to Data Types for field processing notes.
-char				cCrossType;									//Cross Type	48	1	Alpha	The type of NASDAQ cross for which the NOII message is being generated
+char			cMessageType;						//Message Type	0	1	“I”	NOII Message
+unsigned int		iLocateCode;						//Stock Locate	1	2	Integer	Locate code identifying the security
+unsigned int		TrackingNumber;						//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
+uint64_t     		iTimeStamp;						//Timestamp	5	6	Integer	Nanoseconds since midnight.
+uint64_t		iPairedShares;						//Paired Shares	11	8	Integer	The total number of shares that are eligible to be matched at the Current Reference Price.
+uint64_t     		iImbalanceShares;					//Imbalance Shares	19	8	Integer	The number of shares not paired at the Current Reference Price.
+unsigned int		iImbalanceDirection;					//Imbalance Direction	27	1	Alpha	The market side of the order imbalance.
+										//“B” = buy imbalance “S” = sell imbalance “N” = no imbalance “O” = Insufficient orders to calculate
+char			szStock[SIZE_OF_SYMBOL];				//Stock	28	8	Alpha	Stock symbol, right padded with spaces
+double			dFarPrice;						//Far Price	36	4	Price (4)	A hypothetical auction-clearing price for cross orders only. Refer to Data Types for field processing notes.
+double			dNearPrice;						//Near Price	40	4	Price (4)	A hypothetical auction-clearing price for cross orders as well as continuous orders. Refer to Data Types for field processing notes.
+double			dRefPrice;						//Current Reference Price	44	4	Price (4)	The price at which the NOII shares are being calculated.  Refer to Data Types for field processing notes.
+char			cCrossType;						//Cross Type	48	1	Alpha	The type of NASDAQ cross for which the NOII message is being generated
 										//														//“O” = NASDAQ Opening Cross
 										//														//“C” = NASDAQ Closing Cross
 										//														//“H” = Cross for IPO and halted / paused securities
-char	cPriceVariation;				//				Price Variation Indicator	49	1	Alpha	This field indicates the absolute value of the percentage of deviation of the Near Indicative Clearing Price to the nearest Current Reference Price.
+char			cPriceVariation;					//				Price Variation Indicator	49	1	Alpha	This field indicates the absolute value of the percentage of deviation of the Near Indicative Clearing Price to the nearest Current Reference Price.
 										//															//“L” = Less than 1%
 										//															//“1” = 1 to 1.99% 
 										//															//“2” = 2 to 2.99% 
@@ -501,7 +502,7 @@ char const * szTables [MAX_TABLES] = /*Index 0 to 17  CARVED IN STONE....DO NOT 
 /*18- 19*/							"ASSET_RTDB", "COMMON_ORDER_MESSAGE_RTDB"};
 
 	char const * szMessages [MAX_MESSAGE_TYPES] = {  // CARVED IN STONE....DO NOT CHANGE ORDER...WILL AFFECT the FillMsgStructs and the UI
-	"SystemEvent",					//Index 0
+	"SystemEvent",				//Index 0
 	"Stock Directory",				//Index 1
 	"Stock Trading Action",			//Index 2
 	"Reg Sho Restriction",			//Index 3

@@ -15,13 +15,15 @@
 
 #include "SaveToDisk.h"
 #include "SaveToDB.h"
-#include "BuildBook.h"
+#include "BuildBookLL.h"
+//#include "BuildBookSTL.h"
 #include "OrdersMap.h"
 #include "TickDataMap.h"
 #include  "ReceiveITCH.h"
 #include  "QuantQueue.h"
 #include  "StatsPerSec.h"
-#include "DisplayBook.h"
+
+#include "SaveOrdersToDisc.h"
 
 enum tstate {
     TS_INACTIVE,
@@ -71,7 +73,7 @@ void *Distributor(void* );
 void *SaveToDisk(void*);
 void *OrdersMap(void* );
 void *TickDataMap(void*);
-void *DisplayBook (void*);
+void *SaveOrdersToDisc (void*);
 void InitThreadLog(int);
 void TermThreadLog(int);
 
@@ -80,12 +82,12 @@ void TermThreadLog(int);
 void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
 {MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap,\
  BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile,\
- StatsPerSec, DisplayBook, Distributor, SaveToDisk};  // All Roles for the server functions are here
+ StatsPerSec, SaveOrdersToDisc, Distributor, SaveToDisk};  // All Roles for the server functions are here
 
 const char *ThreadMessage[NUMBER_OF_ROLES +1] = \
 {   "Main Queue Thread", "Settings Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", \
     "Build Book Thread", "Tick Data Thread", "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread",\
-    "Stats Per Second Thread", "Display Book Thread", "Distributor Thread", "Save To Disk Thread"
+    "Stats Per Second Thread", "Save Orders To Disc", "Distributor Thread", "Save To Disk Thread"
 };
 
   struct timespec m_request, m_remain;
@@ -96,6 +98,7 @@ extern "C"
 #endif
 CSaveToDisk* 	pCSaveToDisk;
 CSaveToDB* 	pCSaveToDB;
+//CBuildBookSTL* 	pCBuildBook;
 CBuildBook* 	pCBuildBook;
 COrdersMap* 	pCOrdersMap;
 CTickDataMap* pCTickDataMap;
@@ -104,7 +107,8 @@ CQuantQueue * pCQuantQueue;
 
 CQSettings*   pCQSettings;
 CStatsPerSec* pCStatsPerSec;
-CDisplayBook* pCDisplayBook;
+//CDisplayBook* pCDisplayBook;
+CSaveOrdersToDisc*  pCSaveOrdersToDisc;
 
 #ifdef __cplusplus
 } // extern "C"

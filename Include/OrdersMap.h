@@ -36,7 +36,7 @@ class COrdersMap
 {
 private:
   
-  
+int   m_ifd;
   OrdersUnOrderedMap::const_iterator		m_itSymbolMap;
   
   OrdersUnOrderedMap::const_iterator		m_itAuxSymbolMap;

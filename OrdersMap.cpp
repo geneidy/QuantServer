@@ -15,7 +15,10 @@ uint COrdersMap::iNInstance 			= 0;
 // uint64_t   COrdersMap::m_ui64NumOfOrders 	= 0;
 __thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pReturnCommonOrder= nullptr;
 __thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pTempCommonOrder 	= nullptr;
+
 COMMON_ORDER_MESSAGE thrSOrder;
+
+__thread uint64_t  thrSequence;
 
 ////////////////////////////////////////////////////////////////////
 COrdersMap* COrdersMap::instance()
@@ -45,10 +48,11 @@ COrdersMap::COrdersMap()
     strMessage+= to_string(m_uiNumberOfMessagesToHold);
     Logger::instance().log(strMessage, Logger::Info);
 
-    /*
+/*
         m_Util = nullptr;
         m_Util = new CUtil(theApp.SSettings.szActiveSymbols, theApp.SSettings.arrbActive);
-
+*/
+/*
         struct stat64 st = {0};
 
         if (stat64("../Orders/", &st) == -1) {
@@ -147,10 +151,6 @@ COrdersMap::~COrdersMap()
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
-
-
-
-//////////////////////////////////////////////////////////////////////////////////
 int COrdersMap::GetError()
 {
     return m_iError;
@@ -194,28 +194,28 @@ SOrdersDataStat COrdersMap::GetOrdersDataStat() // Total Trade records inserted
     return m_SOrdersDataStat;
 }
 //////////////////////////////////////////////////////////////////////////////////
-COMMON_ORDER_MESSAGE* COrdersMap::GetMemoryMappedOrder(uint64_t ui64OrderSequnce)  
+COMMON_ORDER_MESSAGE* COrdersMap::GetMemoryMappedOrder(uint64_t thrSequence)  
 {
-//   pthread_mutex_lock(&mtxFindMap);
-   if (ui64OrderSequnce >= m_ui64NumOfOrders )  {// not yet inserted
-//        pthread_mutex_unlock(&mtxFindMap);
+   pthread_mutex_lock(&mtxFindMap);
+   if (thrSequence >= m_ui64NumOfOrders )  {// not yet inserted
+        pthread_mutex_unlock(&mtxFindMap);
         return nullptr;
    }
 
-   m_itSequenceMap = m_SequenceMap.find(ui64OrderSequnce);  
+   m_itSequenceMap = m_SequenceMap.find(thrSequence);  
    if (m_itSequenceMap == m_SequenceMap.end()) {
-//     pthread_mutex_unlock(&mtxFindMap);
+     pthread_mutex_unlock(&mtxFindMap);
      return nullptr;
    }
    
    m_itBookRefSymbolMap = m_SymbolMap.find(m_itSequenceMap->second);
    
    if (m_itBookRefSymbolMap == m_SymbolMap.end()) {
-//     pthread_mutex_unlock(&mtxFindMap);
+     pthread_mutex_unlock(&mtxFindMap);
      return nullptr;
    }
    
-//   pthread_mutex_unlock(&mtxFindMap);
+   pthread_mutex_unlock(&mtxFindMap);
    return (&m_itBookRefSymbolMap->second);
 
 }
@@ -249,7 +249,6 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
  	clock_gettime(CLOCK_REALTIME, &tspec);
          m_ui64OrderTime = (tspec.tv_sec * 1000000000) + tspec.tv_nsec;
 */
-	
         if (pItchMessageUnion == nullptr) {
             nanosleep (&m_request, nullptr);  // sleep a 1/10 of a second
             // return m_ui64NumOfOrders;
@@ -384,7 +383,7 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
 
             break;
 
-        case 'E':  // Executed Order  // Tick Data  /// Where do I get the execution price from
+        case 'E':  // Executed Order  // Tick Data 
             m_pTempCommonOrder = nullptr;
             m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pTempCommonOrder)

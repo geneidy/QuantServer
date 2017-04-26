@@ -47,10 +47,10 @@ CUtil::CUtil(char szActiveSymbols[NUMBER_OF_SYMBOLS][SIZE_OF_SYMBOL], bool *bAct
 //////////////////////////////////////////////////////////////////////////////
 bool CUtil::IsSymbolIn(char* szSymbolIn)
 {
-
+/*
     m_it = m_SymbolSet.find(szSymbolIn);
     if (m_it == m_SymbolSet.end())
-        return false;
+        return false;*/
 
      return true;
 }

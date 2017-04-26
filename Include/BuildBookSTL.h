@@ -61,9 +61,9 @@ typedef struct SBidAsk
 {
   char		szMPID[5];
   double	dPrice;
-  unsigned 	uiQty;
-  unsigned 	uiNumOfOrders;
-  SLEVELSTAT  	SLevelStat;   // Stats per Level
+  int 	uiQty;
+  int 	uiNumOfOrders;
+//  SLEVELSTAT  	SLevelStat;   // Stats per Level
 }SBID_ASK;
 
 typedef map <string /*Price+MM */, SBID_ASK  > PriceLevelMap;
@@ -87,10 +87,11 @@ struct classcomp {
 
 */
 
-typedef unordered_map<const char* , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
+//typedef unordered_map<const char* , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
+typedef unordered_map<std::string , SBOOK_LEVELS> BookMap;  // <Stock Symbol  Book Levels>
 
 
-class CBuildBook
+class CBuildBookSTL
 {
 private:   // by default
 
@@ -108,6 +109,8 @@ private:   // by default
   
   PriceLevelMap 	m_PriceLevelMap;
   PriceLevelMap::iterator m_itPriceLevelMap;
+  
+  
   
   pair <BookMap::iterator, bool> m_RetPairBookMap;
   pair <PriceLevelMap::iterator, bool> m_RetPairPriceLevelMap;
@@ -155,13 +158,15 @@ private:   // by default
   inline string MakeKey();
   
   void ListBookStats();
-
+  void CloseBook();
+  
+  uint64_t m_ui64NumRequest;
 
 public:
   int 	m_iError;  
-  int  	BuildBookFromMemoryMappedFile();
-  CBuildBook();
-  ~CBuildBook();
+  int  	BuildBookFromOrderMap();
+  CBuildBookSTL();
+  ~CBuildBookSTL();
   
   uint32_t	FlushBook(char* szSymbol);
   uint64_t	FlushAllBooks();
