@@ -605,10 +605,16 @@ int  CFillMsgStructs::TradeMessageNonCross(UINT8* uiMsg)
     m_IMUSys.TradeNonCross.dPrice 			= double (m_pCUtil->GetValueUnsignedLong(uiMsg, 32, 4))/10000;
     m_IMUSys.TradeNonCross.iMatchNumber  		= m_pCUtil->GetValueUnsignedInt64(uiMsg, 36, 8);
 
-
+/*
     if (m_pQuantQueue)
-        m_pQuantQueue->Enqueue(&m_IMUSys, 'P');
+        m_pQuantQueue->Enqueue(&m_IMUSys, 'P');*/
 
+     if (m_pOrdersMap) {
+	m_pOrdersMap->FillMemoryMap(&m_IMUSys, 'P');
+     }
+    
+    
+    
     return 0;
 }
 ///////////////////////////////////////////////////////////////////////////

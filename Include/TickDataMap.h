@@ -61,7 +61,7 @@ private:
   
   CQuantQueue*			m_pQuantQueue;
   
-  COMMON_TRADE_MESSAGE 	        m_CommonTrade;
+  COMMON_TRADE_MESSAGE	        m_CommonTrade;
   
 
   COMMON_ORDER_MESSAGE* 	m_pCommonOrder;
@@ -101,15 +101,19 @@ private:
   STickDataStat m_STickDataStat;
   
   CUtil*	m_pcUtil;
+  
+  int  m_ifd;
 
   
 public:
   CTickDataMap();
-
   ~CTickDataMap();
 
+  
   COrdersMap*	m_pCOrdersMap;  
-  void InitQueue(CQuantQueue* pQueue);
+  
+  uint64_t ReadFromOrdersMap();
+//  void InitQueue(CQuantQueue* pQueue);
   uint64_t FillTickFile();
   STickDataStat GetTickDataStat();
   

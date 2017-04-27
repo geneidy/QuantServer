@@ -43,7 +43,7 @@ CSaveOrdersToDisc::CSaveOrdersToDisc()
 
     if (m_ifd == -1) {
         Logger::instance().log("Save Orders To Disc...Error Opening File: ", Logger::Error);
-	Logger::instance().log(strOrdersFile, Logger::Error);
+        Logger::instance().log(strOrdersFile, Logger::Error);
         m_iError = 100;
         // Set error code and exit
     }
@@ -57,7 +57,7 @@ CSaveOrdersToDisc::~CSaveOrdersToDisc()
 
     strMsg = "Save Orders To Disc...Total Orders Written: ";
     strMsg += to_string(m_ui64NumRequest);
-    
+
     Logger::instance().log("Save Orders To Disc... Destructing...Please Wait", Logger::Info);
     Logger::instance().log(strMsg, Logger::Info);
 
@@ -67,20 +67,37 @@ CSaveOrdersToDisc::~CSaveOrdersToDisc()
 int CSaveOrdersToDisc::ReadFromOrdersMap()  // Entry point for processing...Called from a while loop in Main.cpp
 {
 
-  int iSizeOfCommonOrder = sizeof(COMMON_ORDER_MESSAGE);
-    while (theApp.SSettings.iStatus != STOPPED) {  // m_pCOrdersMap
+    int iMessage;
+    int iSizeOfCommonOrder = sizeof(COMMON_ORDER_MESSAGE);
+
+    while (theApp.SSettings.iStatus != STOPPED) {
         if (!m_pCOrdersMap)
             break;
-
-        m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_ui64NumRequest++);
 
         if (m_pCommonOrder == nullptr) {
             m_ui64NumRequest--;
             nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
             continue;
         }
-	write(m_ifd, m_pCommonOrder, iSizeOfCommonOrder );
-    }
+
+        m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_ui64NumRequest++);
+        iMessage = m_pCommonOrder->cMessageType;
+
+        switch (iMessage) {
+        case 'A': 	// Add orders No MPID
+        case 'F': 	// Add orders
+//      case 'E':  	// Order executed
+//      case 'c':  	// Order executed  with price
+        case 'X':  	// Order Cancel
+        case 'D': 	// Order deleted
+        case 'U':	// Order Replace
+	  break;
+        default:
+            break;
+            //return 0;
+        }
+        write(m_ifd, m_pCommonOrder, iSizeOfCommonOrder );
+    } //     while (theApp.SSettings.iStatus != STOPPED) {
     return 0;
 }
 ////////////////////////////////////////////////////

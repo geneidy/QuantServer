@@ -360,12 +360,13 @@ void* TickDataMap(void* pArg)
     }
 
     arrThreadInfo[idx].eState = TS_ALIVE;
-    pCTickDataMap->InitQueue(pQueue);
+//    pCTickDataMap->InitQueue(pQueue);
 
-    uint64_t ui64NumberOfTicks =  pCTickDataMap->FillTickFile();
+    uint64_t ui64NumberOfTicks =  pCTickDataMap->ReadFromOrdersMap();
 
     delete pCTickDataMap;
     pCTickDataMap = NULL;
+    
     pthread_mutex_lock(&mtxTick);
     TermThreadLog(idx);
     pthread_mutex_unlock(&mtxTick);

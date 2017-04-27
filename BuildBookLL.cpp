@@ -93,6 +93,9 @@ int CBuildBook::BuildBookFromOrdersMap()  // Entry point for processing...Called
         case 'U':
             ProcessReplace(m_iMessage);
             break;
+//      case 'P':  Trade non cross
+//             break;
+// 	    
         default:
 	    break;
             //return 0;
@@ -602,7 +605,10 @@ NLEVELS  CBuildBook::ListBook(char* szSymbol, int nLevels )
     if (m_itBookMap == m_BookMap.end())
         return  SLevels;
 
-    SBookLevels = m_itBookMap->second;
+    SBookLevels = m_itBookMap->second;  
+    
+    // Uncomment after testing the book
+    //
     /*
         cout << "Open: " 		<< SBookLevels.m_OHLC.dOpen 	<< endl;
         cout << "Close: " 		<< SBookLevels.m_OHLC.dClose 	<< endl;
@@ -654,7 +660,6 @@ NLEVELS  CBuildBook::ListBook(char* szSymbol, int nLevels )
 
     return SLevels;  // log later
 }
-//////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
 NLEVELS  CBuildBook::FlushBook(char* szSymbol )
 {

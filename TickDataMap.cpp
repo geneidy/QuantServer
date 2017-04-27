@@ -61,18 +61,11 @@ CTickDataMap::CTickDataMap()
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
-void CTickDataMap::InitQueue(CQuantQueue* pQueue)
-{
-    m_pQuantQueue = pQueue;
-    // Init the Queue
-    m_pQuantQueue->InitReader(POSITION_TOP);
-    Logger::instance().log("Tick Data...Queue initialized in Tick Data Map file", Logger::Info);
-}
-//////////////////////////////////////////////////////////////////////////////////
 CTickDataMap::~CTickDataMap()
 {
     Logger::instance().log("Tick Data...Start Destructing", Logger::Info);
-  if (m_pCOrdersMap)
+
+    if (m_pCOrdersMap)
         m_pCOrdersMap->iNInstance--;
     
     string strMessage;
@@ -84,7 +77,10 @@ CTickDataMap::~CTickDataMap()
     
     Logger::instance().log(strMessage, Logger::Info);
     
-    close(m_fd);
+    if (m_fd) {
+      close(m_fd);
+    }
+    
     if (m_pcUtil) {
         delete m_pcUtil;
         m_pcUtil = nullptr;
@@ -109,6 +105,57 @@ STickDataStat CTickDataMap::GetTickDataStat() // Total Trade records inserted
         m_STickDataStat.uiTickMapMaxSize		= m_TickMap.max_size();
     */
     return m_STickDataStat;
+}
+//////////////////////////////////////////////////////////////////////////////////
+uint64_t CTickDataMap::ReadFromOrdersMap()
+{
+  uint64_t m_ui64NumRequest = 0;
+//  int iSizeOfCommonOrder = sizeof(COMMON_ORDER_MESSAGE);
+    int iSizeOfCommonTrade = sizeof(COMMON_TRADE_MESSAGE);
+  
+  
+    while (theApp.SSettings.iStatus != STOPPED) {  // m_pCOrdersMap
+        if (!m_pCOrdersMap)
+            break;
+/*
+        if ((theApp.SSettings.iSystemEventCode == 'M') || (theApp.SSettings.iSystemEventCode == 'E') || (theApp.SSettings.iSystemEventCode == 'C'))   { // set close
+            CloseBook();
+        }
+*/
+        m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_ui64NumRequest++);
+	
+        if (m_pCommonOrder == nullptr) {
+            m_ui64NumRequest--;
+            nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
+            continue;
+        }
+        memset(&m_CommonTrade, '\0', iSizeOfCommonTrade);
+
+	m_CommonTrade.cBuySell 		=  m_pCommonOrder->cBuySell;
+	m_CommonTrade.cMessageType 	= m_pCommonOrder->cMessageType;
+	m_CommonTrade.dPrice  		= m_pCommonOrder->dPrice;
+	m_CommonTrade.iMatchNumber	= m_pCommonOrder->iPrevOrderRefNumber;  // Hacking for not to add an extra field
+	m_CommonTrade.iOrderRefNumber	= m_pCommonOrder->iOrderRefNumber;
+	m_CommonTrade.iTimeStamp	= m_pCommonOrder->iTimeStamp;
+	strcpy(m_CommonTrade.szMPID, m_pCommonOrder->szMPID);
+	strcpy(m_CommonTrade.szStock, m_pCommonOrder->szStock);
+
+	
+	
+        m_iMessage = m_pCommonOrder->cMessageType;
+        switch (m_iMessage) {
+        case 'E':  	// Order executed
+        case 'c':  	// Order executed  with price
+        case 'P':  
+	    write(m_fd, &m_CommonTrade, iSizeOfCommonTrade );
+	    m_ui64NumOfTickData++;
+            break;
+        default:
+	    break;
+            //return 0;
+        }
+    }
+    return 0;
 }
 //////////////////////////////////////////////////////////////////////////////////
 uint64_t CTickDataMap::FillTickFile()
