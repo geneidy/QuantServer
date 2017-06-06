@@ -3,6 +3,7 @@
 BIN = bin/QuantServer
 
 ############### List All the .cpp files here....################
+##### All Header files are included in the .cpp and compiled accordingly #######
 
 SRCS = 	main.cpp \
 	FillMsgStructs.cpp \

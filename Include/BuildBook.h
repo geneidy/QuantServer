@@ -15,6 +15,8 @@
 #include "OrdersMap.h"
 #include "QuantQueue.h"
 
+
+
 typedef struct {
     int iAskLevels;
     int iBidLevels;
@@ -69,7 +71,22 @@ typedef struct _OHLC {
     struct timeval	tOpen;
     struct timeval	tLastUpdate;
 } OHLC;
+typedef struct SBidAskValues  // To copy SBID_ASK W/O the pointers....was causing a problem in delete
+{
+    char	szMPID[5];
+    double	dPrice;
+    int 	uiQty;
+    int 	uiNumOfOrders;
+    //SLEVELSTAT  	SLevelStat;   // Stats per Level
+} SBID_ASK_VALUES;
 
+typedef struct _SDisplayBook {
+
+    OHLC 		TopOfBook;
+    SBID_ASK_VALUES*	pSBid;  // Number of levels apply here
+    SBID_ASK_VALUES*	pSAsk; 	// Number of levels apply here
+
+} DISPLAYBOOK;
 
 typedef struct _BookLevels  // Per Symbol
 {
@@ -80,6 +97,7 @@ typedef struct _BookLevels  // Per Symbol
     uint16_t	m_iAskLevels;
     bool	bUpdated;
     OHLC        m_OHLC;
+    int		iIndex; // index to keep track of all Mappings "m_addr" and others
 //    pthread_mutex_t      mtxBidAsk;
 //    pthread_mutexattr_t mtxAttr;
 
@@ -92,9 +110,10 @@ class CBuildBook //: public COrdersMap
 {
 private:   // by default
 
-    void* 	m_addr;
+//    void* 	m_addr;
     int 	m_fd;
-    struct stat64 m_sb;
+    int m_iNextIndex;
+//    struct stat64 m_sb;
 
     uint64_t m_ui64NumRequest;
 
@@ -124,7 +143,7 @@ private:   // by default
     ORDER_EXECUTED_WITH_PRICE_MESSAGE	m_OrderExecutedWithPrice; // 'c'
     ORDER_CANCEL_MESSAGE			m_OrderCancel;  // 'X'
     char 		m_iMessage;
-    timespec 	m_request;
+//    timespec 	m_request;
     timespec	m_remain;
 
 
@@ -150,6 +169,10 @@ private:   // by default
 
     void UpdateBook();
 
+    void* ListBookToMMapFile(SBOOK_LEVELS);
+    int   CreatLOBFileMapping(int iDx);
+    int   InitMemoryMappedFile(int iDx);
+    
     inline string MakeKey();
 
     void ListBookStats();
@@ -182,4 +205,20 @@ public:
     NLEVELS  ListBook(char* szSymbol, int );
     NLEVELS   FlushBook(char* szSymbol );
     NLEVELS   FlushAllBooks();
+
+private:    
+/*************************  For Displaying Book    ***********************************/
+DISPLAYBOOK* 		m_SDisplayBook[NUMBER_OF_BOOKS_TO_DISPALY];
+int			m_iFD[NUMBER_OF_BOOKS_TO_DISPALY];
+//int  CreatLOBFileMapping(int );
+//int  InitMemoryMappedFile(int );
+
+unsigned m_uiSizeOfLob[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+struct stat  m_sb[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+struct stat  m_st[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+void*  m_addr[NUMBER_OF_BOOKS_TO_DISPALY ] ;    
+
+struct timespec    m_request;
+/*************************  For Displaying Book    ***********************************/
+    
 };

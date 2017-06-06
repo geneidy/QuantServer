@@ -28,6 +28,16 @@ CBuildBook::CBuildBook()
     m_Stats.uiLevelDeleted = 0;
 
     m_ui64NumRequest = 0;
+    
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
+	m_addr[ii] = NULL ;
+        m_SDisplayBook[ii] = NULL;
+        m_sb[ii] = {0} ;
+        m_st[ii] = {0};
+        m_uiSizeOfLob[ii] = sizeof(OHLC) + (sizeof(SBID_ASK_VALUES[theApp.SSettings.iBookLevels]) *2 );  // should be the same for all array elements
+    }
+    m_iNextIndex = 0;
+
 }
 ////////////////////////////////////////////////////
 CBuildBook::~CBuildBook()
@@ -35,6 +45,17 @@ CBuildBook::~CBuildBook()
 
     string  strMsg;
     strMsg.empty();
+    
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
+      if (!theApp.SSettings.arrbActive[ii]) { // Non active
+	continue;
+      }
+      msync(m_addr[ii], m_sb[ii].st_size, MS_ASYNC);
+      munmap(m_addr[ii], m_sb[ii].st_size);
+      close(m_iFD[ii]);
+    }
+    Logger::instance().log("LOB: Destructed", Logger::Debug);
+
 
     Logger::instance().log("Build Book... Destructing....Started Flushing All Books...Please Wait", Logger::Info);
     FlushAllBooks();
@@ -238,7 +259,13 @@ int CBuildBook::ProcessAdd(int iMessage)
             }//		if ((lpCurrent == nullptr) && (!bFound))
         } // else ....not an empty list
         if (m_itBookMap == m_BookMap.end()) {  // A Fresh Stock just in
+	  if(CreatLOBFileMapping(m_iNextIndex) == -1)
+	    return 0;
+
+	    m_pBook.iIndex = m_iNextIndex++;
+	    
             m_RetPair = m_BookMap.insert(pair<string, SBOOK_LEVELS> (m_pCommonOrder->szStock, m_pBook));
+	    
             if (!m_RetPair.second) {
                 Logger::instance().log("Error Inserting in Book Map", Logger::Error);
             }
@@ -321,7 +348,11 @@ int CBuildBook::ProcessAdd(int iMessage)
             }//		if ((lpCurrent == nullptr) && (!bFound))
         } // else ....not an empty list
         if (m_itBookMap == m_BookMap.end()) {  // A Fresh Stock just in
-            m_RetPair = m_BookMap.insert(pair<string, SBOOK_LEVELS> (m_pCommonOrder->szStock, m_pBook));
+	  if(CreatLOBFileMapping(m_iNextIndex) == -1)
+	      return 0;
+	    m_pBook.iIndex = m_iNextIndex++;
+
+	    m_RetPair = m_BookMap.insert(pair<string, SBOOK_LEVELS> (m_pCommonOrder->szStock, m_pBook));
             if (!m_RetPair.second) {
                 Logger::instance().log("Error Inserting in Book Map", Logger::Error);
             }
@@ -338,6 +369,7 @@ int CBuildBook::ProcessAdd(int iMessage)
         int iError = true;
     }
 //     ListBook("MSFT    ");
+    ListBookToMMapFile(m_pBook); // passing the book in case of making this Method a thread by itself
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -498,6 +530,7 @@ int CBuildBook::ProcessDelete(int iIn)
 
     } // if (m_pCommonOrder->cBuySell == 'S')  // ask to sell
 //    ListBook("MSFT    ");
+    ListBookToMMapFile(m_pBook);
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -753,3 +786,248 @@ NLEVELS CBuildBook::FlushAllBooks()
     return Del;  // log later
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+void* CBuildBook::ListBookToMMapFile(SBOOK_LEVELS SBookLevels)
+{
+/*
+    BOOK_THREAD_DATA SThreadData;
+
+    SThreadData =  *((BOOK_THREAD_DATA*)pArg) ;
+    int idx = SThreadData.idx;
+
+
+    string strToFind(SThreadData.szSymbol);
+*/
+    struct timespec    request;
+
+    request.tv_sec = 0;
+    request.tv_nsec = 100000000;   // 1/10 of a second
+    
+    int nLevels = theApp.SSettings.iBookLevels;   // make nLevels  a private data member
+    int nDisplayedLevels = 0;
+    
+    SBID_ASK* pTemp;
+/*
+     if (CreatLOBFileMapping(idx) == -1) {  // consider moving this block higher
+         m_iError = 120; // enum later
+         return NULL;
+     }
+
+
+
+    m_itBookMap = m_BookMap.find(strToFind);
+    if (m_itBookMap == m_BookMap.end())
+      return  NULL;
+    */
+
+//    while (theApp.SSettings.iStatus != STOPPED) {
+/*    
+        if (m_pcBuildBook[iIndex]->m_itBookMap == m_pcBuildBook[iIndex]->m_BookMap.end()) {
+            sleep(1); // Book Not constructed yet
+            continue;
+        }
+
+        SBookLevels = m_pcBuildBook[iIndex]->m_itBookMap->second;
+*/
+        SBookLevels = m_itBookMap->second;
+	int iIndex = SBookLevels.iIndex;   // Make iIndex a private data member
+/*	
+        if (!SBookLevels.bUpdated) {
+            nanosleep (&request, NULL);  // sleep a 1/10 of a second
+            continue;
+        }
+        m_pcBuildBook[iIndex]->m_itBookMap->second.bUpdated = false;
+*/
+
+        m_SDisplayBook[iIndex]->TopOfBook.dOpen 	=   SBookLevels.m_OHLC.dOpen;
+        m_SDisplayBook[iIndex]->TopOfBook.dClose 	=   SBookLevels.m_OHLC.dClose;
+        m_SDisplayBook[iIndex]->TopOfBook.dHigh 	=   SBookLevels.m_OHLC.dHigh;
+        m_SDisplayBook[iIndex]->TopOfBook.dLow 	=   SBookLevels.m_OHLC.dLow;
+        m_SDisplayBook[iIndex]->TopOfBook.dLast 	=   SBookLevels.m_OHLC.dLast;
+        m_SDisplayBook[iIndex]->TopOfBook.uiVolume = SBookLevels.m_OHLC.uiVolume;
+
+        m_SDisplayBook[iIndex]->TopOfBook.dVWAP 		= SBookLevels.m_OHLC.dVWAP;
+        m_SDisplayBook[iIndex]->TopOfBook.uiTotalVolume 	= SBookLevels.m_OHLC.uiTotalVolume;
+        m_SDisplayBook[iIndex]->TopOfBook.uiTotalNumOfTrades = SBookLevels.m_OHLC.uiTotalNumOfTrades;
+        m_SDisplayBook[iIndex]->TopOfBook.cTick = SBookLevels.m_OHLC.cTick;
+
+//     Bid Levels
+        nDisplayedLevels = 0;
+//      SBookLevels = m_pcBuildBook[iIndex]->m_itBookMap->second;
+        SBookLevels = m_itBookMap->second;	
+
+        //Clear all levels
+//	memset(m_SDisplayBook[iIndex]->pSBid, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
+
+        while (SBookLevels.pTopBid != NULL) {  // Print the Bid Levels
+// 	  if (SBookLevels.bUpdating)
+// 	      continue;
+//
+            if (nDisplayedLevels++ >= nLevels) {
+//	      memset(m_SDisplayBook[iIndex]->pSBid, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
+                break;
+            }
+
+//             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
+            m_SDisplayBook[iIndex]->pSBid[nDisplayedLevels].dPrice 	= SBookLevels.pTopBid->dPrice;
+            strcpy(m_SDisplayBook[iIndex]->pSBid[nDisplayedLevels].szMPID, SBookLevels.pTopBid->szMPID);
+            m_SDisplayBook[iIndex]->pSBid[nDisplayedLevels].uiQty 		= SBookLevels.pTopBid->uiQty;
+            m_SDisplayBook[iIndex]->pSBid[nDisplayedLevels].uiNumOfOrders 	= SBookLevels.pTopBid->uiNumOfOrders;
+
+            pTemp = SBookLevels.pTopBid;
+            SBookLevels.pTopBid = pTemp->pNextBidAsk;  // could have done:  SBookLevels.pTopBid = SBookLevels.pTopBid->pNextBidAsk
+        }// while (SBookLevels.pTopBid != NULL) {
+
+//      Ask Levels
+        nDisplayedLevels = 0;
+//      SBookLevels = m_pcBuildBook[iIndex]->m_itBookMap->second;
+	SBookLevels = m_itBookMap->second;
+	
+        //Clear all levels
+        memset(m_SDisplayBook[iIndex]->pSAsk, 0, (sizeof(SBID_ASK_VALUES))*nLevels);
+
+        while (SBookLevels.pTopAsk != NULL) {  // Print the Ask Levels
+//             cout<< SBookLevels.pTopAsk->dPrice << " "  << SBookLevels.pTopAsk->szMPID << " " << SBookLevels.pTopAsk->uiQty << " "<< SBookLevels.pTopAsk->uiNumOfOrders << endl;
+            if (nDisplayedLevels++ >= nLevels)
+                break;
+
+//             cout << SBookLevels.pTopBid->dPrice << " " << SBookLevels.pTopBid->szMPID << " " << SBookLevels.pTopBid->uiQty << " "<< SBookLevels.pTopBid->uiNumOfOrders << endl;
+            m_SDisplayBook[iIndex]->pSAsk[nDisplayedLevels].dPrice 	= SBookLevels.pTopAsk->dPrice;
+            strcpy(m_SDisplayBook[iIndex]->pSAsk[nDisplayedLevels].szMPID, SBookLevels.pTopAsk->szMPID);
+            m_SDisplayBook[iIndex]->pSAsk[nDisplayedLevels].uiQty 		= SBookLevels.pTopAsk->uiQty;
+            m_SDisplayBook[iIndex]->pSAsk[nDisplayedLevels].uiNumOfOrders 	= SBookLevels.pTopAsk->uiNumOfOrders;
+
+            pTemp = SBookLevels.pTopAsk;
+            SBookLevels.pTopAsk = pTemp->pNextBidAsk;
+//        }// while (SBookLevels.pTopAsk != NULL)
+  
+    /*
+        if  (m_SDisplayBook[idx]->pSBid != NULL) {
+            delete[] m_SDisplayBook[idx]->pSBid;
+            m_SDisplayBook[idx]->pSBid = NULL;
+        }
+
+        if  (m_SDisplayBook[idx]->pSAsk != NULL) {
+            delete[] m_SDisplayBook[idx]->pSAsk;
+            m_SDisplayBook[idx]->pSAsk = NULL;
+        }
+        if  (m_SDisplayBook[idx] != NULL) {
+            delete m_SDisplayBook[idx];
+            m_SDisplayBook[idx] = NULL;
+        }
+    */
+    }
+    return NULL;  // log later
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////
+int CBuildBook::CreatLOBFileMapping(int iDx)
+{
+
+    if (stat("../LOB/", &m_st[iDx]) == -1) {
+        mkdir("../LOB/", 0700);
+    }
+
+    string strLOBFile;
+    strLOBFile.empty();
+
+    strLOBFile = "../LOB/";
+    strLOBFile += theApp.SSettings.szActiveSymbols[iDx];
+
+    m_iFD[iDx] =  open(strLOBFile.c_str(), O_CREAT|O_RDWR|O_TRUNC, S_IRWXU);
+
+    if (m_iFD[iDx] == -1) {
+        Logger::instance().log("LOB: open File Mapping Error", Logger::Error);
+        m_iError = 100;
+        // Set error code and exit
+    }
+
+    if (!m_iError) {
+        if (fstat(m_iFD[iDx], &m_sb[iDx]) == -1) {
+            Logger::instance().log("LOB: Error fstat", Logger::Error);
+            m_iError = 110;
+	    return -1;
+            // Set error code and exit
+        }
+        else {
+            if (!InitMemoryMappedFile(iDx)) {
+                Logger::instance().log("LOB: Error Initializing File Mapping", Logger::Error);
+                close(m_iFD[iDx]);
+                m_iError = 120;
+	        return -1;
+                // Set error code and exit
+            }
+            else {
+                m_addr[iDx] = mmap(NULL, m_sb[iDx].st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_iFD[iDx], 0);
+
+                if (m_addr[iDx] == MAP_FAILED) {
+                    Logger::instance().log("LOB: Error  Mapping Failed", Logger::Error);
+                    m_iError = 130;
+		    return -1;
+                    // Set error code and exit
+                }
+                m_SDisplayBook[iDx] = (DISPLAYBOOK*) m_addr[iDx];  //  cast in DISPLAYBOOK...now you have an array in memory of DISPLAYBOOK
+            }
+        }
+    }
+
+    return true;
+}
+//////////////////////////////////////////////////////////////////////////////////
+int CBuildBook::InitMemoryMappedFile(int iDx)
+{
+    int iNLevels = 0;
+    
+    m_SDisplayBook[iDx] = new (DISPLAYBOOK);
+
+    m_SDisplayBook[iDx]->TopOfBook.dHigh 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dOpen 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dClose 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dLast 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dLow 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.dVWAP 	= 0;
+    m_SDisplayBook[iDx]->TopOfBook.tLastUpdate 	= {0};
+    m_SDisplayBook[iDx]->TopOfBook.tOpen       	= {0};
+
+
+    m_SDisplayBook[iDx]->TopOfBook.uiTotalNumOfTrades = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiTotalVolume = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiVolume = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiNumOfTradesWithPrice = 0;
+    m_SDisplayBook[iDx]->TopOfBook.uiNumOfTradesNoPrice = 0;
+/*
+    m_SDisplayBook[iDx]->pSBid = new SBID_ASK_VALUES[m_arrBookThreadData[iDx].nLevels];
+    m_SDisplayBook[iDx]->pSAsk = new SBID_ASK_VALUES[m_arrBookThreadData[iDx].nLevels];
+*/
+    iNLevels = theApp.SSettings.iBookLevels;
+    m_SDisplayBook[iDx]->pSBid = new SBID_ASK_VALUES[iNLevels];
+    m_SDisplayBook[iDx]->pSAsk = new SBID_ASK_VALUES[iNLevels];
+
+
+    // Throw away code begin
+    int iSizeOfBidAsk = sizeof(*m_SDisplayBook[iDx]->pSAsk);
+    int iSizeOfTopOfBook = sizeof(m_SDisplayBook[iDx]->TopOfBook);
+    //Throw away code end
+
+
+    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) { // Fresh file
+        Logger::instance().log("LOB: Initializing Mapped File ", Logger::Debug);
+
+        write(m_iFD[iDx], &m_SDisplayBook[iDx]->TopOfBook, sizeof(OHLC));  // init with NULL
+
+        for (int ii=0; ii < iNLevels; ii++) {  // could have conbined the next to lines...i.e. *2
+            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSBid, sizeof(SBID_ASK_VALUES));  // init with NULL
+            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSAsk, sizeof(SBID_ASK_VALUES));  // init with NULL
+        }
+    }
+
+    Logger::instance().log("LOB: Finished Initializing  Mapped File", Logger::Debug);
+
+    fstat(m_iFD[iDx], &m_sb[iDx]);
+    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) {
+        Logger::instance().log("LOB: Error Initializing Mapped File", Logger::Debug);
+        m_iError = 200; // enum later
+        return false;
+    }
+    m_iError = 0; // enum later
+    return true;
+}
+///////////////////////////////////////////////////////////////////

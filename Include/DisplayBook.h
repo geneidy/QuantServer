@@ -39,7 +39,7 @@ typedef struct SBidAskValues  // To copy SBID_ASK W/O the pointers....was causin
 
 typedef struct _SDisplayBook {
 
-    OHLC 	TopOfBook;
+    OHLC 		TopOfBook;
     SBID_ASK_VALUES*	pSBid;  // Number of levels apply here
     SBID_ASK_VALUES*	pSAsk; 	// Number of levels apply here
 
