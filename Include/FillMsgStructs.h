@@ -9,58 +9,56 @@
 #include "QuantQueue.h"
 #include "OrdersMap.h"
 
-
 class CFillMsgStructs
 {
 public:
-	CFillMsgStructs(CQuantQueue*);
+	CFillMsgStructs(CQuantQueue *);
 	virtual ~CFillMsgStructs(void);
 
-	int DirectToMethod(UINT8* strMsg);
+	int DirectToMethod(UINT8 *strMsg);
 
-	int	SystemEvent(UINT8* strMsg);
-	int	StockDirectory(UINT8* strMsg);
-	int StockTradingAction(UINT8* strMsg);
-	int RegShoRestriction(UINT8* strMsg);
-	int Market_Participant_Position(UINT8* strMsg);
-	int MWCBDeclineLevelMessage(UINT8* uiMsg);
-	int MWCBBreachMessage(UINT8* uiMsg);
-	int IPOQuotingPeriodUpdate(UINT8* uiMsg);
-	int AddOrderNoMPIDMessage(UINT8* uiMsg);
-	int AddOrderWithMPID(UINT8* uiMsg);
-	int OrderExecutionMessage(UINT8* uiMsg);
-	int OrderExecutionWithPriceMessage(UINT8* uiMsg);
-	int OrderCancelMessage(UINT8* uiMsg);
-	int OrderDelete(UINT8* uiMsg);
-	int OrderReplace(UINT8* uiMsg);
-	int TradeMessageNonCross(UINT8* uiMsg);
-	int NOII(UINT8* uiMsg);
-	int RetailPriceImprovementIndicator(UINT8* uiMsg);
+	int SystemEvent(UINT8 *strMsg);
+	int StockDirectory(UINT8 *strMsg);
+	int StockTradingAction(UINT8 *strMsg);
+	int RegShoRestriction(UINT8 *strMsg);
+	int Market_Participant_Position(UINT8 *strMsg);
+	int MWCBDeclineLevelMessage(UINT8 *uiMsg);
+	int MWCBBreachMessage(UINT8 *uiMsg);
+	int IPOQuotingPeriodUpdate(UINT8 *uiMsg);
+	int AddOrderNoMPIDMessage(UINT8 *uiMsg);
+	int AddOrderWithMPID(UINT8 *uiMsg);
+	int OrderExecutionMessage(UINT8 *uiMsg);
+	int OrderExecutionWithPriceMessage(UINT8 *uiMsg);
+	int OrderCancelMessage(UINT8 *uiMsg);
+	int OrderDelete(UINT8 *uiMsg);
+	int OrderReplace(UINT8 *uiMsg);
+	int TradeMessageNonCross(UINT8 *uiMsg);
+	int NOII(UINT8 *uiMsg);
+	int RetailPriceImprovementIndicator(UINT8 *uiMsg);
 
 	FEED_MESSAGE_STATS GetStats();
 	int GetError();
+
 private:
-	CUtil		*m_pCUtil;
-	CQuantQueue*	m_pQuantQueue;
-	
-	COrdersMap*     m_pOrdersMap;
-	
-	
-	
+	CUtil *m_pCUtil;
+	CQuantQueue *m_pQuantQueue;
+
+	COrdersMap *m_pOrdersMap;
+
 	ITCH_MESSAGES_UNION m_IMUSys;
 
-	bool		m_bConnected;
-	int		m_iError;
-	
-	uint64_t	i64Counter;
-	
-	int 	m_fd;  // File discriptor
-	
+	bool m_bConnected;
+	int m_iError;
+
+	uint64_t i64Counter;
+
+	int m_fd; // File discriptor
+
 	timespec m_request, m_remain;
-	
+
 	uint64_t m_uiRejected;
 
-/*
+	/*
 	SYSTEM_EVENT_MESSAGE						m_SystemEvent;
 	STOCK_DIRECTORY_MESSAGE						m_StockDirectory;
 	STOCK_TRADING_ACTION_MESSAGE				m_StockTradingAction;
@@ -79,11 +77,11 @@ private:
 	TRADE_NON_CROSS_MESSAGE						m_TradeNonCross;
 	NOII_MESSAGE								m_NOII;
 	RPII_MESSAGE								m_RPPI;
-*/	
+*/
 };
 
 //ITCH messages
-// – DAILY
+// ï¿½ DAILY
 /*
 #define  SYSTEM_EVENT_CODES_SIZE  7
 #ifdef  MainModule

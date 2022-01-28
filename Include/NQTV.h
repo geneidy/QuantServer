@@ -9,7 +9,7 @@
 #include "Settings.h"
 
 #include "ItchIncludes.h"
-  
+
 enum feedStatus
 {
 	OK = 0,
@@ -22,7 +22,7 @@ enum feedStatus
 	RESUMING,
 	RESUMED,
 	STOPPING,
-	STOPPED,  // 10
+	STOPPED, // 10
 	CONSTRUCTED,
 	DESTRUCTED,
 	TERMINATE,
@@ -35,27 +35,26 @@ enum feedStatus
 // See QtSpry.cpp for the implementation of this class
 //
 
-#define MAX_MESSAGE_TYPES    23
+#define MAX_MESSAGE_TYPES 23
 
 class CQuantApp
 {
 public:
 	CQuantApp();
 	~CQuantApp();
-	int		g_iFlag;
-	int		g_iFeedStatus;
-	int		g_iProcessMessageStatus;
-//	MYSQL* conn; // pointer to connection handler
+	int g_iFlag;
+	int g_iFeedStatus;
+	int g_iProcessMessageStatus;
+	//	MYSQL* conn; // pointer to connection handler
 
-	FEED_MESSAGE_STATS	g_Stats;
-	
-	std::string	strFeedFileName;
+	FEED_MESSAGE_STATS g_Stats;
 
-	unsigned long 	g_arrTotalMessages [MAX_MESSAGE_TYPES];
-	unsigned long 	g_arrMessagesPerSec [MAX_MESSAGE_TYPES];
-	unsigned long 	g_arrMaxMessagesPerSec [MAX_MESSAGE_TYPES];
-	SETTINGS  	SSettings;
+	std::string strFeedFileName;
 
+	unsigned long g_arrTotalMessages[MAX_MESSAGE_TYPES];
+	unsigned long g_arrMessagesPerSec[MAX_MESSAGE_TYPES];
+	unsigned long g_arrMaxMessagesPerSec[MAX_MESSAGE_TYPES];
+	SETTINGS SSettings;
 };
 
 extern CQuantApp theApp;

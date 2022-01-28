@@ -3,39 +3,42 @@
 
 BOOK_THREAD_INFO CDisplayBook::m_arrThreadInfo[NUMBER_OF_BOOKS_TO_DISPALY];
 BOOK_THREAD_DATA CDisplayBook::m_arrBookThreadData[NUMBER_OF_BOOKS_TO_DISPALY];
-DISPLAYBOOK* 	 CDisplayBook::m_SDisplayBook [NUMBER_OF_BOOKS_TO_DISPALY];
-int		 CDisplayBook::m_iFD[NUMBER_OF_BOOKS_TO_DISPALY];
+DISPLAYBOOK *CDisplayBook::m_SDisplayBook[NUMBER_OF_BOOKS_TO_DISPALY];
+int CDisplayBook::m_iFD[NUMBER_OF_BOOKS_TO_DISPALY];
 
-unsigned  	 CDisplayBook::m_uiSizeOfLob [NUMBER_OF_BOOKS_TO_DISPALY];
-struct stat 	 CDisplayBook::m_sb[NUMBER_OF_BOOKS_TO_DISPALY ] ;
-struct stat 	 CDisplayBook::m_st[NUMBER_OF_BOOKS_TO_DISPALY ] ;
-int 		 CDisplayBook::m_iError = 0;
-CBuildBook* 	 CDisplayBook::m_pcBuildBook[NUMBER_OF_BOOKS_TO_DISPALY];
-void*  		 CDisplayBook::m_addr[NUMBER_OF_BOOKS_TO_DISPALY ];
+unsigned CDisplayBook::m_uiSizeOfLob[NUMBER_OF_BOOKS_TO_DISPALY];
+struct stat CDisplayBook::m_sb[NUMBER_OF_BOOKS_TO_DISPALY];
+struct stat CDisplayBook::m_st[NUMBER_OF_BOOKS_TO_DISPALY];
+int CDisplayBook::m_iError = 0;
+CBuildBook *CDisplayBook::m_pcBuildBook[NUMBER_OF_BOOKS_TO_DISPALY];
+void *CDisplayBook::m_addr[NUMBER_OF_BOOKS_TO_DISPALY];
 
 ///////////////////////////////////////////////////////////////////
-CDisplayBook::CDisplayBook(CBuildBook*  pCBuildBook)
+CDisplayBook::CDisplayBook(CBuildBook *pCBuildBook)
 {
-    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
-        m_pcBuildBook[ii]  = pCBuildBook;
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++)
+    {
+        m_pcBuildBook[ii] = pCBuildBook;
         m_arrThreadInfo[ii].eState = _TS_INACTIVE;
 
-        m_addr[ii] = NULL ;
+        m_addr[ii] = NULL;
         m_SDisplayBook[ii] = NULL;
-        m_sb[ii] = {0} ;
+        m_sb[ii] = {0};
         m_st[ii] = {0};
-        m_uiSizeOfLob[ii] = sizeof(OHLC) + (sizeof(SBID_ASK_VALUES[theApp.SSettings.iBookLevels]) *2 );  // should be the same for all array elements
+        m_uiSizeOfLob[ii] = sizeof(OHLC) + (sizeof(SBID_ASK_VALUES[theApp.SSettings.iBookLevels]) * 2); // should be the same for all array elements
     }
     m_request.tv_sec = 0;
-    m_request.tv_nsec = 100000000;   // 1/10 of a second
+    m_request.tv_nsec = 100000000; // 1/10 of a second
 }
 ///////////////////////////////////////////////////////////////////
 CDisplayBook::~CDisplayBook()
 {
     StopDisplayAllBooks();
 
-    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
-        if (!theApp.SSettings.arrbActive[ii]) { // Non active
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++)
+    {
+        if (!theApp.SSettings.arrbActive[ii])
+        { // Non active
             continue;
         }
         msync(m_addr[ii], m_sb[ii].st_size, MS_ASYNC);
@@ -51,15 +54,17 @@ void CDisplayBook::DisplaySelected()
 
     string strMessage;
 
-    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {        // spin a thread for each Stock
-        if (!theApp.SSettings.arrbActive[ii]) { // Non active
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++)
+    { // spin a thread for each Stock
+        if (!theApp.SSettings.arrbActive[ii])
+        { // Non active
             m_arrThreadInfo[ii].eState = _TS_INACTIVE;
             continue;
         }
-        m_arrThreadInfo[ii].iThread_num = ii ;
-        m_arrBookThreadData[ii].idx = ii;			// App assigned number
-        m_arrBookThreadData[ii].nLevels = theApp.SSettings.iBookLevels; // copy number of levels
-        strcpy(m_arrBookThreadData[ii].szSymbol, theApp.SSettings.szActiveSymbols[ii]);  // copy the symbol
+        m_arrThreadInfo[ii].iThread_num = ii;
+        m_arrBookThreadData[ii].idx = ii;                                               // App assigned number
+        m_arrBookThreadData[ii].nLevels = theApp.SSettings.iBookLevels;                 // copy number of levels
+        strcpy(m_arrBookThreadData[ii].szSymbol, theApp.SSettings.szActiveSymbols[ii]); // copy the symbol
 
         strMessage.clear();
         strMessage = "LOB: Creating Display Book Thread for Symbol: ";
@@ -67,7 +72,7 @@ void CDisplayBook::DisplaySelected()
         Logger::instance().log(strMessage, Logger::Debug);
 
         int iRet = pthread_create(&m_arrThreadInfo[ii].thread_id, NULL, &DisplaySingleBook, &m_arrBookThreadData[ii]);
-        nanosleep (&m_request, NULL);  // sleep a 1/10 of a second
+        nanosleep(&m_request, NULL); // sleep a 1/10 of a second
         iTotalThreads++;
     }
 
@@ -79,12 +84,15 @@ void CDisplayBook::DisplaySelected()
 
     m_bAllDone = false;
 
-    while (iJoined < iTotalThreads) {
+    while (iJoined < iTotalThreads)
+    {
         // keep on checking for all terminated threads every three seconds
-        for (uint ii = 0;  ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++ ) {
-            if ((m_arrThreadInfo[ii].eState == _TS_INACTIVE)|| (m_arrThreadInfo[ii].eState == _TS_JOINED)|| (m_arrThreadInfo[ii].eState == _TS_ALIVE)|| (m_arrThreadInfo[ii].eState == _TS_STARTED))
+        for (uint ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++)
+        {
+            if ((m_arrThreadInfo[ii].eState == _TS_INACTIVE) || (m_arrThreadInfo[ii].eState == _TS_JOINED) || (m_arrThreadInfo[ii].eState == _TS_ALIVE) || (m_arrThreadInfo[ii].eState == _TS_STARTED))
                 continue;
-            if (m_arrThreadInfo[ii].eState == _TS_TERMINATED) {
+            if (m_arrThreadInfo[ii].eState == _TS_TERMINATED)
+            {
                 pthread_join(m_arrThreadInfo[ii].thread_id, NULL);
                 m_arrThreadInfo[ii].eState = _TS_JOINED;
 
@@ -103,22 +111,22 @@ void CDisplayBook::DisplaySelected()
     m_bAllDone = true;
 }
 ///////////////////////////////////////////////////////////////////
-void CDisplayBook::StopDisplaySelected(char* szSymbol)
+void CDisplayBook::StopDisplaySelected(char *szSymbol)
 {
-
 }
 ///////////////////////////////////////////////////////////////////
 void CDisplayBook::StopDisplayAllBooks()
 {
 
-    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++) {
+    for (int ii = 0; ii < NUMBER_OF_BOOKS_TO_DISPALY; ii++)
+    {
         m_arrThreadInfo[ii].eState = _TS_TERMINATED;
     }
 }
 ///////////////////////////////////////////////////////////////////
-void* CDisplayBook::DisplaySingleBook(void* pArg)
+void *CDisplayBook::DisplaySingleBook(void *pArg)
 {
-/*
+    /*
     BOOK_THREAD_DATA SThreadData;
 
     SThreadData =  *((BOOK_THREAD_DATA*)pArg) ;
@@ -245,13 +253,14 @@ void* CDisplayBook::DisplaySingleBook(void* pArg)
   
     m_arrThreadInfo[idx].eState = _TS_TERMINATED;
     */
-    return NULL;  // log later
+    return NULL; // log later
 }
 ///////////////////////////////////////////////////////////////////
 int CDisplayBook::CreatLOBFileMapping(int iDx)
 {
 
-    if (stat("../LOB/", &m_st[iDx]) == -1) {
+    if (stat("../LOB/", &m_st[iDx]) == -1)
+    {
         mkdir("../LOB/", 0700);
     }
 
@@ -261,36 +270,43 @@ int CDisplayBook::CreatLOBFileMapping(int iDx)
     strLOBFile = "../LOB/";
     strLOBFile += theApp.SSettings.szActiveSymbols[iDx];
 
-    m_iFD[iDx] =  open(strLOBFile.c_str(), O_CREAT|O_RDWR|O_TRUNC, S_IRWXU);
+    m_iFD[iDx] = open(strLOBFile.c_str(), O_CREAT | O_RDWR | O_TRUNC, S_IRWXU);
 
-    if (m_iFD[iDx] == -1) {
+    if (m_iFD[iDx] == -1)
+    {
         Logger::instance().log("LOB: open File Mapping Error", Logger::Error);
         m_iError = 100;
         // Set error code and exit
     }
 
-    if (!m_iError) {
-        if (fstat(m_iFD[iDx], &m_sb[iDx]) == -1) {
+    if (!m_iError)
+    {
+        if (fstat(m_iFD[iDx], &m_sb[iDx]) == -1)
+        {
             Logger::instance().log("LOB: Error fstat", Logger::Error);
             m_iError = 110;
             // Set error code and exit
         }
-        else {
-            if (!InitMemoryMappedFile(iDx)) {
+        else
+        {
+            if (!InitMemoryMappedFile(iDx))
+            {
                 Logger::instance().log("LOB: Error Initializing File Mapping", Logger::Error);
                 close(m_iFD[iDx]);
                 m_iError = 120;
                 // Set error code and exit
             }
-            else {
-                m_addr[iDx] = mmap(NULL, m_sb[iDx].st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_iFD[iDx], 0);
+            else
+            {
+                m_addr[iDx] = mmap(NULL, m_sb[iDx].st_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_iFD[iDx], 0);
 
-                if (m_addr[iDx] == MAP_FAILED) {
+                if (m_addr[iDx] == MAP_FAILED)
+                {
                     Logger::instance().log("LOB: Error  Mapping Failed", Logger::Error);
                     m_iError = 130;
                     // Set error code and exit
                 }
-                m_SDisplayBook[iDx] = (DISPLAYBOOK*) m_addr[iDx];  //  cast in DISPLAYBOOK...now you have an array in memory of DISPLAYBOOK
+                m_SDisplayBook[iDx] = (DISPLAYBOOK *)m_addr[iDx]; //  cast in DISPLAYBOOK...now you have an array in memory of DISPLAYBOOK
             }
         }
     }
@@ -302,15 +318,14 @@ int CDisplayBook::InitMemoryMappedFile(int iDx)
 {
     m_SDisplayBook[iDx] = new (DISPLAYBOOK);
 
-    m_SDisplayBook[iDx]->TopOfBook.dHigh 	= 0;
-    m_SDisplayBook[iDx]->TopOfBook.dOpen 	= 0;
-    m_SDisplayBook[iDx]->TopOfBook.dClose 	= 0;
-    m_SDisplayBook[iDx]->TopOfBook.dLast 	= 0;
-    m_SDisplayBook[iDx]->TopOfBook.dLow 	= 0;
-    m_SDisplayBook[iDx]->TopOfBook.dVWAP 	= 0;
-    m_SDisplayBook[iDx]->TopOfBook.tLastUpdate 	= {0};
-    m_SDisplayBook[iDx]->TopOfBook.tOpen       	= {0};
-
+    m_SDisplayBook[iDx]->TopOfBook.dHigh = 0;
+    m_SDisplayBook[iDx]->TopOfBook.dOpen = 0;
+    m_SDisplayBook[iDx]->TopOfBook.dClose = 0;
+    m_SDisplayBook[iDx]->TopOfBook.dLast = 0;
+    m_SDisplayBook[iDx]->TopOfBook.dLow = 0;
+    m_SDisplayBook[iDx]->TopOfBook.dVWAP = 0;
+    m_SDisplayBook[iDx]->TopOfBook.tLastUpdate = {0};
+    m_SDisplayBook[iDx]->TopOfBook.tOpen = {0};
 
     m_SDisplayBook[iDx]->TopOfBook.uiTotalNumOfTrades = 0;
     m_SDisplayBook[iDx]->TopOfBook.uiTotalVolume = 0;
@@ -321,28 +336,29 @@ int CDisplayBook::InitMemoryMappedFile(int iDx)
     m_SDisplayBook[iDx]->pSBid = new SBID_ASK_VALUES[m_arrBookThreadData[iDx].nLevels];
     m_SDisplayBook[iDx]->pSAsk = new SBID_ASK_VALUES[m_arrBookThreadData[iDx].nLevels];
 
-
     // Throw away code begin
     int iSizeOfBidAsk = sizeof(*m_SDisplayBook[iDx]->pSAsk);
     int iSizeOfTopOfBook = sizeof(m_SDisplayBook[iDx]->TopOfBook);
     //Throw away code end
 
-
-    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) { // Fresh file
+    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx])
+    { // Fresh file
         Logger::instance().log("LOB: Initializing Mapped File ", Logger::Debug);
 
-        write(m_iFD[iDx], &m_SDisplayBook[iDx]->TopOfBook, sizeof(OHLC));  // init with NULL
+        write(m_iFD[iDx], &m_SDisplayBook[iDx]->TopOfBook, sizeof(OHLC)); // init with NULL
 
-        for (int ii=0; ii < m_arrBookThreadData[iDx].nLevels; ii++) {  // could have conbined the next to lines...i.e. *2
-            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSBid, sizeof(SBID_ASK_VALUES));  // init with NULL
-            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSAsk, sizeof(SBID_ASK_VALUES));  // init with NULL
+        for (int ii = 0; ii < m_arrBookThreadData[iDx].nLevels; ii++)
+        {                                                                            // could have conbined the next to lines...i.e. *2
+            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSBid, sizeof(SBID_ASK_VALUES)); // init with NULL
+            write(m_iFD[iDx], &m_SDisplayBook[iDx]->pSAsk, sizeof(SBID_ASK_VALUES)); // init with NULL
         }
     }
 
     Logger::instance().log("LOB: Finished Initializing  Mapped File", Logger::Debug);
 
     fstat(m_iFD[iDx], &m_sb[iDx]);
-    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx]) {
+    if (m_sb[iDx].st_size < m_uiSizeOfLob[iDx])
+    {
         Logger::instance().log("LOB: Error Initializing Mapped File", Logger::Debug);
         m_iError = 200; // enum later
         return false;
@@ -356,8 +372,8 @@ int CDisplayBook::GetError()
     return m_iError;
 }
 ///////////////////////////////////////////////////////////////////
-char* CDisplayBook::GetErrorDescription()
+char *CDisplayBook::GetErrorDescription()
 {
-    return NULL;  //see the Logger message for now
+    return NULL; //see the Logger message for now
 }
 ///////////////////////////////////////////////////////////////////

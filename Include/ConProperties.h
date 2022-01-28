@@ -7,14 +7,17 @@ class CConProperties : public CDialog
 	DECLARE_DYNAMIC(CConProperties)
 
 public:
-	CConProperties(CWnd* pParent = NULL);   // standard constructor
+	CConProperties(CWnd *pParent = NULL); // standard constructor
 	virtual ~CConProperties();
 
-// Dialog Data
-	enum { IDD = IDD_DIALOG_CON_PROPERTIES };
+	// Dialog Data
+	enum
+	{
+		IDD = IDD_DIALOG_CON_PROPERTIES
+	};
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void DoDataExchange(CDataExchange *pDX); // DDX/DDV support
 
 	DECLARE_MESSAGE_MAP()
 public:

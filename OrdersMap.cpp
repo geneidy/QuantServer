@@ -1,30 +1,31 @@
 #include "OrdersMap.h"
 
-COrdersMap* COrdersMap::pInstance = nullptr;
-mutex 	COrdersMap::MapMutex;
+COrdersMap *COrdersMap::pInstance = nullptr;
+mutex COrdersMap::MapMutex;
 
 static pthread_mutex_t mtxFindMap = PTHREAD_MUTEX_INITIALIZER;
 
-OrdersUnOrderedMap::iterator  	COrdersMap::m_itBookRefSymbolMap;
-OrdersUnOrderedMap 		COrdersMap::m_SymbolMap;
+OrdersUnOrderedMap::iterator COrdersMap::m_itBookRefSymbolMap;
+OrdersUnOrderedMap COrdersMap::m_SymbolMap;
 
-OrdersSequenceUnOrderedMap            		COrdersMap::m_SequenceMap;
-OrdersSequenceUnOrderedMap::const_iterator    	COrdersMap::m_itSequenceMap;
+OrdersSequenceUnOrderedMap COrdersMap::m_SequenceMap;
+OrdersSequenceUnOrderedMap::const_iterator COrdersMap::m_itSequenceMap;
 
-uint COrdersMap::iNInstance 			= 0;
+uint COrdersMap::iNInstance = 0;
 // uint64_t   COrdersMap::m_ui64NumOfOrders 	= 0;
-__thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pReturnCommonOrder= nullptr;
-__thread  COMMON_ORDER_MESSAGE* COrdersMap::m_pTempCommonOrder 	= nullptr;
+__thread COMMON_ORDER_MESSAGE *COrdersMap::m_pReturnCommonOrder = nullptr;
+__thread COMMON_ORDER_MESSAGE *COrdersMap::m_pTempCommonOrder = nullptr;
 
 COMMON_ORDER_MESSAGE thrSOrder;
 
-__thread uint64_t  thrSequence;
+__thread uint64_t thrSequence;
 
 ////////////////////////////////////////////////////////////////////
-COrdersMap* COrdersMap::instance()
+COrdersMap *COrdersMap::instance()
 {
     lock_guard<mutex> guard(COrdersMap::MapMutex);
-    if (pInstance == nullptr) {
+    if (pInstance == nullptr)
+    {
         pInstance = new COrdersMap();
     }
     iNInstance++;
@@ -43,9 +44,9 @@ COrdersMap::COrdersMap()
     m_SequenceMap.clear();
 
     m_uiSizeOfCommonOrderRecord = sizeof(COMMON_ORDER_MESSAGE);
-    m_uiNumberOfMessagesToHold = m_SymbolMap.max_size();  // don't bank on it per documentation
+    m_uiNumberOfMessagesToHold = m_SymbolMap.max_size(); // don't bank on it per documentation
     strMessage = "Orders Map...Max Orders to hold in Map: ";
-    strMessage+= to_string(m_uiNumberOfMessagesToHold);
+    strMessage += to_string(m_uiNumberOfMessagesToHold);
     Logger::instance().log(strMessage, Logger::Info);
 
     /*
@@ -105,16 +106,15 @@ COrdersMap::COrdersMap()
                 }
             } //   if (!m_iError) {*/
 
-    m_ui64OrderSequence = 700000000;  // seven hundred million
+    m_ui64OrderSequence = 700000000; // seven hundred million
 }
 //////////////////////////////////////////////////////////////////////////////////
-void COrdersMap::InitQueue(CQuantQueue* pQueue)
+void COrdersMap::InitQueue(CQuantQueue *pQueue)
 {
     m_pQuantQueue = pQueue;
     // Init the Queue
     m_pQuantQueue->InitReader(POSITION_TOP);
     Logger::instance().log("Orders Map: Queue initialized in Orders Data Map file", Logger::Info);
-
 }
 //////////////////////////////////////////////////////////////////////////////////
 COrdersMap::~COrdersMap()
@@ -125,27 +125,24 @@ COrdersMap::~COrdersMap()
     strMessage += to_string(m_SymbolMap.size());
     Logger::instance().log(strMessage, Logger::Info);
 
-
     strMessage = "Sequence Map...Number of Orders Inserted: ";
     strMessage += to_string(m_SequenceMap.size());
     Logger::instance().log(strMessage, Logger::Info);
 
-
     strMessage = "Orders Map...Map (Utilization) Efficiency: ";
-    double dEffic = (m_SymbolMap.size()/m_SymbolMap.max_size())*100;
+    double dEffic = (m_SymbolMap.size() / m_SymbolMap.max_size()) * 100;
     strMessage += to_string(dEffic);
     Logger::instance().log(strMessage, Logger::Info);
-
 
     Logger::instance().log("Orders Map: Start...Clearing Orders Map", Logger::Info);
     m_SymbolMap.clear();
     m_SequenceMap.clear();
     Logger::instance().log("Orders Map: End...Clearing Orders Map", Logger::Info);
 
-
     pthread_mutex_destroy(&mtxFindMap);
 
-    if (m_Util) {
+    if (m_Util)
+    {
         delete m_Util;
         m_Util = nullptr;
     }
@@ -157,7 +154,7 @@ int COrdersMap::GetError()
 }
 //////////////////////////////////////////////////////////////////////////////////
 int COrdersMap::InitMemoryMappedFile()
-{   /*
+{ /*
        COMMON_ORDER_MESSAGE SCommonOrder;
        m_uiNumberOfMessagesToHold = 0;
 
@@ -180,67 +177,72 @@ int COrdersMap::InitMemoryMappedFile()
            return false;
        }
        m_iError = 0; // enum later
-    */   return true;
+    */
+    return true;
 }
 //////////////////////////////////////////////////////////////////////////////////
 SOrdersDataStat COrdersMap::GetOrdersDataStat() // Total Trade records inserted
 {
 
-    m_SOrdersDataStat.uiNumberOfMessagesToHold 	= m_uiNumberOfMessagesToHold;
-    m_SOrdersDataStat.ui64NumOfOrders 		= m_ui64NumOfOrders;
-    m_SOrdersDataStat.SymbolMapSize 		= m_SymbolMap.size();
-    m_SOrdersDataStat.SymbolMapMaxSize 		= m_SymbolMap.max_size();
+    m_SOrdersDataStat.uiNumberOfMessagesToHold = m_uiNumberOfMessagesToHold;
+    m_SOrdersDataStat.ui64NumOfOrders = m_ui64NumOfOrders;
+    m_SOrdersDataStat.SymbolMapSize = m_SymbolMap.size();
+    m_SOrdersDataStat.SymbolMapMaxSize = m_SymbolMap.max_size();
 
     return m_SOrdersDataStat;
 }
 //////////////////////////////////////////////////////////////////////////////////
-COMMON_ORDER_MESSAGE* COrdersMap::GetMemoryMappedOrder(uint64_t thrSequence)
+COMMON_ORDER_MESSAGE *COrdersMap::GetMemoryMappedOrder(uint64_t thrSequence)
 {
     pthread_mutex_lock(&mtxFindMap);
-    if (thrSequence >= m_ui64NumOfOrders )  {// not yet inserted
+    if (thrSequence >= m_ui64NumOfOrders)
+    { // not yet inserted
         pthread_mutex_unlock(&mtxFindMap);
         return nullptr;
     }
 
     m_itSequenceMap = m_SequenceMap.find(thrSequence);
-    if (m_itSequenceMap == m_SequenceMap.end()) {
+    if (m_itSequenceMap == m_SequenceMap.end())
+    {
         pthread_mutex_unlock(&mtxFindMap);
         return nullptr;
     }
 
     m_itBookRefSymbolMap = m_SymbolMap.find(m_itSequenceMap->second);
 
-    if (m_itBookRefSymbolMap == m_SymbolMap.end()) {
+    if (m_itBookRefSymbolMap == m_SymbolMap.end())
+    {
         pthread_mutex_unlock(&mtxFindMap);
         return nullptr;
     }
 
     pthread_mutex_unlock(&mtxFindMap);
     return (&m_itBookRefSymbolMap->second);
-
 }
 //////////////////////////////////////////////////////////////////////////////////
-COMMON_ORDER_MESSAGE* COrdersMap::GetMappedOrder(uint64_t uiOrderRefNumber)  // called internally....only checks the Orders Map (m_SymbolMap)
+COMMON_ORDER_MESSAGE *COrdersMap::GetMappedOrder(uint64_t uiOrderRefNumber) // called internally....only checks the Orders Map (m_SymbolMap)
 {
 
     pthread_mutex_lock(&mtxFindMap);
-    memset(&thrSOrder, '\0', sizeof(COMMON_ORDER_MESSAGE));// change thread local storage to regular
+    memset(&thrSOrder, '\0', sizeof(COMMON_ORDER_MESSAGE)); // change thread local storage to regular
 
-    m_itAuxSymbolMap =  m_SymbolMap.find(uiOrderRefNumber);
+    m_itAuxSymbolMap = m_SymbolMap.find(uiOrderRefNumber);
 
-    if (m_itAuxSymbolMap == m_SymbolMap.end()) {
+    if (m_itAuxSymbolMap == m_SymbolMap.end())
+    {
         pthread_mutex_unlock(&mtxFindMap);
         return nullptr;
     }
-    else {
+    else
+    {
         thrSOrder = m_itAuxSymbolMap->second;
         pthread_mutex_unlock(&mtxFindMap);
         return &thrSOrder;
     }
-    return nullptr;  // unreachable code
+    return nullptr; // unreachable code
 }
 //////////////////////////////////////////////////////////////////////////////////
-uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m_iMessage)
+uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION *pItchMessageUnion, int m_iMessage)
 {
     string strMessage;
     /*
@@ -249,39 +251,43 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
      	clock_gettime(CLOCK_REALTIME, &tspec);
              m_ui64OrderTime = (tspec.tv_sec * 1000000000) + tspec.tv_nsec;
     */
-    if (pItchMessageUnion == nullptr) {
-        nanosleep (&m_request, nullptr);  // sleep a 1/10 of a second
+    if (pItchMessageUnion == nullptr)
+    {
+        nanosleep(&m_request, nullptr); // sleep a 1/10 of a second
         // return m_ui64NumOfOrders;
     }
 
-    if (m_ui64NumOfOrders > m_uiNumberOfMessagesToHold) {
+    if (m_ui64NumOfOrders > m_uiNumberOfMessagesToHold)
+    {
         Logger::instance().log("Orders Map: Orders Map Exceeded Number of Orders to be Inserted in the Memory Mapped File...Inserted: ", Logger::Error);
-        Logger::instance().log(to_string(m_ui64NumOfOrders) , Logger::Error);
+        Logger::instance().log(to_string(m_ui64NumOfOrders), Logger::Error);
         m_iError = 300; // Enum later
         return m_ui64NumOfOrders;
     }
 
-    RetPair.second = true;  // not all the switch statements cases do an insert....
+    RetPair.second = true; // not all the switch statements cases do an insert....
     memset(&m_CommonOrder, '\0', m_uiSizeOfCommonOrderRecord);
 
-    switch (m_iMessage) {
-    case 'A':  // Add Order NO MPID
-        m_CommonOrder.cBuySell 		= pItchMessageUnion->AddOrderNoMPID.cBuySell;
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->AddOrderNoMPID.cMessageType;
-        m_CommonOrder.dPrice 		= pItchMessageUnion->AddOrderNoMPID.dPrice;
-        m_CommonOrder.iOrderRefNumber 	= pItchMessageUnion->AddOrderNoMPID.iOrderRefNumber;
-        m_CommonOrder.iShares 		= pItchMessageUnion->AddOrderNoMPID.iShares;
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->AddOrderNoMPID.iTimeStamp;
+    switch (m_iMessage)
+    {
+    case 'A': // Add Order NO MPID
+        m_CommonOrder.cBuySell = pItchMessageUnion->AddOrderNoMPID.cBuySell;
+        m_CommonOrder.cMessageType = pItchMessageUnion->AddOrderNoMPID.cMessageType;
+        m_CommonOrder.dPrice = pItchMessageUnion->AddOrderNoMPID.dPrice;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->AddOrderNoMPID.iOrderRefNumber;
+        m_CommonOrder.iShares = pItchMessageUnion->AddOrderNoMPID.iShares;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->AddOrderNoMPID.iTimeStamp;
         // No attribution...will attrib it to Nasdaq
         strcpy(m_CommonOrder.szMPID, "NSDQ");
         strcpy(m_CommonOrder.szStock, pItchMessageUnion->AddOrderNoMPID.szStock);
 
         pthread_mutex_lock(&mtxFindMap);
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_CommonOrder.iOrderRefNumber, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_CommonOrder.iOrderRefNumber)); // Will cause an error
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_CommonOrder.iOrderRefNumber, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_CommonOrder.iOrderRefNumber)); // Will cause an error
         pthread_mutex_unlock(&mtxFindMap);
 
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -294,30 +300,31 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Add Order No MPID) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
         }
 
         break;
 
-    case 'F':  // Add Order with MPID
-        m_CommonOrder.cBuySell 		= pItchMessageUnion->AddOrderMPID.cBuySell;
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->AddOrderMPID.cMessageType;
-        m_CommonOrder.dPrice 		= pItchMessageUnion->AddOrderMPID.dPrice;
-        m_CommonOrder.iOrderRefNumber 	= pItchMessageUnion->AddOrderMPID.iOrderRefNumber;
-        m_CommonOrder.iShares 		= pItchMessageUnion->AddOrderMPID.iShares;
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->AddOrderMPID.iTimeStamp;
+    case 'F': // Add Order with MPID
+        m_CommonOrder.cBuySell = pItchMessageUnion->AddOrderMPID.cBuySell;
+        m_CommonOrder.cMessageType = pItchMessageUnion->AddOrderMPID.cMessageType;
+        m_CommonOrder.dPrice = pItchMessageUnion->AddOrderMPID.dPrice;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->AddOrderMPID.iOrderRefNumber;
+        m_CommonOrder.iShares = pItchMessageUnion->AddOrderMPID.iShares;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->AddOrderMPID.iTimeStamp;
 
         strcpy(m_CommonOrder.szMPID, pItchMessageUnion->AddOrderMPID.szMPID);
         strcpy(m_CommonOrder.szStock, pItchMessageUnion->AddOrderMPID.szStock);
 
-
         pthread_mutex_lock(&mtxFindMap);
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_CommonOrder.iOrderRefNumber, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_CommonOrder.iOrderRefNumber));
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_CommonOrder.iOrderRefNumber, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_CommonOrder.iOrderRefNumber));
 
         pthread_mutex_unlock(&mtxFindMap);
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -330,41 +337,43 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Add Order With MPID) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
         }
 
         break;
 
-    case 'U':   // Replace Order
+    case 'U': // Replace Order
         m_pTempCommonOrder = nullptr;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderReplace.iOldOrderRefNumber);
+        m_pTempCommonOrder = GetMappedOrder(pItchMessageUnion->OrderReplace.iOldOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
         strcpy(m_CommonOrder.szStock, m_pTempCommonOrder->szStock);
         strcpy(m_CommonOrder.szMPID, m_pTempCommonOrder->szMPID);
 
-        m_CommonOrder.cBuySell             	=   m_pTempCommonOrder->cBuySell;
-        m_CommonOrder.iPrevShares          	=   m_pTempCommonOrder->iShares;
-        m_CommonOrder.dPrevPrice	       	=   m_pTempCommonOrder->dPrice;
+        m_CommonOrder.cBuySell = m_pTempCommonOrder->cBuySell;
+        m_CommonOrder.iPrevShares = m_pTempCommonOrder->iShares;
+        m_CommonOrder.dPrevPrice = m_pTempCommonOrder->dPrice;
 
         // Add the new one
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->OrderReplace.cMessageType;
-        m_CommonOrder.iOrderRefNumber  	= pItchMessageUnion->OrderReplace.iNewOrderRefNumber;
-        m_CommonOrder.iPrevOrderRefNumber 	= pItchMessageUnion->OrderReplace.iOldOrderRefNumber;
-        m_CommonOrder.iShares 		= pItchMessageUnion->OrderReplace.iShares;  // new Qty
-        m_CommonOrder.dPrice		= pItchMessageUnion->OrderReplace.dPrice;   // new Price
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->OrderReplace.iTimeStamp;
-        m_CommonOrder.TrackingNumber 	= pItchMessageUnion->OrderReplace.TrackingNumber;
+        m_CommonOrder.cMessageType = pItchMessageUnion->OrderReplace.cMessageType;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->OrderReplace.iNewOrderRefNumber;
+        m_CommonOrder.iPrevOrderRefNumber = pItchMessageUnion->OrderReplace.iOldOrderRefNumber;
+        m_CommonOrder.iShares = pItchMessageUnion->OrderReplace.iShares; // new Qty
+        m_CommonOrder.dPrice = pItchMessageUnion->OrderReplace.dPrice;   // new Price
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->OrderReplace.iTimeStamp;
+        m_CommonOrder.TrackingNumber = pItchMessageUnion->OrderReplace.TrackingNumber;
 
         pthread_mutex_lock(&mtxFindMap);
 
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_CommonOrder.iOrderRefNumber, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_CommonOrder.iOrderRefNumber)); // Will cause an error
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_CommonOrder.iOrderRefNumber, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_CommonOrder.iOrderRefNumber)); // Will cause an error
 
         pthread_mutex_unlock(&mtxFindMap);
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -377,37 +386,39 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Replace Order) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
         }
 
         break;
 
-    case 'E':  // Executed Order  // Tick Data
+    case 'E': // Executed Order  // Tick Data
         m_pTempCommonOrder = nullptr;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+        m_pTempCommonOrder = GetMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
         strcpy(m_CommonOrder.szStock, m_pTempCommonOrder->szStock);
         strcpy(m_CommonOrder.szMPID, m_pTempCommonOrder->szMPID);
-        m_CommonOrder.dPrice 		=   m_pTempCommonOrder->dPrice;
-        m_CommonOrder.cBuySell             	=   m_pTempCommonOrder->cBuySell;
+        m_CommonOrder.dPrice = m_pTempCommonOrder->dPrice;
+        m_CommonOrder.cBuySell = m_pTempCommonOrder->cBuySell;
 
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->OrderExecuted.cMessageType;
-        m_CommonOrder.iOrderRefNumber 	= pItchMessageUnion->OrderExecuted.iOrderRefNumber;
+        m_CommonOrder.cMessageType = pItchMessageUnion->OrderExecuted.cMessageType;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->OrderExecuted.iOrderRefNumber;
         // Hack....put the order match number in Prev Order
-        m_CommonOrder.iPrevOrderRefNumber  	= pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
-        m_CommonOrder.iShares 		= pItchMessageUnion->OrderExecuted.iShares;
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->OrderExecuted.iTimeStamp;
-        m_CommonOrder.TrackingNumber 	= pItchMessageUnion->OrderExecuted.TrackingNumber;
+        m_CommonOrder.iPrevOrderRefNumber = pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
+        m_CommonOrder.iShares = pItchMessageUnion->OrderExecuted.iShares;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->OrderExecuted.iTimeStamp;
+        m_CommonOrder.TrackingNumber = pItchMessageUnion->OrderExecuted.TrackingNumber;
 
         pthread_mutex_lock(&mtxFindMap);
 
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
         pthread_mutex_unlock(&mtxFindMap);
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -419,7 +430,8 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map...Error inserting in 'Map' in Orders Mapped File (Executed Order) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
             m_ui64OrderSequence++;
         }
@@ -427,29 +439,30 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
 
     case 'c': // Executed with price   // Tick Data
         m_pTempCommonOrder = nullptr;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber);
+        m_pTempCommonOrder = GetMappedOrder(pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
         strcpy(m_CommonOrder.szStock, m_pTempCommonOrder->szStock);
         strcpy(m_CommonOrder.szMPID, m_pTempCommonOrder->szMPID);
-        m_CommonOrder.cBuySell             	=   m_pTempCommonOrder->cBuySell;
-//	    m_CommonOrder.dPrice =  m_pTempCommonOrder->dPrice;
+        m_CommonOrder.cBuySell = m_pTempCommonOrder->cBuySell;
+        //	    m_CommonOrder.dPrice =  m_pTempCommonOrder->dPrice;
 
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
-        m_CommonOrder.iOrderRefNumber 	= pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber;
+        m_CommonOrder.cMessageType = pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->OrderExecutedWithPrice.iOrderRefNumber;
         // Hack....put the order match number in Prev Order
-        m_CommonOrder.iPrevOrderRefNumber  	= pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber; // Order Match number is Unique...try use as an index in the Sequence map
-        m_CommonOrder.iShares 		= pItchMessageUnion->OrderExecutedWithPrice.iShares;
-        m_CommonOrder.dPrice 		= pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
-        m_CommonOrder.TrackingNumber 	= pItchMessageUnion->OrderExecutedWithPrice.TrackingNumber;
+        m_CommonOrder.iPrevOrderRefNumber = pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber; // Order Match number is Unique...try use as an index in the Sequence map
+        m_CommonOrder.iShares = pItchMessageUnion->OrderExecutedWithPrice.iShares;
+        m_CommonOrder.dPrice = pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
+        m_CommonOrder.TrackingNumber = pItchMessageUnion->OrderExecutedWithPrice.TrackingNumber;
 
         pthread_mutex_lock(&mtxFindMap);
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
         pthread_mutex_unlock(&mtxFindMap);
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -462,39 +475,41 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map: Error inserting in 'Map' in Orders Mapped File (Executed with price) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
             m_ui64OrderSequence++;
         }
         break;
 
-    case 'X':  // Cancel Order
+    case 'X': // Cancel Order
         m_pTempCommonOrder = nullptr;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderCancel.iOrderRefNumber);
+        m_pTempCommonOrder = GetMappedOrder(pItchMessageUnion->OrderCancel.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
         strcpy(m_CommonOrder.szStock, m_pTempCommonOrder->szStock);
-        strcpy(m_CommonOrder.szMPID,  m_pTempCommonOrder->szMPID);
+        strcpy(m_CommonOrder.szMPID, m_pTempCommonOrder->szMPID);
 
-        m_CommonOrder.cBuySell             	=   m_pTempCommonOrder->cBuySell;
-        m_CommonOrder.dPrice               	=   m_pTempCommonOrder->dPrice;
+        m_CommonOrder.cBuySell = m_pTempCommonOrder->cBuySell;
+        m_CommonOrder.dPrice = m_pTempCommonOrder->dPrice;
 
-        m_CommonOrder.cMessageType 	       	= pItchMessageUnion->OrderCancel.cMessageType;
-        m_CommonOrder.iOrderRefNumber   	= pItchMessageUnion->OrderCancel.iOrderRefNumber;
+        m_CommonOrder.cMessageType = pItchMessageUnion->OrderCancel.cMessageType;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->OrderCancel.iOrderRefNumber;
 
         //Canceled Shares	The number of shares being removed from the display size of the order as the result of a cancellation.
-        m_CommonOrder.iShares 		= pItchMessageUnion->OrderCancel.iShares;
+        m_CommonOrder.iShares = pItchMessageUnion->OrderCancel.iShares;
 
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->OrderCancel.iTimeStamp;
-        m_CommonOrder.TrackingNumber 	= pItchMessageUnion->OrderCancel.TrackingNumber;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->OrderCancel.iTimeStamp;
+        m_CommonOrder.TrackingNumber = pItchMessageUnion->OrderCancel.TrackingNumber;
 
         pthread_mutex_lock(&mtxFindMap);
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_ui64OrderSequence , m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence));
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence));
         pthread_mutex_unlock(&mtxFindMap);
 
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -507,38 +522,39 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map...Error inserting in 'Map' in Orders Mapped File (Cancel Order) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
             m_ui64OrderSequence++;
         }
 
         break;
 
-    case 'D':  // Delete Order
+    case 'D': // Delete Order
         m_pTempCommonOrder = nullptr;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->OrderDelete.iOrderRefNumber);
+        m_pTempCommonOrder = GetMappedOrder(pItchMessageUnion->OrderDelete.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
-
         strcpy(m_CommonOrder.szStock, m_pTempCommonOrder->szStock);
-        strcpy(m_CommonOrder.szMPID,  m_pTempCommonOrder->szMPID);
+        strcpy(m_CommonOrder.szMPID, m_pTempCommonOrder->szMPID);
 
-        m_CommonOrder.iShares 		=   m_pTempCommonOrder->iShares;
-        m_CommonOrder.cBuySell             	=   m_pTempCommonOrder->cBuySell;
-        m_CommonOrder.dPrice               	=   m_pTempCommonOrder->dPrice;
+        m_CommonOrder.iShares = m_pTempCommonOrder->iShares;
+        m_CommonOrder.cBuySell = m_pTempCommonOrder->cBuySell;
+        m_CommonOrder.dPrice = m_pTempCommonOrder->dPrice;
 
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->OrderDelete.cMessageType;
-        m_CommonOrder.iOrderRefNumber 	= pItchMessageUnion->OrderDelete.iOrderRefNumber;
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->OrderDelete.iTimeStamp;
-        m_CommonOrder.TrackingNumber 	= pItchMessageUnion->OrderDelete.TrackingNumber;
+        m_CommonOrder.cMessageType = pItchMessageUnion->OrderDelete.cMessageType;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->OrderDelete.iOrderRefNumber;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->OrderDelete.iTimeStamp;
+        m_CommonOrder.TrackingNumber = pItchMessageUnion->OrderDelete.TrackingNumber;
 
         pthread_mutex_lock(&mtxFindMap);
 
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
         pthread_mutex_unlock(&mtxFindMap);
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -551,35 +567,36 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map...Error inserting in 'Map' in Orders Mapped File (Deleted Order) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
             m_ui64OrderSequence++;
         }
-    case 'P':  // Trade non-cross
+    case 'P': // Trade non-cross
         m_pTempCommonOrder = nullptr;
-        m_pTempCommonOrder     = GetMappedOrder(pItchMessageUnion->TradeNonCross.iOrderRefNumber);
+        m_pTempCommonOrder = GetMappedOrder(pItchMessageUnion->TradeNonCross.iOrderRefNumber);
         if (!m_pTempCommonOrder)
             break;
 
-
         strcpy(m_CommonOrder.szStock, m_pTempCommonOrder->szStock);
-        strcpy(m_CommonOrder.szMPID,  m_pTempCommonOrder->szMPID);
+        strcpy(m_CommonOrder.szMPID, m_pTempCommonOrder->szMPID);
 
-        m_CommonOrder.iShares 			=   m_pTempCommonOrder->iShares;
-        m_CommonOrder.cBuySell             	=   m_pTempCommonOrder->cBuySell;
-        m_CommonOrder.dPrice               	=   m_pTempCommonOrder->dPrice;
+        m_CommonOrder.iShares = m_pTempCommonOrder->iShares;
+        m_CommonOrder.cBuySell = m_pTempCommonOrder->cBuySell;
+        m_CommonOrder.dPrice = m_pTempCommonOrder->dPrice;
 
-        m_CommonOrder.cMessageType 		= pItchMessageUnion->TradeNonCross.cMessageType;
-        m_CommonOrder.iOrderRefNumber 		= pItchMessageUnion->TradeNonCross.iOrderRefNumber;
-        m_CommonOrder.iTimeStamp 		= pItchMessageUnion->TradeNonCross.iTimeStamp;
-        m_CommonOrder.TrackingNumber 		= pItchMessageUnion->TradeNonCross.TrackingNumber;
+        m_CommonOrder.cMessageType = pItchMessageUnion->TradeNonCross.cMessageType;
+        m_CommonOrder.iOrderRefNumber = pItchMessageUnion->TradeNonCross.iOrderRefNumber;
+        m_CommonOrder.iTimeStamp = pItchMessageUnion->TradeNonCross.iTimeStamp;
+        m_CommonOrder.TrackingNumber = pItchMessageUnion->TradeNonCross.TrackingNumber;
 
         pthread_mutex_lock(&mtxFindMap);
 
-        RetPair = m_SymbolMap.insert(pair<uint64_t , COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder) );
-        RetPair1 = m_SequenceMap.insert(pair<uint64_t , uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
+        RetPair = m_SymbolMap.insert(pair<uint64_t, COMMON_ORDER_MESSAGE>(m_ui64OrderSequence, m_CommonOrder));
+        RetPair1 = m_SequenceMap.insert(pair<uint64_t, uint64_t>(m_ui64NumOfOrders, m_ui64OrderSequence)); // Will cause an error
         pthread_mutex_unlock(&mtxFindMap);
-        if ((!RetPair.second) || (!RetPair1.second))  {
+        if ((!RetPair.second) || (!RetPair1.second))
+        {
             strMessage.clear();
             strMessage = "Order Ref Number: ";
             strMessage += to_string(m_CommonOrder.iOrderRefNumber);
@@ -592,7 +609,8 @@ uint64_t COrdersMap::FillMemoryMap(ITCH_MESSAGES_UNION* pItchMessageUnion, int m
             Logger::instance().log("Orders Map...Error inserting in 'Map' in Orders Mapped File (Deleted Order) ", Logger::Error);
             break;
         }
-        else {
+        else
+        {
             m_ui64NumOfOrders++;
             m_ui64OrderSequence++;
         }

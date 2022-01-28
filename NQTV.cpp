@@ -12,21 +12,14 @@
 CQuantApp::CQuantApp()
 {
 
-//  m_SOptions.dwBufferSize = 100000000; // Get from UI
-
+    //  m_SOptions.dwBufferSize = 100000000; // Get from UI
 }
 
 CQuantApp::~CQuantApp()
 {
-
 }
 /////////////////////////////////////////////////////////////////////
 // The one and only CSpryApp object
 CQuantApp theApp;
 
-
 // CSpryApp initialization
-
-
-
-

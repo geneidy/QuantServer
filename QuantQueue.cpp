@@ -1,22 +1,24 @@
 
 #include "QuantQueue.h"
 
-__thread u_int64_t CQuantQueue::m_Threadi64LastRead 	= 0;
+__thread u_int64_t CQuantQueue::m_Threadi64LastRead = 0;
 u_int64_t CQuantQueue::m_i64LastRead = 0;
 
-__thread u_int64_t CQuantQueue::m_Threadi64LastIndex 	= 0;
-__thread int CQuantQueue::m_ThreadiStatus 		= 0;
+__thread u_int64_t CQuantQueue::m_Threadi64LastIndex = 0;
+__thread int CQuantQueue::m_ThreadiStatus = 0;
 
+bool CQuantQueue::bConstructed = false; // Critical sections
 
-bool CQuantQueue::bConstructed = false;		// Critical sections
-
-atomic<CQuantQueue*> CQuantQueue::pinstance { nullptr };
+atomic<CQuantQueue *> CQuantQueue::pinstance{nullptr};
 std::mutex CQuantQueue::m_;
 
-CQuantQueue* CQuantQueue::Instance() {
-    if(pinstance == nullptr) {
+CQuantQueue *CQuantQueue::Instance()
+{
+    if (pinstance == nullptr)
+    {
         lock_guard<mutex> lock(m_);
-        if(pinstance == nullptr) {
+        if (pinstance == nullptr)
+        {
             pinstance = new CQuantQueue();
         }
     }
@@ -28,44 +30,43 @@ CQuantQueue::CQuantQueue()
     init();
 }
 ////////////////////////////////////////////////////////////////////////////////
-CQuantQueue::CQuantQueue(const CQuantQueue& other)
+CQuantQueue::CQuantQueue(const CQuantQueue &other)
 {
-
 }
 ////////////////////////////////////////////////////////////////////////////////
-CQuantQueue& CQuantQueue::operator=(const CQuantQueue& other)
+CQuantQueue &CQuantQueue::operator=(const CQuantQueue &other)
 {
-    return *this;  // for now
+    return *this; // for now
 }
 ////////////////////////////////////////////////////////////////////////////////
-bool CQuantQueue::operator==(const CQuantQueue& other) const
+bool CQuantQueue::operator==(const CQuantQueue &other) const
 {
-    return true;  // for now
+    return true; // for now
 }
 //////////////////////////////////////////////////////////////////
 void CQuantQueue::init()
 {
-//  Logger::instance().log("initialized the Queue", Logger::kLogLevelDebug);
+    //  Logger::instance().log("initialized the Queue", Logger::kLogLevelDebug);
     time_t ltime = 0;
-    time( &ltime );
+    time(&ltime);
 
     m_i64FreeElements = 0;
     m_ulTotalElements = 0;
-    
+
     m_i64QueueElement = 0;
 
     m_i64FreeElements = theApp.SSettings.uiQueueSize;
-    m_i64QueueSize = theApp.SSettings.uiQueueSize;  // Number of elements in the Queue
+    m_i64QueueSize = theApp.SSettings.uiQueueSize; // Number of elements in the Queue
 
     m_pHead = NULL;
-    m_pHead	= new QUANT_QUEUE[ m_i64QueueSize ];
+    m_pHead = new QUANT_QUEUE[m_i64QueueSize];
 
     if (!m_pHead)
     {
         //log error
         return;
     }
-/*    memset(m_pHead, '\0', sizeof(QUANT_QUEUE)* m_i64QueueSize);
+    /*    memset(m_pHead, '\0', sizeof(QUANT_QUEUE)* m_i64QueueSize);
 
     for (u_int64_t ii = 0; ii < m_i64QueueSize; ii++)
     {
@@ -75,7 +76,7 @@ void CQuantQueue::init()
         m_pHead[ii].i64NodeNumber	= ii;
     }
 */
-    m_pWriter	= m_pHead;
+    m_pWriter = m_pHead;
     m_pReader = m_pWriter;
 
     // ::TODO Initialize critical sections here
@@ -83,7 +84,7 @@ void CQuantQueue::init()
 
     bConstructed = true;
     m_i64LastWrite = 0;
-    
+
     memset(&m_QStat, 0, sizeof(QSTAT));
     // log
 }
@@ -97,7 +98,7 @@ int CQuantQueue::GetErrorCode()
 ////////////////////////////////////////////////////////////////////////////
 void CQuantQueue::InitReader(int iPosition)
 {   // one writer....multiple readers
-/*
+    /*
     if ((iPosition != POSITION_TOP) && (iPosition != POSTITON_CURRENT))
         iPosition = POSITION_TOP;
 
@@ -130,40 +131,39 @@ void CQuantQueue::InitReader(int iPosition)
 ////////////////////////////////////////////////////////////////////////////
 // A MUTEX HAS "NOT" TO BE UTILIZED BEFORE ANY CALL....or better yet....check on the last node number compared to the last you got
 ////////////////////////////////////////////////////////////////////////////
-void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader initialized in the InitReader Method
-{   // according to message type.....cast the returned void* to the appropriate message
+void *CQuantQueue::Dequeue(/*out*/ int *iMessgaType) // pass the same pReader initialized in the InitReader Method
+{                                                    // according to message type.....cast the returned void* to the appropriate message
     // If it returns a NULL ... Get error code and act accordingly
 
     // Reader catches up with Writer....can't advance any more...
     if (m_Threadi64LastRead >= m_i64LastWrite)
     {
-        m_ThreadiStatus = E_READER_EQ_WRITER;  // Calling thread should sleep
+        m_ThreadiStatus = E_READER_EQ_WRITER; // Calling thread should sleep
         *iMessgaType = E_READER_EQ_WRITER;
         return NULL; // Get error code and act accordingly
     }
 
-  
-   if (m_Threadi64LastIndex >  m_i64QueueSize) {//
+    if (m_Threadi64LastIndex > m_i64QueueSize)
+    { //
         m_Threadi64LastIndex = 0;
-	m_QStat.uiReadWrap++;
+        m_QStat.uiReadWrap++;
     }
 
-    m_Threadi64LastRead++;  // never reset
-    
-    
-//    m_i64LastRead = m_Threadi64LastRead;
+    m_Threadi64LastRead++; // never reset
 
-    
+    //    m_i64LastRead = m_Threadi64LastRead;
+
     *iMessgaType = m_pReader[m_Threadi64LastIndex].iMessagetype;
- 
-    switch (*iMessgaType)    {
+
+    switch (*iMessgaType)
+    {
     case 'S':
         m_QStat.uiDeqQSystemEvent++;
-        break;  // formality
-    case 'R' :
-	m_QStat.uiDeqQStockDirectory++;
+        break; // formality
+    case 'R':
+        m_QStat.uiDeqQStockDirectory++;
         break;
-    case 'H' :
+    case 'H':
         m_QStat.uiDeqQStockTradingAction++;
         break;
     case 'Y':
@@ -214,32 +214,32 @@ void* CQuantQueue::Dequeue( /*out*/int *iMessgaType)  // pass the same pReader i
     default:
         m_ThreadiStatus = E_INVALID_MESSAGE_TYPE;
         *iMessgaType = E_READER_EQ_WRITER;
-	m_QStat.uiEnqQUnknown++;
-        return NULL;   // Unknow message 
+        m_QStat.uiEnqQUnknown++;
+        return NULL; // Unknow message
         break;
     }
     m_i64LastRead++;
-    return  &m_pReader[m_Threadi64LastIndex++].QMessage;
+    return &m_pReader[m_Threadi64LastIndex++].QMessage;
 }
 ////////////////////////////////////////////////////////////////////////////
-int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
+int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION *pQueueElement, int iMessageType)
 {
 
     gettimeofday(&m_pWriter[m_i64QueueElement].lTime, NULL);
-    
+
     m_pWriter[m_i64QueueElement].QMessage = *pQueueElement;
     m_pWriter[m_i64QueueElement].i64NodeNumber++; // never reset
     m_pWriter[m_i64QueueElement].iMessagetype = iMessageType;
 
-    m_i64LastWrite++;	//never reset
-    
-    m_i64QueueElement++;	// advance to the next location to write
+    m_i64LastWrite++; //never reset
+
+    m_i64QueueElement++; // advance to the next location to write
     m_ulTotalElements++;
-    
+
     if (m_i64QueueElement >= m_i64QueueSize)
     {
-        m_i64QueueElement = 0;   // overwrite...start from the begining
-        m_i64FreeElements = m_i64QueueSize;  // wrap around
+        m_i64QueueElement = 0;              // overwrite...start from the begining
+        m_i64FreeElements = m_i64QueueSize; // wrap around
         m_QStat.uiQWrap++;
     }
     else
@@ -250,11 +250,11 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
     {
     case 'S':
         m_QStat.uiEnqQSystemEvent++;
-        break;  // formality
-    case 'R' :
-	m_QStat.uiEnqQStockDirectory++;
+        break; // formality
+    case 'R':
+        m_QStat.uiEnqQStockDirectory++;
         break;
-    case 'H' :
+    case 'H':
         m_QStat.uiEnqQStockTradingAction++;
         break;
     case 'Y':
@@ -303,7 +303,7 @@ int CQuantQueue::Enqueue(ITCH_MESSAGES_UNION* pQueueElement, int iMessageType)
         m_QStat.uiEnqQRPPI++;
         break;
     default:
-	m_QStat.uiEnqQUnknown++;
+        m_QStat.uiEnqQUnknown++;
         break;
     }
 
@@ -323,7 +323,7 @@ u_int64_t CQuantQueue::GetTotalFreeElements(void)
 ////////////////////////////////////////////////////////////////////////////
 int CQuantQueue::QueueEfficiency(void)
 {
-    return  (int)(m_i64FreeElements/m_i64QueueSize)*100;
+    return (int)(m_i64FreeElements / m_i64QueueSize) * 100;
 }
 //////////////////////////////////////////////////////////////////////////////
 u_int64_t CQuantQueue::GetNumberQueueElements(void)
@@ -334,7 +334,7 @@ u_int64_t CQuantQueue::GetNumberQueueElements(void)
 void CQuantQueue::ListQStats()
 {
     string strOut;
-    
+
     strOut.empty();
     strOut = "System Event Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQSystemEvent);
@@ -344,8 +344,7 @@ void CQuantQueue::ListQStats()
     strOut = "System Event Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQSystemEvent);
     Logger::instance().log(strOut, Logger::Info);
-    
- 
+
     strOut.empty();
     strOut = "Add Order Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQAddOrderNoMPID);
@@ -355,7 +354,7 @@ void CQuantQueue::ListQStats()
     strOut = "Add Order  Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQAddOrderNoMPID);
     Logger::instance().log(strOut, Logger::Info);
-    
+
     strOut.empty();
     strOut = "Add Order MPID Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQAddOrderMPID);
@@ -365,7 +364,6 @@ void CQuantQueue::ListQStats()
     strOut = "Add Order MPID Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQAddOrderMPID);
     Logger::instance().log(strOut, Logger::Info);
-    
 
     strOut.empty();
     strOut = "Replace Order Enqueue: ";
@@ -377,7 +375,6 @@ void CQuantQueue::ListQStats()
     strOut += to_string(m_QStat.uiDeqQOrderReplace);
     Logger::instance().log(strOut, Logger::Info);
 
-
     strOut.empty();
     strOut = "Cancel Order Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQOrderCancel);
@@ -387,7 +384,7 @@ void CQuantQueue::ListQStats()
     strOut = "Cancel Order Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQOrderCancel);
     Logger::instance().log(strOut, Logger::Info);
-    
+
     strOut.empty();
     strOut = "Delete Order Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQOrderDelete);
@@ -397,8 +394,7 @@ void CQuantQueue::ListQStats()
     strOut = "Delete Order Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQOrderDelete);
     Logger::instance().log(strOut, Logger::Info);
-    
-    
+
     strOut.empty();
     strOut = "Executed Order Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQOrderExecuted);
@@ -408,7 +404,6 @@ void CQuantQueue::ListQStats()
     strOut = "Executed Order Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQOrderExecuted);
     Logger::instance().log(strOut, Logger::Info);
-    
 
     strOut.empty();
     strOut = "Executed Order With Price Enqueue: ";
@@ -420,7 +415,6 @@ void CQuantQueue::ListQStats()
     strOut += to_string(m_QStat.uiDeqQOrderExecutedWithPrice);
     Logger::instance().log(strOut, Logger::Info);
 
-
     strOut.empty();
     strOut = "Unknown Enqueue: ";
     strOut += to_string(m_QStat.uiEnqQUnknown);
@@ -430,44 +424,40 @@ void CQuantQueue::ListQStats()
     strOut = "Unknown Dequeue: ";
     strOut += to_string(m_QStat.uiDeqQUnknown);
     Logger::instance().log(strOut, Logger::Info);
-
-    
-
 }
 ///////////////////////////////////////////////////////////////////////////////////////
 CQuantQueue::~CQuantQueue()
 {
-  
+
     Logger::instance().log("Start Destructing the Queue", Logger::Info);
- 
-    if (m_pHead != NULL)    {
+
+    if (m_pHead != NULL)
+    {
         delete[] m_pHead;
         m_pHead = NULL;
     }
-    
+
     string strLog;
 
     strLog.clear();
     strLog = "Queue Stats....Total Elements Queued: ";
-    strLog += to_string (m_i64LastWrite);  // never
+    strLog += to_string(m_i64LastWrite); // never
     Logger::instance().log(strLog, Logger::Info);
-        
+
     strLog.clear();
     strLog = "Queue Stats....Total Elements Dequeued: ";
-    strLog += to_string (m_i64LastRead);
+    strLog += to_string(m_i64LastRead);
     Logger::instance().log(strLog, Logger::Info);
-    
+
     strLog.clear();
     strLog = "Queue Stats....Number of Write Wrap around: ";
-    strLog += to_string (m_QStat.uiQWrap);
+    strLog += to_string(m_QStat.uiQWrap);
     Logger::instance().log(strLog, Logger::Info);
 
     strLog.clear();
     strLog = "Queue Stats....Number of Read Wrap around: ";
-    strLog += to_string (m_QStat.uiReadWrap);
+    strLog += to_string(m_QStat.uiReadWrap);
     Logger::instance().log(strLog, Logger::Info);
-            
-    
 
     Logger::instance().log("End Destructed the Queue", Logger::Info);
 }

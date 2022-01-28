@@ -30,30 +30,30 @@
 #include "QuantQueue.h"
 #include "ITCHMessages.h"
 
-
 class CSaveToDisk
 {
-  	CQuantQueue*	m_pQuantQueue;
-	ITCH_MESSAGES_UNION* pItchMessageUnion;  
+  CQuantQueue *m_pQuantQueue;
+  ITCH_MESSAGES_UNION *pItchMessageUnion;
+
 public:
-    CSaveToDisk();
-    CSaveToDisk(const CSaveToDisk& other);
-    ~CSaveToDisk();
-    CSaveToDisk& operator=(const CSaveToDisk& other);
-    bool operator==(const CSaveToDisk& other) const;
-    
-// int WriteFeedToFile(char cMessageType, ITCH_MESSAGES_UNION MessageToWrite);
-   int WriteFeedToFile();    
-   
-   uint64_t GetLastSequence();
-   QT_ITCH_MESSAGE GetMessageBySequence(uint64_t);
-   
-   uint64_t GetNumberOfMessagesInFile();
-   
-   static uint64_t  m_ui64WriteSequence;
-   QT_ITCH_MESSAGE  m_DiskMessage;
-   int m_iSizeOfMessage;
-   int m_iHandle;
+  CSaveToDisk();
+  CSaveToDisk(const CSaveToDisk &other);
+  ~CSaveToDisk();
+  CSaveToDisk &operator=(const CSaveToDisk &other);
+  bool operator==(const CSaveToDisk &other) const;
+
+  // int WriteFeedToFile(char cMessageType, ITCH_MESSAGES_UNION MessageToWrite);
+  int WriteFeedToFile();
+
+  uint64_t GetLastSequence();
+  QT_ITCH_MESSAGE GetMessageBySequence(uint64_t);
+
+  uint64_t GetNumberOfMessagesInFile();
+
+  static uint64_t m_ui64WriteSequence;
+  QT_ITCH_MESSAGE m_DiskMessage;
+  int m_iSizeOfMessage;
+  int m_iHandle;
 
   int m_iError;
   std::string m_strError;

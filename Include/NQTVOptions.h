@@ -1,6 +1,5 @@
 #pragma once
 
-
 // CNQTVOptions dialog
 
 class CNQTVOptions : public CDialogEx
@@ -8,16 +7,19 @@ class CNQTVOptions : public CDialogEx
 	DECLARE_DYNAMIC(CNQTVOptions)
 
 public:
-	CNQTVOptions(CWnd* pParent = NULL);   // standard constructor
+	CNQTVOptions(CWnd *pParent = NULL); // standard constructor
 	CNQTVOptions(bool bInit);
 	virtual ~CNQTVOptions();
 
-	BOOL   LoadOptions();
-// Dialog Data
-	enum { IDD = IDD_DIALOG_OPTIONS };
+	BOOL LoadOptions();
+	// Dialog Data
+	enum
+	{
+		IDD = IDD_DIALOG_OPTIONS
+	};
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual void DoDataExchange(CDataExchange *pDX); // DDX/DDV support
 	bool m_bInit;
 
 	DECLARE_MESSAGE_MAP()

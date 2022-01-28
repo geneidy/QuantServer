@@ -1,34 +1,35 @@
 #include "StatsPerSec.h"
 #include "NQTV.h"
 
-bool  CStatsPerSec::m_bReplay = true;  // to reset values
+bool CStatsPerSec::m_bReplay = true; // to reset values
 // timer_t  CStatsPerSec::firstTimerID = NULL;
 
 unsigned long CStatsPerSec::m_arrMessagesPerSec[MAX_MESSAGE_TYPES];
 
-SMESSAGESPERSEC  CStatsPerSec::m_SMessagesPerSec= {0};
-SMESSAGESPERSEC* CStatsPerSec::m_pMessagesPerSec = NULL;
-
+SMESSAGESPERSEC CStatsPerSec::m_SMessagesPerSec = {0};
+SMESSAGESPERSEC *CStatsPerSec::m_pMessagesPerSec = NULL;
 
 CStatsPerSec::CStatsPerSec()
 {
     m_iError = 0;
 
-//    firstTimerID = NULL;
+    //    firstTimerID = NULL;
 
-//    m_uiSizeOfSettingsRecord  = sizeof(SETTINGS);
+    //    m_uiSizeOfSettingsRecord  = sizeof(SETTINGS);
 
     m_Util = NULL;
     m_Util = new CUtil();
 
     struct stat st = {0};
 
-    if (stat("../QSettings", &st) == -1) {
+    if (stat("../QSettings", &st) == -1)
+    {
         int iRet = mkdir("../QStatsPerSec/", 0700);
         if (iRet == -1)
             m_iError = 1000;
     }
-    else {
+    else
+    {
 
         string strSettingsFile;
         strSettingsFile.empty();
@@ -36,65 +37,75 @@ CStatsPerSec::CStatsPerSec()
         strSettingsFile = "../QSettings/";
         strSettingsFile += "StatsPerSec.Qtx";
 
-        m_fd = open(strSettingsFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+        m_fd = open(strSettingsFile.c_str(), O_RDWR | O_CREAT, S_IRWXU);
 
-        if (m_fd == -1) {
+        if (m_fd == -1)
+        {
             Logger::instance().log("Stats Per second open File Mapping Error", Logger::Debug);
             m_iError = 100;
             // Set error code and exit
         }
-        if (!m_iError) {
-            if (fstat(m_fd, &m_sb) == -1) {
+        if (!m_iError)
+        {
+            if (fstat(m_fd, &m_sb) == -1)
+            {
                 Logger::instance().log("Stats Per second Error fstat", Logger::Debug);
                 m_iError = 110;
                 // Set error code and exit
             }
-            else   {
-                if (!InitMemoryMappedFile()) {
+            else
+            {
+                if (!InitMemoryMappedFile())
+                {
                     Logger::instance().log("Stats Per second Error Initializing", Logger::Error);
                     close(m_fd);
                     m_iError = 120;
                     // Set error code and exit
                 }
-                else {
-                    m_addr = mmap(NULL, m_sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, m_fd, 0);
+                else
+                {
+                    m_addr = mmap(NULL, m_sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, m_fd, 0);
 
-                    if (m_addr == MAP_FAILED) {
+                    if (m_addr == MAP_FAILED)
+                    {
                         Logger::instance().log("Stats Per second Error Mapping Failed", Logger::Error);
                         m_iError = 130;
                         // Set error code and exit
                     }
-                    m_pMessagesPerSec = (SMESSAGESPERSEC*) m_addr;  //  cast in COMMON_ORDER_MESSAGE...now you have an array in memory of common orders
+                    m_pMessagesPerSec = (SMESSAGESPERSEC *)m_addr; //  cast in COMMON_ORDER_MESSAGE...now you have an array in memory of common orders
                 }
             }
         } //   if (!m_iError) {
-    } //     if (stat("../QSettings", &st) == -1) {
+    }     //     if (stat("../QSettings", &st) == -1) {
     m_request.tv_sec = 0;
-    m_request.tv_nsec = 100000000;   // 1/10 of a second
+    m_request.tv_nsec = 100000000; // 1/10 of a second
 
     int rc = 0;
 
     memset(m_arrMessagesPerSec, 0, sizeof(m_arrMessagesPerSec));
 
     ResetPerSec();
-/*  // Disable for now....will call from the main thread
+    /*  // Disable for now....will call from the main thread
     char strFirstTimer[] = "First Timer";
 
     rc = makeTimer(strFirstTimer, &firstTimerID, 1000, 1000);
-*/// Disable for now....will call from the main thread
+*/
+    // Disable for now....will call from the main thread
 }
 /////////////////////////////////////////////////////////////////////////////////
 int CStatsPerSec::InitMemoryMappedFile()
 {
     memset(&m_SMessagesPerSec, '\0', sizeof(SMESSAGESPERSEC));
 
-    if (m_sb.st_size <  (sizeof(SMESSAGESPERSEC)) ) { // Fresh file
+    if (m_sb.st_size < (sizeof(SMESSAGESPERSEC)))
+    { // Fresh file
         Logger::instance().log("Initializing Stats Per second Mapped File", Logger::Debug);
         write(m_fd, &m_SMessagesPerSec, sizeof(SMESSAGESPERSEC));
         Logger::instance().log("Finished Initializing Stats Per second Mapped File", Logger::Debug);
     }
     fstat(m_fd, &m_sb);
-    if (m_sb.st_size <  sizeof(SMESSAGESPERSEC)) {
+    if (m_sb.st_size < sizeof(SMESSAGESPERSEC))
+    {
         Logger::instance().log("Error Initializing Stats Per second Mapped File", Logger::Error);
         m_iError = 200; // enum later
         return false;
@@ -110,7 +121,7 @@ int CStatsPerSec::GetError()
 /////////////////////////////////////////////////////////////////////////////////
 CStatsPerSec::~CStatsPerSec()
 {
-//    timer_delete(firstTimerID);
+    //    timer_delete(firstTimerID);
     msync(m_pMessagesPerSec, m_sb.st_size, MS_ASYNC);
     munmap(m_addr, m_sb.st_size);
 
@@ -122,41 +133,42 @@ CStatsPerSec::~CStatsPerSec()
 void CStatsPerSec::ResetPerSec()
 {
     memset(&m_SMessagesPerSec.arrMessagesPerSec, 0, sizeof(m_SMessagesPerSec.arrMessagesPerSec));
-    m_pMessagesPerSec =  &m_SMessagesPerSec;
+    m_pMessagesPerSec = &m_SMessagesPerSec;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void CStatsPerSec::SetPerSec()
 {
     static unsigned long arrTotalMessages[MAX_MESSAGE_TYPES];
 
-    if (m_bReplay) {
+    if (m_bReplay)
+    {
         memset(arrTotalMessages, 0, sizeof(arrTotalMessages));
         memset(m_SMessagesPerSec.arrMaxMessagesPerSec, 0, sizeof(m_SMessagesPerSec.arrMaxMessagesPerSec));
         m_bReplay = false;
     }
 
     for (int ii = 0; ii < MAX_MESSAGE_TYPES; ii++)
-        m_SMessagesPerSec.arrMessagesPerSec[ii]   =  theApp.g_arrTotalMessages[ii]  -  arrTotalMessages[ii];
+        m_SMessagesPerSec.arrMessagesPerSec[ii] = theApp.g_arrTotalMessages[ii] - arrTotalMessages[ii];
 
-    memmove(arrTotalMessages, theApp.g_arrTotalMessages, sizeof(arrTotalMessages));   // Move total messages to local total
-//  memmove(m_pMessagesPerSec->arrTotalMessages, theApp.g_arrTotalMessages, sizeof(arrTotalMessages));
+    memmove(arrTotalMessages, theApp.g_arrTotalMessages, sizeof(arrTotalMessages)); // Move total messages to local total
+    //  memmove(m_pMessagesPerSec->arrTotalMessages, theApp.g_arrTotalMessages, sizeof(arrTotalMessages));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void CStatsPerSec::SetMaxPerSec()
 {
 
-    for (int ii = 0; ii < MAX_MESSAGE_TYPES; ii++) {
-       if (m_SMessagesPerSec.arrMessagesPerSec[ii] > m_SMessagesPerSec.arrMaxMessagesPerSec[ii])
-	  m_SMessagesPerSec.arrMaxMessagesPerSec[ii]   = m_SMessagesPerSec.arrMessagesPerSec[ii];      
+    for (int ii = 0; ii < MAX_MESSAGE_TYPES; ii++)
+    {
+        if (m_SMessagesPerSec.arrMessagesPerSec[ii] > m_SMessagesPerSec.arrMaxMessagesPerSec[ii])
+            m_SMessagesPerSec.arrMaxMessagesPerSec[ii] = m_SMessagesPerSec.arrMessagesPerSec[ii];
     }
     //memmove(arrMessagesPerSec, theApp.g_arrMessagesPerSec, sizeof(arrMessagesPerSec));
-//    memmove(m_pMessagesPerSec->arrMaxMessagesPerSec, m_SMessagesPerSec.arrMaxMessagesPerSec, sizeof(m_arrMessagesPerSec));
-    
+    //    memmove(m_pMessagesPerSec->arrMaxMessagesPerSec, m_SMessagesPerSec.arrMaxMessagesPerSec, sizeof(m_arrMessagesPerSec));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
-int CStatsPerSec::makeTimer( char *name, timer_t *timerID, int expireMS, int intervalMS )
+int CStatsPerSec::makeTimer(char *name, timer_t *timerID, int expireMS, int intervalMS)
 {
-  /*
+    /*
     struct sigevent         te;
     struct itimerspec       its;
     struct sigaction        sa;
@@ -185,12 +197,12 @@ int CStatsPerSec::makeTimer( char *name, timer_t *timerID, int expireMS, int int
     its.it_value.tv_nsec = expireMS * 1000000;
     timer_settime(*timerID, 0, &its, NULL);
 */
-    return(0);
+    return (0);
 }
 ///////////////////////////////////////////////////////////////////////////////////
-void CStatsPerSec::timerHandler( int sig, siginfo_t *si, void *uc )
+void CStatsPerSec::timerHandler(int sig, siginfo_t *si, void *uc)
 {
-  /*
+    /*
     timer_t tidp;
     tidp = si->si_value.sival_ptr;
 
@@ -201,7 +213,7 @@ void CStatsPerSec::timerHandler( int sig, siginfo_t *si, void *uc )
         m_SMessagesPerSec = *m_pMessagesPerSec;  //  Update the memory mapped file of messages
     }
 */
-  /*
+    /*
      else if ( *tidp == secondTimerID )
          //secondCB(sig, si, uc);
      else if ( *tidp == thirdTimerID )

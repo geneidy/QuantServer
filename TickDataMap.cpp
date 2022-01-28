@@ -1,6 +1,6 @@
 #include "TickDataMap.h"
 
-#define SIZE_OF_ORDERS_FILE_NAME  71
+#define SIZE_OF_ORDERS_FILE_NAME 71
 //////////////////////////////////////////////////////////////////////////////////
 CTickDataMap::CTickDataMap()
 {
@@ -9,15 +9,17 @@ CTickDataMap::CTickDataMap()
     m_ui64NumOfTickData = 0;
 
     m_pcUtil = new CUtil();
-   
-    if (!m_pcUtil) {
+
+    if (!m_pcUtil)
+    {
         Logger::instance().log("Tick Data...Error Initializing CUtil", Logger::Error);
         m_iError = 100;
     }
 
     struct stat st = {0};
 
-    if (stat("../Ticks/", &st) == -1) {
+    if (stat("../Ticks/", &st) == -1)
+    {
         mkdir("../Ticks/", 0700);
     }
 
@@ -28,35 +30,41 @@ CTickDataMap::CTickDataMap()
     strTickFile += m_pcUtil->GetFormatedDate();
     strTickFile += "QuanticksTicks.qtx";
 
-//    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
-    m_fd = open64(strTickFile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+    //    m_fd = open64("./Ticks/QuanticksTickData.Qtx", O_RDWR|O_CREAT, S_IRWXU);
+    m_fd = open64(strTickFile.c_str(), O_RDWR | O_CREAT, S_IRWXU);
 
-    if (m_fd == -1) {
+    if (m_fd == -1)
+    {
         Logger::instance().log("Tick Data... open File Mapping Error", Logger::Error);
         m_iError = 100;
         // Set error code and exit
     }
-    if (!m_iError) {
+    if (!m_iError)
+    {
 
-        if (fstat64(m_fd, &m_sb) == -1) {
+        if (fstat64(m_fd, &m_sb) == -1)
+        {
             Logger::instance().log("Tick Data...Error fstat", Logger::Error);
             m_iError = 110;
             // Set error code and exit
         }
-        else {
+        else
+        {
             m_iSizeOfCommonTradeRecord = sizeof(COMMON_TRADE_MESSAGE); // Avoid computing the size million times every second
 
             m_pCOrdersMap = nullptr;
             m_pCOrdersMap = COrdersMap::instance();
-            if (m_pCOrdersMap) {
+            if (m_pCOrdersMap)
+            {
                 Logger::instance().log("Tick Data...Obtained Order Map File instance in Tick Data", Logger::Info);
             }
-            else {
-                m_iError = 200;  // enum later
+            else
+            {
+                m_iError = 200; // enum later
                 Logger::instance().log("Tick Data...Error Getting Order Map File instance in Tick Data", Logger::Error);
             }
             m_request.tv_sec = 0;
-            m_request.tv_nsec = 100000000;   // 1/10 of a second
+            m_request.tv_nsec = 100000000; // 1/10 of a second
         }
     }
 }
@@ -67,21 +75,23 @@ CTickDataMap::~CTickDataMap()
 
     if (m_pCOrdersMap)
         m_pCOrdersMap->iNInstance--;
-    
+
     string strMessage;
-    
+
     strMessage.clear();
-    
+
     strMessage = "Tick Data...Number of Ticks Inserted: ";
-    strMessage += to_string(m_ui64NumOfTickData); 
-    
+    strMessage += to_string(m_ui64NumOfTickData);
+
     Logger::instance().log(strMessage, Logger::Info);
-    
-    if (m_fd) {
-      close(m_fd);
+
+    if (m_fd)
+    {
+        close(m_fd);
     }
-    
-    if (m_pcUtil) {
+
+    if (m_pcUtil)
+    {
         delete m_pcUtil;
         m_pcUtil = nullptr;
     }
@@ -95,8 +105,8 @@ int CTickDataMap::GetError()
 //////////////////////////////////////////////////////////////////////////////////
 STickDataStat CTickDataMap::GetTickDataStat() // Total Trade records inserted
 {
-    m_STickDataStat.uiNumberOfMessagesToHold 	= m_uiNumberOfMessagesToHold; // Max
-    m_STickDataStat.ui64NumOfTickData 		= m_ui64NumOfTickData;  // last sequential number inserted
+    m_STickDataStat.uiNumberOfMessagesToHold = m_uiNumberOfMessagesToHold; // Max
+    m_STickDataStat.ui64NumOfTickData = m_ui64NumOfTickData;               // last sequential number inserted
     /*
         m_STickDataStat.uiFundamemtalMapSize 	= m_FundamentalMap.size();
         m_STickDataStat.uiFundamemtalMapMaxSize	= m_FundamentalMap.max_size();
@@ -109,49 +119,49 @@ STickDataStat CTickDataMap::GetTickDataStat() // Total Trade records inserted
 //////////////////////////////////////////////////////////////////////////////////
 uint64_t CTickDataMap::ReadFromOrdersMap()
 {
-  uint64_t m_ui64NumRequest = 0;
-//  int iSizeOfCommonOrder = sizeof(COMMON_ORDER_MESSAGE);
+    uint64_t m_ui64NumRequest = 0;
+    //  int iSizeOfCommonOrder = sizeof(COMMON_ORDER_MESSAGE);
     int iSizeOfCommonTrade = sizeof(COMMON_TRADE_MESSAGE);
-  
-  
-    while (theApp.SSettings.iStatus != STOPPED) {  // m_pCOrdersMap
+
+    while (theApp.SSettings.iStatus != STOPPED)
+    { // m_pCOrdersMap
         if (!m_pCOrdersMap)
             break;
-/*
+        /*
         if ((theApp.SSettings.iSystemEventCode == 'M') || (theApp.SSettings.iSystemEventCode == 'E') || (theApp.SSettings.iSystemEventCode == 'C'))   { // set close
             CloseBook();
         }
 */
         m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(m_ui64NumRequest++);
-	
-        if (m_pCommonOrder == nullptr) {
+
+        if (m_pCommonOrder == nullptr)
+        {
             m_ui64NumRequest--;
-            nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
+            nanosleep(&m_request, &m_remain); // sleep a 1/10 of a second
             continue;
         }
         memset(&m_CommonTrade, '\0', iSizeOfCommonTrade);
 
-	m_CommonTrade.cBuySell 		=  m_pCommonOrder->cBuySell;
-	m_CommonTrade.cMessageType 	= m_pCommonOrder->cMessageType;
-	m_CommonTrade.dPrice  		= m_pCommonOrder->dPrice;
-	m_CommonTrade.iMatchNumber	= m_pCommonOrder->iPrevOrderRefNumber;  // Hacking for not to add an extra field
-	m_CommonTrade.iOrderRefNumber	= m_pCommonOrder->iOrderRefNumber;
-	m_CommonTrade.iTimeStamp	= m_pCommonOrder->iTimeStamp;
-	strcpy(m_CommonTrade.szMPID, m_pCommonOrder->szMPID);
-	strcpy(m_CommonTrade.szStock, m_pCommonOrder->szStock);
+        m_CommonTrade.cBuySell = m_pCommonOrder->cBuySell;
+        m_CommonTrade.cMessageType = m_pCommonOrder->cMessageType;
+        m_CommonTrade.dPrice = m_pCommonOrder->dPrice;
+        m_CommonTrade.iMatchNumber = m_pCommonOrder->iPrevOrderRefNumber; // Hacking for not to add an extra field
+        m_CommonTrade.iOrderRefNumber = m_pCommonOrder->iOrderRefNumber;
+        m_CommonTrade.iTimeStamp = m_pCommonOrder->iTimeStamp;
+        strcpy(m_CommonTrade.szMPID, m_pCommonOrder->szMPID);
+        strcpy(m_CommonTrade.szStock, m_pCommonOrder->szStock);
 
-	
-	
         m_iMessage = m_pCommonOrder->cMessageType;
-        switch (m_iMessage) {
-        case 'E':  	// Order executed
-        case 'c':  	// Order executed  with price
-        case 'P':  
-	    write(m_fd, &m_CommonTrade, iSizeOfCommonTrade );
-	    m_ui64NumOfTickData++;
+        switch (m_iMessage)
+        {
+        case 'E': // Order executed
+        case 'c': // Order executed  with price
+        case 'P':
+            write(m_fd, &m_CommonTrade, iSizeOfCommonTrade);
+            m_ui64NumOfTickData++;
             break;
         default:
-	    break;
+            break;
             //return 0;
         }
     }
@@ -160,32 +170,35 @@ uint64_t CTickDataMap::ReadFromOrdersMap()
 //////////////////////////////////////////////////////////////////////////////////
 uint64_t CTickDataMap::FillTickFile()
 {
-// Get Messages from Queue....Save the order Messages and disregard others
+    // Get Messages from Queue....Save the order Messages and disregard others
 
-// ::TODO Check for the size limitation of the Memory Mapped File
-    while (theApp.SSettings.iStatus != STOPPED) {
-        pItchMessageUnion = (ITCH_MESSAGES_UNION*) m_pQuantQueue->Dequeue(&m_iMessage);
-        if (pItchMessageUnion == nullptr) {
-            nanosleep (&m_request, &m_remain);  // sleep a 1/10 of a second
-//            return m_ui64NumOfTickData;
+    // ::TODO Check for the size limitation of the Memory Mapped File
+    while (theApp.SSettings.iStatus != STOPPED)
+    {
+        pItchMessageUnion = (ITCH_MESSAGES_UNION *)m_pQuantQueue->Dequeue(&m_iMessage);
+        if (pItchMessageUnion == nullptr)
+        {
+            nanosleep(&m_request, &m_remain); // sleep a 1/10 of a second
+                                              //            return m_ui64NumOfTickData;
         }
 
         // Get Symbol from Orders Map...
 
-        switch (m_iMessage) {
-        case 'E':  // Executed Order  // Tick Data
-            m_pCommonOrder     = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+        switch (m_iMessage)
+        {
+        case 'E': // Executed Order  // Tick Data
+            m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pCommonOrder)
                 break;
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);
 
-            m_CommonTrade.cMessageType 	= pItchMessageUnion->OrderExecuted.cMessageType;
+            m_CommonTrade.cMessageType = pItchMessageUnion->OrderExecuted.cMessageType;
             strcpy(m_CommonTrade.szStock, m_pCommonOrder->szStock);
-            m_CommonTrade.iOrderRefNumber  	= pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
-            m_CommonTrade.iShares 		= pItchMessageUnion->OrderExecuted.iShares;
-            m_CommonTrade.iTimeStamp 		= pItchMessageUnion->OrderExecuted.iTimeStamp;
-            m_CommonTrade.dPrice		= m_pCommonOrder->dPrice;  // ::TODO Revise
+            m_CommonTrade.iOrderRefNumber = pItchMessageUnion->OrderExecuted.iOrderMatchNumber;
+            m_CommonTrade.iShares = pItchMessageUnion->OrderExecuted.iShares;
+            m_CommonTrade.iTimeStamp = pItchMessageUnion->OrderExecuted.iTimeStamp;
+            m_CommonTrade.dPrice = m_pCommonOrder->dPrice; // ::TODO Revise
 
             m_ui64NumOfTickData++;
 
@@ -232,19 +245,19 @@ uint64_t CTickDataMap::FillTickFile()
             break;
 
         case 'c': // Executed with price   // Tick Data
-            m_pCommonOrder     = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+            m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pCommonOrder)
                 break;
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);
 
-            m_CommonTrade.cMessageType 	= pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
+            m_CommonTrade.cMessageType = pItchMessageUnion->OrderExecutedWithPrice.cMessageType;
             strcpy(m_CommonTrade.szStock, m_pCommonOrder->szStock);
 
-            m_CommonTrade.iOrderRefNumber  	= pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber;
-            m_CommonTrade.iShares 		= pItchMessageUnion->OrderExecutedWithPrice.iShares;
-            m_CommonTrade.iTimeStamp 		= pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
-            m_CommonTrade.dPrice		= pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
+            m_CommonTrade.iOrderRefNumber = pItchMessageUnion->OrderExecutedWithPrice.iOrderMatchNumber;
+            m_CommonTrade.iShares = pItchMessageUnion->OrderExecutedWithPrice.iShares;
+            m_CommonTrade.iTimeStamp = pItchMessageUnion->OrderExecutedWithPrice.iTimeStamp;
+            m_CommonTrade.dPrice = pItchMessageUnion->OrderExecutedWithPrice.dExecutionPrice;
 
             write(m_fd, &m_CommonTrade, m_iSizeOfCommonTradeRecord);
             m_ui64NumOfTickData++;
@@ -285,22 +298,23 @@ uint64_t CTickDataMap::FillTickFile()
                             if (m_itFundamentalMap->second.dLast == m_pCommonTrade->dPrice)
                                 m_itFundamentalMap->second.cTick = '=';
                         }
-            */            break;
+            */
+            break;
 
-        case 'P' :  // TRADE_NON_CROSS_MESSAGE
-            m_pCommonOrder     = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
+        case 'P': // TRADE_NON_CROSS_MESSAGE
+            m_pCommonOrder = m_pCOrdersMap->GetMemoryMappedOrder(pItchMessageUnion->OrderExecuted.iOrderRefNumber);
             if (!m_pCommonOrder)
                 break;
 
             memset(&m_CommonTrade, '\0', m_iSizeOfCommonOrderRecord);
 
-            m_CommonTrade.cMessageType 	= pItchMessageUnion->TradeNonCross.cMessageType;
+            m_CommonTrade.cMessageType = pItchMessageUnion->TradeNonCross.cMessageType;
             strcpy(m_CommonTrade.szStock, m_pCommonOrder->szStock);
 
-            m_CommonTrade.iOrderRefNumber  	= pItchMessageUnion->TradeNonCross.iOrderRefNumber;
-            m_CommonTrade.iShares 		= pItchMessageUnion->TradeNonCross.iShares;
-            m_CommonTrade.iTimeStamp 		= pItchMessageUnion->TradeNonCross.iTimeStamp;
-            m_CommonTrade.dPrice		= pItchMessageUnion->TradeNonCross.dPrice;
+            m_CommonTrade.iOrderRefNumber = pItchMessageUnion->TradeNonCross.iOrderRefNumber;
+            m_CommonTrade.iShares = pItchMessageUnion->TradeNonCross.iShares;
+            m_CommonTrade.iTimeStamp = pItchMessageUnion->TradeNonCross.iTimeStamp;
+            m_CommonTrade.dPrice = pItchMessageUnion->TradeNonCross.dPrice;
 
             write(m_fd, &m_CommonTrade, m_iSizeOfCommonTradeRecord);
 
@@ -373,10 +387,10 @@ void CTickDataMap::InitFundamentalRecord()
     */
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-COMMON_TRADE_MESSAGE* CTickDataMap::GetTradeTicks(char* szStock)
+COMMON_TRADE_MESSAGE *CTickDataMap::GetTradeTicks(char *szStock)
 {
-// EXAMPLE Code to be copied in the calling Object....the return statement is the data to be used..............
-// DO NOT USE THIS CODE HERE AS IS ... REFER TO statement ABOVE
+    // EXAMPLE Code to be copied in the calling Object....the return statement is the data to be used..............
+    // DO NOT USE THIS CODE HERE AS IS ... REFER TO statement ABOVE
 
     /*    TickMap::iterator  it;
         pair <TickMap::iterator, TickMap::iterator> ret;
@@ -392,10 +406,10 @@ COMMON_TRADE_MESSAGE* CTickDataMap::GetTradeTicks(char* szStock)
     return nullptr;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-SFUNDAMENTAL_RECORD* CTickDataMap::GetFundamentalRecord(char* szStock)
+SFUNDAMENTAL_RECORD *CTickDataMap::GetFundamentalRecord(char *szStock)
 {
-// EXAMPLE Code to be copied in the calling Object....the return statement is the data to be used..............
-// DO NOT USE THIS CODE HERE AS IS ... REFER TO statement ABOVE
+    // EXAMPLE Code to be copied in the calling Object....the return statement is the data to be used..............
+    // DO NOT USE THIS CODE HERE AS IS ... REFER TO statement ABOVE
 
     /*    FundamentalMap::iterator it;
 
@@ -522,5 +536,3 @@ There are 3 elements with key y: 100 150 200
 There are 2 elements with key z: 250 300
 
 */
-
-

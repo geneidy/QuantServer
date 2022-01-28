@@ -2,10 +2,8 @@
 
 class CParseFeed
 {
-  
+
 public:
-  
   CParseFeed();
   ~CParseFeed();
-
 };

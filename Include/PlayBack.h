@@ -2,7 +2,6 @@
 class CPlayBack
 {
 public:
-  
-  CPlayBack();
+    CPlayBack();
   ~CPlayBack();
 };

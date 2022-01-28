@@ -1,10 +1,10 @@
 #include "SaveToDisk.h"
 
-uint64_t CSaveToDisk::m_ui64WriteSequence = 0;  // Last Message number written 
+uint64_t CSaveToDisk::m_ui64WriteSequence = 0; // Last Message number written
 
 //////////////////////////////////////////////////////////////////////////////////////////
 CSaveToDisk::CSaveToDisk()
-{/*
+{ /*
   m_iError = 0;
   m_iHandle = open("QuanticksDistributor.Qtx", O_CREAT|O_APPEND, S_IRWXG);  // -1 is returned on error
   
@@ -20,25 +20,23 @@ CSaveToDisk::CSaveToDisk()
   
   m_pQuantQueue->InitReader(POSITION_TOP);
   m_iSizeOfMessage = sizeof(QT_ITCH_MESSAGE);*/
-
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-CSaveToDisk::CSaveToDisk(const CSaveToDisk& other)
+CSaveToDisk::CSaveToDisk(const CSaveToDisk &other)
 {
   close(m_iHandle);
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 CSaveToDisk::~CSaveToDisk()
 {
-
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-CSaveToDisk& CSaveToDisk::operator=(const CSaveToDisk& other)
+CSaveToDisk &CSaveToDisk::operator=(const CSaveToDisk &other)
 {
   return *this;
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-bool CSaveToDisk::operator==(const CSaveToDisk& other) const
+bool CSaveToDisk::operator==(const CSaveToDisk &other) const
 {
   return true;
 }
@@ -46,9 +44,8 @@ bool CSaveToDisk::operator==(const CSaveToDisk& other) const
 uint64_t CSaveToDisk::GetNumberOfMessagesInFile()
 {
   // later on...
-  
+
   return 1;
-  
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 uint64_t CSaveToDisk::GetLastSequence()
@@ -60,7 +57,7 @@ uint64_t CSaveToDisk::GetLastSequence()
 int CSaveToDisk::WriteFeedToFile()
 {
   // File format : One struct containing the sequence, messagetype and then the Union
-/*
+  /*
   int iMessage = 0;
   memset(&m_DiskMessage, '\0', m_iSizeOfMessage);
 
@@ -105,59 +102,63 @@ int CSaveToDisk::WriteFeedToFile()
 QT_ITCH_MESSAGE CSaveToDisk::GetMessageBySequence(uint64_t uiMessageSequence)
 {
   QT_ITCH_MESSAGE Return_ITCH_MESSAGE;
-  ssize_t iRet =0;
-  off_t  oRet = lseek64(m_iHandle, uiMessageSequence * m_iSizeOfMessage , SEEK_SET);
-  
-  if (oRet == -1){
+  ssize_t iRet = 0;
+  off_t oRet = lseek64(m_iHandle, uiMessageSequence * m_iSizeOfMessage, SEEK_SET);
+
+  if (oRet == -1)
+  {
     m_strError.empty();
-      m_iError = 1;
-    switch(errno) {
-      case EBADF:
-	m_strError = "fd is not an open file descriptor";
-	break;
-      case EINVAL:
-	m_strError = "whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device.";
-	break;
-      case EOVERFLOW:
-	m_strError = "The resulting file offset cannot be represented in an off_t.";
-	break;
-      case ESPIPE:
-	m_strError = "fd is associated with a pipe, socket, or FIFO.";
-	break;
-      case ENXIO:
-	m_strError = "Whence is SEEK_DATA or SEEK_HOLE, and the current file offset is beyond the end of the file.";
-	break;
-      default:
-	m_strError = "Unknown Error";
-	break;
+    m_iError = 1;
+    switch (errno)
+    {
+    case EBADF:
+      m_strError = "fd is not an open file descriptor";
+      break;
+    case EINVAL:
+      m_strError = "whence is not valid. Or: the resulting file offset would be negative, or beyond the end of a seekable device.";
+      break;
+    case EOVERFLOW:
+      m_strError = "The resulting file offset cannot be represented in an off_t.";
+      break;
+    case ESPIPE:
+      m_strError = "fd is associated with a pipe, socket, or FIFO.";
+      break;
+    case ENXIO:
+      m_strError = "Whence is SEEK_DATA or SEEK_HOLE, and the current file offset is beyond the end of the file.";
+      break;
+    default:
+      m_strError = "Unknown Error";
+      break;
     }
   }
 
   iRet = read(m_iHandle, &Return_ITCH_MESSAGE, m_iSizeOfMessage);
-  
-  if (iRet == -1) {
+
+  if (iRet == -1)
+  {
     m_strError.empty();
-    switch(errno) {
-       m_iError = 1;
-      case EBADF:
-	m_strError = "fd is not a valid file descriptor or is not open for reading";
-	break;
-      case EFAULT:
-	m_strError = "buf is outside your accessible address space";
-	break;
-      case EINTR:
-	m_strError = "The call was interrupted by a signal before any data was read";
-	break;
-      case EINVAL:
-	m_strError = "fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the current file offset is not suitably aligned";
-	break;
-      case EIO:
-	m_strError = "I/O error. This will happen for example when the process is in a background process group, tries to read from its controlling terminal, and either it is ignoring or blocking SIGTTIN or its process group is orphaned. It may also occur when there is a low-level I/O error while reading from a disk or tape.";
-	break;
-      default:
-	m_strError = "Unknown Error";
-	break;
-    }	
+    switch (errno)
+    {
+      m_iError = 1;
+    case EBADF:
+      m_strError = "fd is not a valid file descriptor or is not open for reading";
+      break;
+    case EFAULT:
+      m_strError = "buf is outside your accessible address space";
+      break;
+    case EINTR:
+      m_strError = "The call was interrupted by a signal before any data was read";
+      break;
+    case EINVAL:
+      m_strError = "fd is attached to an object which is unsuitable for reading; or the file was opened with the O_DIRECT flag, and either the address specified in buf, the value specified in count, or the current file offset is not suitably aligned";
+      break;
+    case EIO:
+      m_strError = "I/O error. This will happen for example when the process is in a background process group, tries to read from its controlling terminal, and either it is ignoring or blocking SIGTTIN or its process group is orphaned. It may also occur when there is a low-level I/O error while reading from a disk or tape.";
+      break;
+    default:
+      m_strError = "Unknown Error";
+      break;
+    }
   }
   return Return_ITCH_MESSAGE;
 }
@@ -166,10 +167,8 @@ string CSaveToDisk::GetErrorString()
 {
   m_iError = 0;
   return m_strError;
-  
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 /*
   switch (m_iHandle){

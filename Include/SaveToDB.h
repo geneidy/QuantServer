@@ -9,15 +9,13 @@
 
 #include "ITCHMessages.h"
 
-
 class CSaveToDB
 {
 public:
   CSaveToDB();
-  
+
   ~CSaveToDB();
-  
+
   int m_iError;
   int GetError();
-   
 };

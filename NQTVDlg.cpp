@@ -21,7 +21,7 @@
 
 #undef MAIN_MODULE
 
-CReceiveITCH  *CNQTVDlg::m_pCQtReceiveITCH;
+CReceiveITCH *CNQTVDlg::m_pCQtReceiveITCH;
 
 FEED_MESSAGE_STATS CNQTVDlg::m_MessageStats;
 bool CNQTVDlg::m_bTestFeed = false;
@@ -35,7 +35,7 @@ CUtil myUtil2;
 // CNQTVDlg message handlers
 CNQTVDlg::CNQTVDlg()
 {
-//	_T(szMessages[ii]));	// 0  per second, 1 max per second,  2 total
+    //	_T(szMessages[ii]));	// 0  per second, 1 max per second,  2 total
 
     memset(theApp.g_arrMessagesPerSec, 0, sizeof(theApp.g_arrMessagesPerSec));
     memset(theApp.g_arrMaxMessagesPerSec, 0, sizeof(theApp.g_arrMaxMessagesPerSec));
@@ -46,13 +46,11 @@ CNQTVDlg::CNQTVDlg()
 
     rc = makeTimer(strFirstTimer, &firstTimerID, 1000, 1000);
 
-
-//   return rc;   // Raise a flag...cannot return from a constructor
-
+    //   return rc;   // Raise a flag...cannot return from a constructor
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
-MYSQL* CNQTVDlg::ConnectMySql(char* host_name, char* user_name, char* password, char* db_name,
-                              unsigned int port_num, char* socket_name, unsigned int flags)
+MYSQL *CNQTVDlg::ConnectMySql(char *host_name, char *user_name, char *password, char *db_name,
+                              unsigned int port_num, char *socket_name, unsigned int flags)
 {
 
     /*
@@ -70,26 +68,25 @@ MYSQL* CNQTVDlg::ConnectMySql(char* host_name, char* user_name, char* password, 
         return(NULL);
       }
     */
-//    return(theApp.conn);	// connection is established
-    return NULL;	// connection is established
+    //    return(theApp.conn);	// connection is established
+    return NULL; // connection is established
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 int CNQTVDlg::InsertRow()
 {
-    return 1;  // enum error codes to return
+    return 1; // enum error codes to return
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 //int
 void CNQTVDlg::Disconnect1MySql()
 {
-//	mysql_close(theApp.conn); //TODO: make return code conditional on success or failure
+    //	mysql_close(theApp.conn); //TODO: make return code conditional on success or failure
     //return 1;  // enum error codes to return
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 CNQTVDlg::~CNQTVDlg()
 {
     timer_delete(firstTimerID);
-
 }
 /*/////////////////////////////////////////////////////////////////////////////////////////////
 void CNQTVDlg::timer_handler (int signum)
@@ -108,18 +105,16 @@ void CNQTVDlg::timer_handler (int signum)
 
 }
 ////////////////////////////////////////////////////////////////*/
-void CNQTVDlg::FeedPause()  // Feed Pause
+void CNQTVDlg::FeedPause() // Feed Pause
 {
 
     theApp.g_iFlag = theApp.g_iFeedStatus = PAUSSING;
     //init the pause flag
 
-
     theApp.g_iFlag = theApp.g_iFeedStatus = PAUSSED;
-
 }
 ///////////////////////////////////////////////////////////////////////////////////
-void CNQTVDlg::FeedStop()  // Feed Stop
+void CNQTVDlg::FeedStop() // Feed Stop
 {
 
     theApp.g_iFlag = theApp.g_iFeedStatus = STOPPING;
@@ -138,13 +133,12 @@ void CNQTVDlg::FeedStop()  // Feed Stop
 
     **/
     ResetPerSec();
-//	SetMaxPerSec();
-
+    //	SetMaxPerSec();
 }
 ///////////////////////////////////////////////////////////////////////////////////
-int CNQTVDlg::FeedStart()  // Incomming Feed  thread....
+int CNQTVDlg::FeedStart() // Incomming Feed  thread....
 {
- /*   memset(theApp.g_arrMessagesPerSec,	0, sizeof(theApp.g_arrMessagesPerSec));
+    /*   memset(theApp.g_arrMessagesPerSec,	0, sizeof(theApp.g_arrMessagesPerSec));
     memset(theApp.g_arrMaxMessagesPerSec,	0, sizeof(theApp.g_arrMaxMessagesPerSec));
     memset(theApp.g_arrTotalMessages,		0, sizeof(theApp.g_arrTotalMessages));
 
@@ -184,7 +178,7 @@ int CNQTVDlg::FeedStart()  // Incomming Feed  thread....
     m_ctrlListStats.InsertItem(MAX_MESSAGE_TYPES + 1, _T("End Time"));
     m_ctrlListStats.SetItem(MAX_MESSAGE_TYPES+ 1, 1, LVIF_TEXT, CString(theApp.g_Stats.strEndTime), 0,0,0,0);
     */
-    return 1;// TODO enum the error codes
+    return 1; // TODO enum the error codes
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void CNQTVDlg::SetPerSec()
@@ -200,9 +194,9 @@ void CNQTVDlg::SetPerSec()
     }
 
     for (int ii = 0; ii < MAX_MESSAGE_TYPES; ii++)
-        theApp.g_arrMessagesPerSec[ii]   =  theApp.g_arrTotalMessages[ii]  -  arrTotalMessages[ii];
+        theApp.g_arrMessagesPerSec[ii] = theApp.g_arrTotalMessages[ii] - arrTotalMessages[ii];
 
-    memmove(arrTotalMessages, theApp.g_arrTotalMessages, sizeof(arrTotalMessages));   // Move total messages to local total
+    memmove(arrTotalMessages, theApp.g_arrTotalMessages, sizeof(arrTotalMessages)); // Move total messages to local total
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 void CNQTVDlg::ResetPerSec()
@@ -214,17 +208,17 @@ void CNQTVDlg::SetMaxPerSec()
 {
 
     for (int ii = 0; ii < MAX_MESSAGE_TYPES; ii++)
-        theApp.g_arrMaxMessagesPerSec[ii]   = (theApp.g_arrMaxMessagesPerSec[ii] > arrMessagesPerSec[ii]) ? theApp.g_arrMaxMessagesPerSec[ii] : arrMessagesPerSec[ii];
+        theApp.g_arrMaxMessagesPerSec[ii] = (theApp.g_arrMaxMessagesPerSec[ii] > arrMessagesPerSec[ii]) ? theApp.g_arrMaxMessagesPerSec[ii] : arrMessagesPerSec[ii];
 
     memmove(arrMessagesPerSec, theApp.g_arrMessagesPerSec, sizeof(arrMessagesPerSec));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
-int CNQTVDlg::makeTimer( char *name, timer_t *timerID, int expireMS, int intervalMS )
+int CNQTVDlg::makeTimer(char *name, timer_t *timerID, int expireMS, int intervalMS)
 {
-    struct sigevent         te;
-    struct itimerspec       its;
-    struct sigaction        sa;
-    int                     sigNo = SIGRTMIN;
+    struct sigevent te;
+    struct itimerspec its;
+    struct sigaction sa;
+    int sigNo = SIGRTMIN;
 
     /* Set up signal handler. */
     sa.sa_flags = SA_SIGINFO;
@@ -233,7 +227,7 @@ int CNQTVDlg::makeTimer( char *name, timer_t *timerID, int expireMS, int interva
     if (sigaction(sigNo, &sa, NULL) == -1)
     {
         //fprintf(stderr, "%s: Failed to setup signal handling for %s.\n", PROG, name);
-        return(-1);
+        return (-1);
     }
 
     /* Set and enable alarm */
@@ -248,11 +242,11 @@ int CNQTVDlg::makeTimer( char *name, timer_t *timerID, int expireMS, int interva
     its.it_value.tv_nsec = expireMS * 1000000;
     timer_settime(*timerID, 0, &its, NULL);
 
-    return(0);
+    return (0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-void CNQTVDlg::timerHandler( int sig, siginfo_t *si, void *uc )
+void CNQTVDlg::timerHandler(int sig, siginfo_t *si, void *uc)
 {
     timer_t tidp;
     tidp = si->si_value.sival_ptr;

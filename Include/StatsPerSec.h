@@ -1,5 +1,5 @@
 #pragma once
-#include  <sys/mman.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
@@ -14,50 +14,47 @@
 #include "ITCHMessages.h"
 #include "Settings.h"
 
-
 // #define _POSIX_C_SOURCE 199309
 
 using namespace std;
 
-typedef struct SMessagesPerSec {
+typedef struct SMessagesPerSec
+{
   unsigned long arrMessagesPerSec[MAX_MESSAGE_TYPES];
   unsigned long arrMaxMessagesPerSec[MAX_MESSAGE_TYPES];
   unsigned long arrTotalMessages[MAX_MESSAGE_TYPES];
-}SMESSAGESPERSEC;
+} SMESSAGESPERSEC;
 
 class CStatsPerSec
 {
 private:
-    void* m_addr;
-    int m_fd;
-    struct stat m_sb;
+  void *m_addr;
+  int m_fd;
+  struct stat m_sb;
 
-    int InitMemoryMappedFile();
+  int InitMemoryMappedFile();
 
-    int m_iError;
-    static bool m_bReplay;
+  int m_iError;
+  static bool m_bReplay;
 
-    struct timespec m_request, m_remain;
-    static timer_t firstTimerID;
-    
-static    SMESSAGESPERSEC  m_SMessagesPerSec;
-static    SMESSAGESPERSEC* m_pMessagesPerSec;
+  struct timespec m_request, m_remain;
+  static timer_t firstTimerID;
 
-    CUtil*  m_Util;
+  static SMESSAGESPERSEC m_SMessagesPerSec;
+  static SMESSAGESPERSEC *m_pMessagesPerSec;
 
-      static void ResetPerSec();
+  CUtil *m_Util;
 
-    int  makeTimer( char *name, timer_t *timerID, int expireMS, int intervalMS );
-      static void timerHandler( int sig, siginfo_t *si, void *uc );
-      static unsigned long m_arrMessagesPerSec[MAX_MESSAGE_TYPES];
+  static void ResetPerSec();
 
+  int makeTimer(char *name, timer_t *timerID, int expireMS, int intervalMS);
+  static void timerHandler(int sig, siginfo_t *si, void *uc);
+  static unsigned long m_arrMessagesPerSec[MAX_MESSAGE_TYPES];
 
 public:
-    CStatsPerSec();
-    ~CStatsPerSec();
-    int GetError();
-      static void SetMaxPerSec();
-      static void SetPerSec();
-
-
+  CStatsPerSec();
+  ~CStatsPerSec();
+  int GetError();
+  static void SetMaxPerSec();
+  static void SetPerSec();
 };

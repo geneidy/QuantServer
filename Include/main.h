@@ -19,13 +19,14 @@
 //#include "BuildBookSTL.h"
 #include "OrdersMap.h"
 #include "TickDataMap.h"
-#include  "ReceiveITCH.h"
-#include  "QuantQueue.h"
-#include  "StatsPerSec.h"
+#include "ReceiveITCH.h"
+#include "QuantQueue.h"
+#include "StatsPerSec.h"
 
 #include "SaveOrdersToDisc.h"
 
-enum tstate {
+enum tstate
+{
     TS_INACTIVE,
     TS_STARTING,
     TS_STARTED,
@@ -34,83 +35,80 @@ enum tstate {
     TS_JOINED
 };
 
-typedef struct ThreadData {
-    int 	idx;
-    void* 	pVoid;
-    int  	iTotalThreads;
+typedef struct ThreadData
+{
+    int idx;
+    void *pVoid;
+    int iTotalThreads;
     CQuantQueue *g_pCQuantQueue;
 } THREAD_DATA;
 
 THREAD_DATA g_SThreadData;
 
-bool	g_bSettingsLoaded;
+bool g_bSettingsLoaded;
 
 typedef struct thread_info
-{   /* Used as argument to thread_start() */
-    pthread_t 	thread_id;        /* ID returned by pthread_create() */
-    enum 	tstate eState;
-    int       	iThread_num;       /* Application-defined thread # */
-    char     	*thread_message;      /* Saying Hello */
+{                        /* Used as argument to thread_start() */
+    pthread_t thread_id; /* ID returned by pthread_create() */
+    enum tstate eState;
+    int iThread_num;      /* Application-defined thread # */
+    char *thread_message; /* Saying Hello */
 } THREAD_INFO;
 
 THREAD_INFO arrThreadInfo[NUMBER_OF_ROLES];
 int PrimeSettings();
 //////////////////////////////////////
-void *Settings(void* );
-void *MainQueue(void* );
+void *Settings(void *);
+void *MainQueue(void *);
 //////////////////////////////////////
 
-void *ReceiveFeed(void*);
-void *ParseFeed(void*);
-void *BuildBook(void*);
-void *SaveToDB(void*);
-void *PlayBack(void*);
+void *ReceiveFeed(void *);
+void *ParseFeed(void *);
+void *BuildBook(void *);
+void *SaveToDB(void *);
+void *PlayBack(void *);
 
-void *NasdTestFile(void*);
-void *StatsPerSec(void*);
+void *NasdTestFile(void *);
+void *StatsPerSec(void *);
 
-void *Distributor(void* );
-void *SaveToDisk(void*);
-void *OrdersMap(void* );
-void *TickDataMap(void*);
-void *SaveOrdersToDisc (void*);
+void *Distributor(void *);
+void *SaveToDisk(void *);
+void *OrdersMap(void *);
+void *TickDataMap(void *);
+void *SaveOrdersToDisc(void *);
 void InitThreadLog(int);
 void TermThreadLog(int);
 
+void *(*func_ptr[NUMBER_OF_ROLES])(void *) =
+    {MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap,
+     BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile,
+     StatsPerSec, SaveOrdersToDisc, Distributor, SaveToDisk}; // All Roles for the server functions are here
 
+const char *ThreadMessage[NUMBER_OF_ROLES + 1] =
+    {"Main Queue Thread", "Settings Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread",
+     "Build Book Thread", "Tick Data Thread", "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread",
+     "Stats Per Second Thread", "Save Orders To Disc", "Distributor Thread", "Save To Disk Thread"};
 
-void* (*func_ptr[NUMBER_OF_ROLES])(void*) = \
-{MainQueue, Settings, ReceiveFeed, ParseFeed, OrdersMap,\
- BuildBook, TickDataMap, SaveToDB, PlayBack, NasdTestFile,\
- StatsPerSec, SaveOrdersToDisc, Distributor, SaveToDisk};  // All Roles for the server functions are here
+struct timespec m_request, m_remain;
 
-const char *ThreadMessage[NUMBER_OF_ROLES +1] = \
-{   "Main Queue Thread", "Settings Thread", "Receive Feed Thread", "Parse Thread", "Orders Map Thread", \
-    "Build Book Thread", "Tick Data Thread", "Save To DB Thread", "Play Back Thread", "Nasd Test File Thread",\
-    "Stats Per Second Thread", "Save Orders To Disc", "Distributor Thread", "Save To Disk Thread"
-};
-
-  struct timespec m_request, m_remain;
-  
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-CSaveToDisk* 	pCSaveToDisk;
-CSaveToDB* 	pCSaveToDB;
-//CBuildBookSTL* 	pCBuildBook;
-CBuildBook* 	pCBuildBook;
-COrdersMap* 	pCOrdersMap;
-CTickDataMap* pCTickDataMap;
-CReceiveITCH* pCReceiveITCH;
-CQuantQueue * pCQuantQueue;
+    CSaveToDisk *pCSaveToDisk;
+    CSaveToDB *pCSaveToDB;
+    //CBuildBookSTL* 	pCBuildBook;
+    CBuildBook *pCBuildBook;
+    COrdersMap *pCOrdersMap;
+    CTickDataMap *pCTickDataMap;
+    CReceiveITCH *pCReceiveITCH;
+    CQuantQueue *pCQuantQueue;
 
-CQSettings*   pCQSettings;
-CStatsPerSec* pCStatsPerSec;
-//CDisplayBook* pCDisplayBook;
-CSaveOrdersToDisc*  pCSaveOrdersToDisc;
+    CQSettings *pCQSettings;
+    CStatsPerSec *pCStatsPerSec;
+    //CDisplayBook* pCDisplayBook;
+    CSaveOrdersToDisc *pCSaveOrdersToDisc;
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
-
