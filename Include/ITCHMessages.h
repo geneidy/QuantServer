@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the QuantServer (https://github.com/geneidy/QuantServer).
+ * Copyright (c) 2017 geneidy.
+ * 
+ * This program is free software: you can redistribute it and/or modify  
+ * it under the terms of the GNU General Public License as published by  
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 #include <inttypes.h>
 
@@ -23,7 +39,7 @@
 
 
 //ITCH messages
-// – DAILY
+// ï¿½ DAILY
 /*
 #define  SYSTEM_EVENT_CODES_SIZE  7
 #ifdef  MainModule
@@ -49,7 +65,7 @@ extern char *SYSTEM_EVENT_CODES [SYSTEM_EVENT_CODES_SIZE][SYSTEM_EVENT_CODES_SIZ
 
 typedef struct  //uint64_t u64_t
 {								//Name	Offset	Length	Value	Notes
-	char			cMessageType;			//Message  Type	0	1	“S”	System Event Message.
+	char			cMessageType;			//Message  Type	0	1	ï¿½Sï¿½	System Event Message.
 	unsigned  int		iStockLocale;			//Stock Locate	1	2	Integer	Always 0
 	unsigned  int		iTrackingNumber;		//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t		iTimeStamp;			//Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -74,7 +90,7 @@ typedef struct  //uint64_t u64_t
 
 typedef struct  
 {								//Name	Offset	Length	Value	Notes
-	char			cMessageType;		//Message Type	0	1	“R”	Stock Directory Message
+	char			cMessageType;		//Message Type	0	1	ï¿½Rï¿½	Stock Directory Message
 	unsigned int		iSockLocale;		// Stock Locate	1	2	Integer	Locate Code uniquely assigned to the security symbol for the day.
 	unsigned int		iTracking_Number;	//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t 		iTimeStamp;		//Timestamp	5	6	Integer	Time at which the directory message was generated. Refer to Data Types for field processing notes.
@@ -97,7 +113,7 @@ typedef struct
 typedef struct   
 {
 								//Name	Offset	Length	Value	Notes
-	char	cMessageType;					//Message Type	0	1	“H”	Stock Trading Action Message.
+	char	cMessageType;					//Message Type	0	1	ï¿½Hï¿½	Stock Trading Action Message.
 	unsigned int		iStockLocate;			//	Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		iTrackingNumber;		//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     iTimeStamp;				// Timestamp	5	6	Integer	Nanoseconds since midnight
@@ -114,43 +130,43 @@ typedef struct
 
 typedef struct   
 {//		Name	Offset	Length	Value	Notes
-	char			cMessage;				//Message Type	0	1	“Y”	Reg SHO Short Sale Price Test Restricted Indicator
+	char			cMessage;				//Message Type	0	1	ï¿½Yï¿½	Reg SHO Short Sale Price Test Restricted Indicator
 	unsigned int		iLocateCode;			// Locate Code	1	2	Integer	Locate code identifying the security 
 	unsigned int		TrackingNumber;			// Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t		iTimeStamp;  // 	5	6	Integer	Nanoseconds since midnight
 	char			Symbol[SIZE_OF_SYMBOL];    //  Stock	11	8	Alpha	Stock symbol, right padded with spaces
 	char			cRegSHOAction;	// Reg SHO Action   19	1	Alpha	Denotes the Reg SHO Short Sale Price Test Restriction status for the issue at the time of the message dissemination.  Allowable values are:
-	//“0” = No price test in place
-	//“1” = Reg SHO Short Sale Price Test Restriction in effect due to an intra-day price drop in security
-	//“2” = Reg SHO Short Sale Price Test Restriction remains in effect
+	//ï¿½0ï¿½ = No price test in place
+	//ï¿½1ï¿½ = Reg SHO Short Sale Price Test Restriction in effect due to an intra-day price drop in security
+	//ï¿½2ï¿½ = Reg SHO Short Sale Price Test Restriction remains in effect
 }REG_SHO_RESTRICTION_MESSAGE;
 
 typedef struct   
 {//Name	Offset	Length	Value	Notes
-	char			cMessageType;				//Message Type	0	1	“L”	Market Participant Position message
+	char			cMessageType;				//Message Type	0	1	ï¿½Lï¿½	Market Participant Position message
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security Tracking
 	unsigned int		TrackingNumber;				//Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;					// iTimeStamp	5	6	Integer	Nanoseconds since midnight
 	char			szMPID[5];					// MPID	11	4	Alpha	Denotes the market participant identifier for which the position message is being generated
 	char			szStock[SIZE_OF_SYMBOL];		//Stock 15	8	Alpha	Stock symbol, right padded with spaces
 	char			cPrimaryMM;					// Y N		//Primary Market Maker	23	1	Alpha	Indicates if the market participant firm qualifies as a Primary Market Maker in accordance with NASDAQ marketplace rules
-	char			cMMMode;				//Market Maker Mode	24	1	Alpha	Indicates the quoting participant’s registration status in relation to SEC Rules 101 and 104 of Regulation M 
-									/*“N” = normal 
-									“P” = passive 
-									“S” = syndicate
-									“R” = pre-syndicate
-									“L” = penalty*/
-	char			cMarketParticipantState;		// Market Participant State	25	1	Alpha	Indicates the market participant’s current registration status in the issue 
-									/*“A” = Active
-									“E” = Excused/Withdrawn
-									“W” = Withdrawn 
-									“S” = Suspended
-									“D” = Deleted*/
+	char			cMMMode;				//Market Maker Mode	24	1	Alpha	Indicates the quoting participantï¿½s registration status in relation to SEC Rules 101 and 104 of Regulation M 
+									/*ï¿½Nï¿½ = normal 
+									ï¿½Pï¿½ = passive 
+									ï¿½Sï¿½ = syndicate
+									ï¿½Rï¿½ = pre-syndicate
+									ï¿½Lï¿½ = penalty*/
+	char			cMarketParticipantState;		// Market Participant State	25	1	Alpha	Indicates the market participantï¿½s current registration status in the issue 
+									/*ï¿½Aï¿½ = Active
+									ï¿½Eï¿½ = Excused/Withdrawn
+									ï¿½Wï¿½ = Withdrawn 
+									ï¿½Sï¿½ = Suspended
+									ï¿½Dï¿½ = Deleted*/
 }MP_POSITION_MESSAGE;
 
 typedef struct     
 { //Name	Offset	Length	Value	Notes
-	char				cMessageType;				//Message Type	0	1	“V”	Market wide circuit breaker Decline Level Message.
+	char				cMessageType;				//Message Type	0	1	ï¿½Vï¿½	Market wide circuit breaker Decline Level Message.
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Always set to 0
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;					//Timestamp	5	6	Integer	Time at which the MWCB Decline Level message was generated
@@ -161,16 +177,16 @@ typedef struct
 
 typedef struct   
 { //Name	Offset	Length	Value	Notes
-	char				cMessageType;				//Message Type	0	1	“W”	Market wide circuit breaker Decline Level Message.
+	char				cMessageType;				//Message Type	0	1	ï¿½Wï¿½	Market wide circuit breaker Decline Level Message.
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Always set to 0
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;					//Timestamp	5	6	Integer	Time at which the MWCB Decline Level message was generated
-	char			cBreachLevel;					//Denotes the MWCB Level that was breached “1” = Level 1 “2” = Level 2
+	char			cBreachLevel;					//Denotes the MWCB Level that was breached ï¿½1ï¿½ = Level 1 ï¿½2ï¿½ = Level 2
 }MWCBDBM_MESSAGE;
 
 typedef struct   
 { //Name	Offset	Length	Value	Notes
-	char				cMessageType;	//Message Type	0	1	“K”	IPO Quoting Period Update Message
+	char				cMessageType;	//Message Type	0	1	ï¿½Kï¿½	IPO Quoting Period Update Message
 	unsigned int		iLocateCode;	//Stock Locate	1	2	Integer	Always set to 0
 	unsigned int		TrackingNumber;	//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     iTimeStamp;		//Timestamp	5	6	Integer	Time at which the IPQ Quoting Period Update message was generated
@@ -191,27 +207,27 @@ typedef struct
 
 typedef struct      // No MPID
 {  // Name	Offset	Length	Value	Notes
-	char				cMessageType;			//Message Type	0	1	“A”	Add Order – No MPID Attribution Message.
+	char				cMessageType;			//Message Type	0	1	ï¿½Aï¿½	Add Order ï¿½ No MPID Attribution Message.
 	unsigned int		iLocateCode;			//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;			//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOrderRefNumber;		//Order Reference Number	11	8	Integer	The unique reference number assigned to the new order at the time of receipt.
 	char			cBuySell;				//Buy/Sell Indicator	19	1	Alpha	The type of order being added.
-												//“B” = buy order. “S” = sell order.
+												//ï¿½Bï¿½ = buy order. ï¿½Sï¿½ = sell order.
 	unsigned int		iShares;				//Shares	20	4	Integer	The total number of shares associated with the order being added to the book.
 	char    szStock[SIZE_OF_SYMBOL];				//Stock	24	8	Alpha	Stock symbol, right padded with spaces
 	double  dPrice;								//Price	32	4  Price (4)	The display price of the new order.
 												//Refer to Data Types for field processing notes.
 } ADD_ORDER_NO_MPID_MESSAGE;
 
-typedef struct       //     ADD ORDER – MPID ATTRIBUTION MESSAGE
+typedef struct       //     ADD ORDER ï¿½ MPID ATTRIBUTION MESSAGE
 {	//Name	Offset	Length	Value	Notes
-	char				cMessageType;		//Message Type	0	1	“F”	Add Order with MPID Attribution Message.
+	char				cMessageType;		//Message Type	0	1	ï¿½Fï¿½	Add Order with MPID Attribution Message.
 	unsigned int		iLocateCode;		//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;		//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;			//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOrderRefNumber;	//Order Reference Number	11	8	Integer	The unique reference number assigned to the new order at the time of receipt.
-	char			cBuySell;  //Buy/Sell Indicator	19	1	Alpha	The type of order being added. “B” = buy order. “S” = sell order.
+	char			cBuySell;  //Buy/Sell Indicator	19	1	Alpha	The type of order being added. ï¿½Bï¿½ = buy order. ï¿½Sï¿½ = sell order.
 	unsigned int		iShares;//Shares	20	4	Integer	The total number of shares associated with the order being added to the book.
 	char			szStock[SIZE_OF_SYMBOL]; //Stock	24	8	Alpha	Stock symbol, right padded with spaces
 	double			dPrice;	 //Price	32	4	Price (4)	The display price of the new order.  //Refer to Data Types for field processing notes.
@@ -239,7 +255,7 @@ typedef struct       //     ADD ORDER – MPID ATTRIBUTION MESSAGE
 
 typedef struct   
 {// Name	Offset	Length	Value	Notes
-	char			cMessageType;			//Message Type	0	1	“E”	Order Executed Message.
+	char			cMessageType;			//Message Type	0	1	ï¿½Eï¿½	Order Executed Message.
 	unsigned int		iLocateCode;			//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;			//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t       		iTimeStamp;			//Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -251,7 +267,7 @@ typedef struct
 
 typedef struct   
 {// Name	Offset	Length	Value	Notes
-	char			cMessageType;			//Message Type	0	1	“c”	Order Executed Message.
+	char			cMessageType;			//Message Type	0	1	ï¿½cï¿½	Order Executed Message.
 	unsigned int		iLocateCode;			//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;			//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;			//Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -260,14 +276,14 @@ typedef struct
 	uint64_t     		iOrderMatchNumber;		//Match Number	23	8	Integer	The NASDAQ generated day-unique Match Number of this execution. The match number is also referenced in the Trade Break Message.
 	
 	char			cPrintable;			// Printable  31	1	Alpha	Indicates if the execution should be reflected on time and sale displays and volume calculations.
-												//“N” = non-printable
-												//“Y” = printable
+												//ï¿½Nï¿½ = non-printable
+												//ï¿½Yï¿½ = printable
 	double			dExecutionPrice;		//Execution Price	32	4	Price (4)	The price at which the order execution occurred. Refer to Data Types for field processing notes.
 } ORDER_EXECUTED_WITH_PRICE_MESSAGE;
 
 typedef struct   
 { //Name	Offset	Length	Value	Notes
-	char			cMessageType;				//Message Type	0	1	“X”	Order Cancel Message.
+	char			cMessageType;				//Message Type	0	1	ï¿½Xï¿½	Order Cancel Message.
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -278,7 +294,7 @@ typedef struct
 
 typedef struct   
 {									//Name	Offset	Length	Value	Notes
-	char			cMessageType;				//Message Type	0	1	“D”	Order Delete Message.
+	char			cMessageType;				//Message Type	0	1	ï¿½Dï¿½	Order Delete Message.
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -295,7 +311,7 @@ typedef struct
 
 typedef struct   
 {//   Name	Offset	Length	Value	Notes
-	char			cMessageType;						//Message Type	0	1	“U”	Order Replace Message
+	char			cMessageType;						//Message Type	0	1	ï¿½Uï¿½	Order Replace Message
 	unsigned int		iLocateCode;						//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;						//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;						//Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -311,13 +327,13 @@ typedef struct              // Quanticks Common Order Message....this is NOT rec
 					// Does not get the data directly from a parsed message in the feed
 {	
 	char		cMessageType;			// Message Type		 	
-												//“A”	Add Order – No MPID Attribution Message.
-												//“F”	Add Order with MPID Attribution Message.
-												//“E”	Order Executed Message.
-												//“c”	Order Executed Message with price
-												//“X”	Order Cancel Message.
-												//“D”	Order Delete Message.
-												//“U”	Order Replace Message
+												//ï¿½Aï¿½	Add Order ï¿½ No MPID Attribution Message.
+												//ï¿½Fï¿½	Add Order with MPID Attribution Message.
+												//ï¿½Eï¿½	Order Executed Message.
+												//ï¿½cï¿½	Order Executed Message with price
+												//ï¿½Xï¿½	Order Cancel Message.
+												//ï¿½Dï¿½	Order Delete Message.
+												//ï¿½Uï¿½	Order Replace Message
 
 //	unsigned int	iLocateCode;			// Stock Locate	Integer	Locate code identifying the security
 	unsigned int	TrackingNumber;			// Tracking Number		Integer	NASDAQ OMX internal tracking number
@@ -325,8 +341,8 @@ typedef struct              // Quanticks Common Order Message....this is NOT rec
 	uint64_t	iOrderRefNumber;		// Order Reference Number	Integer	The unique reference number assigned to the new order at the time of receipt.
 	uint64_t	iPrevOrderRefNumber;	// Previous Order Reference Number	In case we are processing an order replace
 	char		cBuySell;				// Buy/Sell Indicator			Alpha	The type of order being added. 
-												// “B” = buy order.
-												// “S” = sell order.
+												// ï¿½Bï¿½ = buy order.
+												// ï¿½Sï¿½ = sell order.
 	unsigned int	iShares;				// Shares		Integer	The total number of shares associated with the order being added to the book.
 	unsigned int	iPrevShares;	//  case of order replace
 	double		dPrevPrice;	//  case of order replace
@@ -338,15 +354,15 @@ typedef struct              // Quanticks Common Order Message....this is NOT rec
 
 typedef struct     // Quanticks Common Trade Message....this is NOT received from ITCH
  {													//Name	Offset	Length	Value	Notes
-	char		cMessageType;				//Message Type	0	1	“P”	Trade Message
+	char		cMessageType;				//Message Type	0	1	ï¿½Pï¿½	Trade Message
 //	unsigned int	iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int	TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     	iTimeStamp;					//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t	iOrderRefNumber;			//Order Reference Number	11	8	Integer	The unique reference number assigned to the order on the book being executed.
 													//Effective December 6, 2010, NASDAQ OMX will populate the Order Reference Number field within the Trade (Non-Cross) message as zero. For the binary versions of the TotalView-ITCH data feeds, the field will be null-filled bytes (which encodes sequence of zero).
 	char		cBuySell;					//Buy/Sell Indicator	19	1	Alpha	The type of non-display order on the book being matched.
-													//“B” =buy order
-													//“S” =sell order
+													//ï¿½Bï¿½ =buy order
+													//ï¿½Sï¿½ =sell order
 	unsigned int	iShares;					//Shares	20	4	Integer	The number of shares being matched in this execution.
 	char		szStock[SIZE_OF_SYMBOL];		//Stock	24	8	Alpha	Stock symbol, right padded with spaces
 	double		dPrice;						//Price	32	4	Price (4)	The match price of the order.  Refer to Data Types for field processing notes.
@@ -370,15 +386,15 @@ typedef struct     // Quanticks Common Trade Message....this is NOT received fro
 
 typedef struct     
  {									//Name	Offset	Length	Value	Notes
-	char			cMessageType;				//Message Type	0	1	“P”	Trade Message
+	char			cMessageType;				//Message Type	0	1	ï¿½Pï¿½	Trade Message
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     		iTimeStamp;				//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	uint64_t		iOrderRefNumber;			//Order Reference Number	11	8	Integer	The unique reference number assigned to the order on the book being executed.
 									//Effective December 6, 2010, NASDAQ OMX will populate the Order Reference Number field within the Trade (Non-Cross) message as zero. For the binary versions of the TotalView-ITCH data feeds, the field will be null-filled bytes (which encodes sequence of zero).
 	char			cBuySell;				//Buy/Sell Indicator	19	1	Alpha	The type of non-display order on the book being matched.
-									//“B” =buy order
-									//“S” =sell order
+									//ï¿½Bï¿½ =buy order
+									//ï¿½Sï¿½ =sell order
 	unsigned int		iShares;				//Shares	20	4	Integer	The number of shares being matched in this execution.
 	char			szStock[SIZE_OF_SYMBOL];		//Stock	24	8	Alpha	Stock symbol, right padded with spaces
 	double			dPrice;					//Price	32	4	Price (4)	The match price of the order.  Refer to Data Types for field processing notes.
@@ -386,14 +402,14 @@ typedef struct
 }TRADE_NON_CROSS_MESSAGE;
 
 //4.5.3 Broken Trade / Order Execution Message
-//The Broken Trade Message is sent whenever an execution on NASDAQ is broken. An execution may be broken if it is found to be “clearly erroneous” pursuant to  NASDAQ’s Clearly Erroneous Policy.
+//The Broken Trade Message is sent whenever an execution on NASDAQ is broken. An execution may be broken if it is found to be ï¿½clearly erroneousï¿½ pursuant to  NASDAQï¿½s Clearly Erroneous Policy.
 //A trade break is final; once a trade is broken, it cannot be reinstated.
 //Firms that use the ITCH feed to create time-and-sales displays or calculate market statistics should be prepared to process the broken trade message.  
 //If a firm is only using the ITCH feed to build a book, however, it may ignore these messages as they have NO impact on the current book. << IMPORTANT
 
 //BROKEN TRADE MESSAGE
 //Name	Offset	Length	Value	Notes
-//Message Type	0	1	“B”	Broken Trade Message.
+//Message Type	0	1	ï¿½Bï¿½	Broken Trade Message.
 //Stock Locate	1	2	Integer	Locate code identifying the security
 //Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 //Timestamp	5	6	Integer	Nanoseconds since midnight.
@@ -403,51 +419,51 @@ typedef struct
 
 typedef struct    
 {//Name	Offset	Length	Value	Notes
-char			cMessageType;						//Message Type	0	1	“I”	NOII Message
+char			cMessageType;						//Message Type	0	1	ï¿½Iï¿½	NOII Message
 unsigned int		iLocateCode;						//Stock Locate	1	2	Integer	Locate code identifying the security
 unsigned int		TrackingNumber;						//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 uint64_t     		iTimeStamp;						//Timestamp	5	6	Integer	Nanoseconds since midnight.
 uint64_t		iPairedShares;						//Paired Shares	11	8	Integer	The total number of shares that are eligible to be matched at the Current Reference Price.
 uint64_t     		iImbalanceShares;					//Imbalance Shares	19	8	Integer	The number of shares not paired at the Current Reference Price.
 unsigned int		iImbalanceDirection;					//Imbalance Direction	27	1	Alpha	The market side of the order imbalance.
-										//“B” = buy imbalance “S” = sell imbalance “N” = no imbalance “O” = Insufficient orders to calculate
+										//ï¿½Bï¿½ = buy imbalance ï¿½Sï¿½ = sell imbalance ï¿½Nï¿½ = no imbalance ï¿½Oï¿½ = Insufficient orders to calculate
 char			szStock[SIZE_OF_SYMBOL];				//Stock	28	8	Alpha	Stock symbol, right padded with spaces
 double			dFarPrice;						//Far Price	36	4	Price (4)	A hypothetical auction-clearing price for cross orders only. Refer to Data Types for field processing notes.
 double			dNearPrice;						//Near Price	40	4	Price (4)	A hypothetical auction-clearing price for cross orders as well as continuous orders. Refer to Data Types for field processing notes.
 double			dRefPrice;						//Current Reference Price	44	4	Price (4)	The price at which the NOII shares are being calculated.  Refer to Data Types for field processing notes.
 char			cCrossType;						//Cross Type	48	1	Alpha	The type of NASDAQ cross for which the NOII message is being generated
-										//														//“O” = NASDAQ Opening Cross
-										//														//“C” = NASDAQ Closing Cross
-										//														//“H” = Cross for IPO and halted / paused securities
+										//														//ï¿½Oï¿½ = NASDAQ Opening Cross
+										//														//ï¿½Cï¿½ = NASDAQ Closing Cross
+										//														//ï¿½Hï¿½ = Cross for IPO and halted / paused securities
 char			cPriceVariation;					//				Price Variation Indicator	49	1	Alpha	This field indicates the absolute value of the percentage of deviation of the Near Indicative Clearing Price to the nearest Current Reference Price.
-										//															//“L” = Less than 1%
-										//															//“1” = 1 to 1.99% 
-										//															//“2” = 2 to 2.99% 
-										//															//“3” = 3 to 3.99% 
-										//															//“4” = 4 to 4.99% 
-										//															//“5” = 5 to 5.99% 
-										//															//“6” = 6 to 6.99% 
-										//															//“7” = 7 to 7.99% 
-										//															//“8” = 8 to 8.99% 
-										//															//“9” = 9 to 9.99% 
-										//															//“A” = 10 to 19.99% 
-										//															//“B” = 20 to 29.99%
-										//															//“C” = 30% or greater
+										//															//ï¿½Lï¿½ = Less than 1%
+										//															//ï¿½1ï¿½ = 1 to 1.99% 
+										//															//ï¿½2ï¿½ = 2 to 2.99% 
+										//															//ï¿½3ï¿½ = 3 to 3.99% 
+										//															//ï¿½4ï¿½ = 4 to 4.99% 
+										//															//ï¿½5ï¿½ = 5 to 5.99% 
+										//															//ï¿½6ï¿½ = 6 to 6.99% 
+										//															//ï¿½7ï¿½ = 7 to 7.99% 
+										//															//ï¿½8ï¿½ = 8 to 8.99% 
+										//															//ï¿½9ï¿½ = 9 to 9.99% 
+										//															//ï¿½Aï¿½ = 10 to 19.99% 
+										//															//ï¿½Bï¿½ = 20 to 29.99%
+										//															//ï¿½Cï¿½ = 30% or greater
 										//															//Space = Cannot be calculated
 }NOII_MESSAGE;
 
 
 typedef struct    
 {//Name	Offset	Length	Value	Notes
-	char				cMessageType;							//Message Type	0	1	“N”	Retail Interest message
+	char				cMessageType;							//Message Type	0	1	ï¿½Nï¿½	Retail Interest message
 	unsigned int		iLocateCode;				//Stock Locate	1	2	Integer	Locate code identifying the security
 	unsigned int		TrackingNumber;				//Tracking Number	3	2	Integer	NASDAQ OMX internal tracking number
 	uint64_t     iTimeStamp;					//Timestamp	5	6	Integer	Nanoseconds since midnight.
 	char				szStock[SIZE_OF_SYMBOL];					//Stock	11	8	Alpha	Stock symbol, right padded with spaces
-	char				cInterestFlag;							//Interest Flag	19	1	Alpha	“B” = RPI orders available on the buy side
-													//“S” = RPI orders available on the sell side
-													//“A” = RPI orders available on both sides (buy and sell)
-													//“N” = No RPI orders available
+	char				cInterestFlag;							//Interest Flag	19	1	Alpha	ï¿½Bï¿½ = RPI orders available on the buy side
+													//ï¿½Sï¿½ = RPI orders available on the sell side
+													//ï¿½Aï¿½ = RPI orders available on both sides (buy and sell)
+													//ï¿½Nï¿½ = No RPI orders available
 }RPII_MESSAGE;
 
 
