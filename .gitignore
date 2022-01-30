@@ -50,6 +50,7 @@ ui_*
 moc_*
 # ITCH Directory
 NasdTestFiles/
+ITCH/
 
 # settings
 QSettings/
