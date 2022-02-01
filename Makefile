@@ -31,9 +31,9 @@ SRCS = 	main.cpp \
 #INCLUDES = -I/home/amro/projects/QuantServer  -I../Include   -I../Common 
 ############### List all header file paths here...##############
 # Define header file paths
-INCPATH = -I/usr/include/mysql -I./Common -I./Include
+INCPATH = -I./Common -I./Include
 # Define the -L library path(s)
-LDFLAGS = -lrt -L/usr/lib64/mysql -lmysqlclient
+LDFLAGS = -lrt 
 # LDFLAGS = -lrt 
 ###################### Define the -l library name(s)  ##########
 LIBS = -lpthread
