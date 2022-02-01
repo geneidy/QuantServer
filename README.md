@@ -1,4 +1,4 @@
-# QuantServer: High Frequency Market Data Infrastructure Server
+# QuantServer: High Frequency Market Data Server
 
 High performance multi-threaded *Limit Order Book* (re)constructor using raw data feed messages adhering to the Nasdaq ITCH 5.0 protocol specification. Intended for high frequency trading research such as trade cost analysis. This has not been tested in a live environment.  
 
